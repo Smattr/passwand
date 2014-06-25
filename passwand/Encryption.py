@@ -17,9 +17,9 @@ class Encrypter(object):
             return HMAC.new(password, s, SHA512).digest()
 
         # Compute a random salt if we weren't given one.
-        r = Random.new()
+        self.random = Random.new()
         if salt is None:
-            salt = r.read(8)
+            salt = self.random.read(8)
         self.salt = salt
         assert len(self.salt) == 8
 
@@ -29,7 +29,7 @@ class Encrypter(object):
 
         # Compute an initial vector if we weren't given one.
         if init_vector is None:
-            init_vector = r.read(16)
+            init_vector = self.random.read(16)
         self.init_vector = init_vector
         assert len(self.init_vector) == 16
 
@@ -45,8 +45,9 @@ class Encrypter(object):
         length = len(plaintext)
 
         # Pad the plain text with 0s to 16 byte alignment.
-        padding = 16 - (length + sz) % 16
-        padded = struct.pack('<Q', len(plaintext)) + plaintext + '\x00' * padding
+        padding_sz = 16 - (length + sz) % 16
+        padding = self.random.read(padding_sz)
+        padded = struct.pack('<Q', len(plaintext)) + plaintext + padding
 
         # Encrypt the resulting length + plain text + padding.
         ciphertext = a.encrypt(padded)
