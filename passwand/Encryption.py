@@ -7,62 +7,67 @@ import struct
 
 KEY_SIZE = 32 # bytes
 AES_MODE = AES.MODE_CBC # Cipher Block Chaining
+KEY_DERIVATION_ITERATIONS = 1000
 
-class Encrypter(object):
-    def __init__(self, master, salt=None, init_vector=None):
+def make_aes(key, iv):
+    return AES.new(key, AES_MODE, IV=iv)
 
-        def prf(password, s):
-            '''HMAC-SHA512 as a pseudo-random function for use in key
-            derivation.'''
-            return HMAC.new(password, s, SHA512).digest()
+def prf(password, s):
+    '''HMAC-SHA512 as a pseudo-random function for use in key
+    derivation.'''
+    return HMAC.new(password, s, SHA512).digest()
 
-        # Compute a random salt if we weren't given one.
-        self.random = Random.new()
-        if salt is None:
-            salt = self.random.read(8)
-        self.salt = salt
-        assert len(self.salt) == 8
+def make_key(master, salt):
+    return PBKDF2(master, salt, dkLen=16, count=KEY_DERIVATION_ITERATIONS, prf=prf)
 
-        # Derive a key from our master password and salt.
-        self.key = PBKDF2(master, self.salt, dkLen=16, count=100000, prf=prf)
-        assert len(self.key) == 16
+def encrypt(master, plaintext, salt=None, init_vector=None):
+    rand = Random.new()
 
-        # Compute an initial vector if we weren't given one.
-        if init_vector is None:
-            init_vector = self.random.read(16)
-        self.init_vector = init_vector
-        assert len(self.init_vector) == 16
+    # Compute a random salt if we weren't given one.
+    if salt is None:
+        salt = rand.read(8)
+    assert len(salt) == 8
 
-    def _make_crypt(self):
-        return AES.new(self.key, AES_MODE, IV=self.init_vector)
+    assert master is not None
+    key = make_key(master, salt)
 
-    def encrypt(self, plaintext):
-        a = self._make_crypt()
+    # Compute an initial vector if we weren't given one.
+    if init_vector is None:
+        init_vector = rand.read(16)
+    assert len(init_vector) == 16
 
-        # First, calculate and pack the length of the plain text. We must do
-        # this because we need to pad it to 16 bytes before encrypting.
-        sz = struct.calcsize('<Q')
-        length = len(plaintext)
+    a = make_aes(key, init_vector)
 
-        # Pad the plain text with 0s to 16 byte alignment.
-        padding_sz = 16 - (length + sz) % 16
-        padding = self.random.read(padding_sz)
-        padded = struct.pack('<Q', len(plaintext)) + plaintext + padding
+    # First, calculate and pack the length of the plain text. We must do
+    # this because we need to pad it to 16 bytes before encrypting.
+    assert plaintext is not None
+    sz = struct.calcsize('<Q')
+    length = len(plaintext)
 
-        # Encrypt the resulting length + plain text + padding.
-        ciphertext = a.encrypt(padded)
-        return ciphertext
+    # Pad the plain text with 0s to 16 byte alignment.
+    padding_sz = 16 - (length + sz) % 16
+    padding = rand.read(padding_sz)
+    padded = struct.pack('<Q', len(plaintext)) + plaintext + padding
 
-    def decrypt(self, ciphertext):
-        a = self._make_crypt()
+    # Encrypt the resulting length + plain text + padding.
+    ciphertext = a.encrypt(padded)
+    return ciphertext, salt, init_vector
 
-        # Decrypt the annotated plain text.
-        padded = a.decrypt(ciphertext)
+def decrypt(master, ciphertext, salt, init_vector):
+    assert len(salt) == 8
+    key = make_key(master, salt)
 
-        # Unpack the size of the original plain text.
-        sz = struct.calcsize('<Q')
-        length = struct.unpack('<Q', padded[:sz])[0]
+    assert init_vector is not None
+    assert len(init_vector) == 16
+    a = make_aes(key, init_vector)
 
-        # Now we can actually get it back from the padded representation.
-        unpadded = padded[sz:sz+length]
-        return unpadded
+    # Decrypt the annotated plain text.
+    padded = a.decrypt(ciphertext)
+
+    # Unpack the size of the original plain text.
+    sz = struct.calcsize('<Q')
+    length = struct.unpack('<Q', padded[:sz])[0]
+
+    # Now we can actually get it back from the padded representation.
+    unpadded = padded[sz:sz+length]
+    return unpadded
