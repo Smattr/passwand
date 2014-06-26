@@ -9,6 +9,8 @@ KEY_SIZE = 32 # bytes
 AES_MODE = AES.MODE_CBC # Cipher Block Chaining
 KEY_DERIVATION_ITERATIONS = 1000
 
+HEADER = 'opdata01'
+
 def make_aes(key, iv):
     return AES.new(key, AES_MODE, IV=iv)
 
@@ -38,19 +40,31 @@ def encrypt(master, plaintext, salt=None, init_vector=None):
 
     a = make_aes(key, init_vector)
 
-    # First, calculate and pack the length of the plain text. We must do
-    # this because we need to pad it to 16 bytes before encrypting.
-    assert plaintext is not None
-    sz = struct.calcsize('<Q')
-    length = len(plaintext)
+    # Now we're ready to calculate the input to the encryption.
+    src = HEADER
 
-    # Pad the plain text with 0s to 16 byte alignment.
-    padding_sz = 16 - (length + sz) % 16
+    # First, calculate and pack the length of the plain text. We must do
+    # this because we need to pad it to 16 bytes before encrypting. We append
+    # the length to the source data.
+    assert plaintext is not None
+    length = len(plaintext)
+    assert struct.calcsize('<Q') == 8
+    src += struct.pack('<Q', length)
+
+    # Now the initialisation vector.
+    src += init_vector
+
+    # Pad the plain text with random bytes to 16 byte alignment.
+    padding_sz = 16 - length % 16
     padding = rand.read(padding_sz)
-    padded = struct.pack('<Q', len(plaintext)) + plaintext + padding
+    # and append it to the input.
+    src += plaintext + padding
+
+    # This final input should be 16 byte aligned if we got that right.
+    assert len(src) % 16 == 0
 
     # Encrypt the resulting length + plain text + padding.
-    ciphertext = a.encrypt(padded)
+    ciphertext = a.encrypt(src)
     return ciphertext, salt, init_vector
 
 def decrypt(master, ciphertext, salt, init_vector):
@@ -62,12 +76,31 @@ def decrypt(master, ciphertext, salt, init_vector):
     a = make_aes(key, init_vector)
 
     # Decrypt the annotated plain text.
-    padded = a.decrypt(ciphertext)
+    dest = a.decrypt(ciphertext)
+
+    if len(dest) % 16 != 0:
+        raise Exception('unaligned unencrypted data')
+
+    # We should have the data format header.
+    if not dest.startswith(HEADER):
+        raise Exception('invalid resulting data format')
+    dest = dest[len(HEADER):]
 
     # Unpack the size of the original plain text.
-    sz = struct.calcsize('<Q')
-    length = struct.unpack('<Q', padded[:sz])[0]
+    assert struct.calcsize('<Q') == 8
+    if len(dest) < 8:
+        raise Exception('truncated data')
+    length = struct.unpack('<Q', dest[:8])[0]
+    dest = dest[8:]
 
-    # Now we can actually get it back from the padded representation.
-    unpadded = padded[sz:sz+length]
-    return unpadded
+    # Check the initialisation vector matches.
+    if len(dest) < 16:
+        raise Exception('missing initialisation vector')
+    if init_vector != dest[:16]:
+        raise Exception('mismatched initialisation vectors')
+    dest = dest[16:]
+
+    if length > len(dest):
+        raise Exception('invalid length indicated')
+
+    return dest[:length]
