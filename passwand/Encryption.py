@@ -54,7 +54,7 @@ def encrypt(master, plaintext):
     padding_sz = 16 - length % 16
     padding = rand.read(padding_sz)
     # and append it to the input.
-    src += plaintext + padding
+    src += padding + plaintext
 
     # This final input should be 16 byte aligned if we got that right.
     assert len(src) % 16 == 0
@@ -98,5 +98,7 @@ def decrypt(master, ciphertext, salt, init_vector):
 
     if length > len(dest):
         raise Exception('invalid length indicated')
+    if len(dest) - length > 16:
+        raise Exception('invalid padding detected')
 
-    return dest[:length]
+    return dest[len(dest) - length:]
