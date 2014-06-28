@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import Encryption, sys, unittest
 
 class Encrypt(unittest.TestCase):
@@ -11,6 +14,13 @@ class Encrypt(unittest.TestCase):
         '''We can successfully encrypt and decrypt some text.'''
         m = 'master password'
         p = 'hello world'
+        c, salt, iv = Encryption.encrypt(m, p)
+        d = Encryption.decrypt(m, c, salt, iv)
+        self.assertEqual(p, d)
+    def test_utf8(self):
+        '''We can successfully deal with UTF-8.'''
+        m = 'master password'
+        p = 'hello ↑'
         c, salt, iv = Encryption.encrypt(m, p)
         d = Encryption.decrypt(m, c, salt, iv)
         self.assertEqual(p, d)
