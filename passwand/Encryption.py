@@ -20,7 +20,7 @@ def prf(password, s):
     return HMAC.new(password, s, SHA512).digest()
 
 def make_key(master, salt):
-    return PBKDF2(master, salt, dkLen=16, count=KEY_DERIVATION_ITERATIONS, prf=prf)
+    return PBKDF2(master, salt, dkLen=KEY_SIZE, count=KEY_DERIVATION_ITERATIONS, prf=prf)
 
 def encrypt(master, plaintext):
     rand = Random.new()
