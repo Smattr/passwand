@@ -22,21 +22,17 @@ def prf(password, s):
 def make_key(master, salt):
     return PBKDF2(master, salt, dkLen=16, count=KEY_DERIVATION_ITERATIONS, prf=prf)
 
-def encrypt(master, plaintext, salt=None, init_vector=None):
+def encrypt(master, plaintext):
     rand = Random.new()
 
-    # Compute a random salt if we weren't given one.
-    if salt is None:
-        salt = rand.read(8)
-    assert len(salt) == 8
+    # Compute a random salt.
+    salt = rand.read(8)
 
     assert master is not None
     key = make_key(master, salt)
 
-    # Compute an initial vector if we weren't given one.
-    if init_vector is None:
-        init_vector = rand.read(16)
-    assert len(init_vector) == 16
+    # Compute an initial vector.
+    init_vector = rand.read(16)
 
     a = make_aes(key, init_vector)
 
