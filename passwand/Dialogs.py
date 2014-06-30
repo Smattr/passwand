@@ -13,6 +13,11 @@ def show_message(message, title):
         init()
     tkMessageBox.showinfo(title, message)
 
+def show_error(message, title):
+    if not initialised:
+        init()
+    tkMessageBox.showerror(title, message)
+
 def askstring(message, text, title, **kwargs):
     if not initialised:
         init()
