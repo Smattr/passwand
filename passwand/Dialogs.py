@@ -11,7 +11,7 @@ def init():
 def show_message(message, title):
     if not initialised:
         init()
-    tkMessageBox.showinfo(message, title)
+    tkMessageBox.showinfo(title, message)
 
 def askstring(message, text, title, **kwargs):
     if not initialised:
