@@ -11,6 +11,8 @@ class Entry(object):
         self.service = get('service')
         self.field = get('field')
         self.value = get('value')
+        self.salt = get('salt')
+        self.iv = get('iv')
 
     def to_dict(self):
         d = {}
@@ -21,6 +23,8 @@ class Entry(object):
         put('service')
         put('field')
         put('value')
+        put('salt')
+        put('iv')
         return d
 
 def read_entries(path):
