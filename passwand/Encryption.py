@@ -1,4 +1,5 @@
 from Crypto.Cipher import AES
+from Crypto.Util import Counter
 from Crypto import Random
 from Crypto.Hash import HMAC
 from Crypto.Hash import SHA512
@@ -6,13 +7,15 @@ from Crypto.Protocol.KDF import PBKDF2
 import struct
 
 KEY_SIZE = 32 # bytes
-AES_MODE = AES.MODE_CBC # Cipher Block Chaining
+AES_MODE = AES.MODE_CTR # Counter
 KEY_DERIVATION_ITERATIONS = 1000
 
-HEADER = 'opdata01'
+HEADER = 'oprime01'
 
 def make_aes(key, iv):
-    return AES.new(key, AES_MODE, IV=iv)
+    val = struct.unpack('<Q', iv)[0]
+    ctr = Counter.new(128, initial_value=val, allow_wraparound=True)
+    return AES.new(key, AES_MODE, counter=ctr)
 
 def prf(password, s):
     '''HMAC-SHA512 as a pseudo-random function for use in key
@@ -32,7 +35,7 @@ def encrypt(master, plaintext):
     key = make_key(master, salt)
 
     # Compute an initial vector.
-    init_vector = rand.read(16)
+    init_vector = rand.read(8)
 
     a = make_aes(key, init_vector)
 
@@ -49,6 +52,7 @@ def encrypt(master, plaintext):
 
     # Now the initialisation vector.
     src += init_vector
+    length += len(init_vector)
 
     # Pad the plain text with random bytes to 16 byte alignment.
     padding_sz = 16 - length % 16
@@ -68,7 +72,7 @@ def decrypt(master, ciphertext, salt, init_vector):
     key = make_key(master, salt)
 
     assert init_vector is not None
-    assert len(init_vector) == 16
+    assert len(init_vector) == 8
     a = make_aes(key, init_vector)
 
     # Decrypt the annotated plain text.
@@ -90,11 +94,11 @@ def decrypt(master, ciphertext, salt, init_vector):
     dest = dest[8:]
 
     # Check the initialisation vector matches.
-    if len(dest) < 16:
+    if len(dest) < 8:
         raise Exception('missing initialisation vector')
-    if init_vector != dest[:16]:
+    if init_vector != dest[:8]:
         raise Exception('mismatched initialisation vectors')
-    dest = dest[16:]
+    dest = dest[8:]
 
     if length > len(dest):
         raise Exception('invalid length indicated')
