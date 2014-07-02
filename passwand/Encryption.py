@@ -1,10 +1,8 @@
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
 from Crypto import Random
-from Crypto.Hash import HMAC
-from Crypto.Hash import SHA512
-from Crypto.Protocol.KDF import PBKDF2
 import struct
+import scrypt
 
 KEY_SIZE = 32 # bytes
 AES_MODE = AES.MODE_CTR # Counter
@@ -17,13 +15,9 @@ def make_aes(key, iv):
     ctr = Counter.new(128, initial_value=val, allow_wraparound=True)
     return AES.new(key, AES_MODE, counter=ctr)
 
-def prf(password, s):
-    '''HMAC-SHA512 as a pseudo-random function for use in key
-    derivation.'''
-    return HMAC.new(password, s, SHA512).digest()
-
 def make_key(master, salt):
-    return PBKDF2(master, salt, dkLen=KEY_SIZE, count=KEY_DERIVATION_ITERATIONS, prf=prf)
+    # XXX: Currently using recommended parameters for online storage.
+    return scrypt.hash(master, salt, N=2<<14, r=8, p=1, buflen=KEY_SIZE)
 
 def encrypt(master, plaintext):
     rand = Random.new()
