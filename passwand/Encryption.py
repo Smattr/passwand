@@ -27,16 +27,14 @@ def make_key(master, salt):
     return scrypt.hash(master, salt, N=2<<14, r=8, p=1, buflen=KEY_SIZE)
 
 def encrypt(master, plaintext):
-    rand = Random.new()
-
     # Compute a random salt.
-    salt = rand.read(8)
+    salt = random_bytes(8)
 
     assert master is not None
     key = make_key(master, salt)
 
     # Compute an initial vector.
-    init_vector = rand.read(8)
+    init_vector = random_bytes(8)
 
     a = make_aes(key, init_vector)
 
@@ -57,7 +55,7 @@ def encrypt(master, plaintext):
 
     # Pad the plain text with random bytes to 16 byte alignment.
     padding_sz = 16 - length % 16
-    padding = rand.read(padding_sz)
+    padding = random_bytes(padding_sz)
     # and append it to the input.
     src += padding + plaintext
 
