@@ -13,6 +13,8 @@ class Entry(object):
         self.value = get('value')
         self.salt = get('salt')
         self.iv = get('iv')
+        self.hmac = get('hmac')
+        self.hmac_salt = get('hmac_salt')
 
     def to_dict(self):
         d = {}
@@ -25,6 +27,8 @@ class Entry(object):
         put('value')
         put('salt')
         put('iv')
+        put('hmac')
+        put('hmac_salt')
         return d
 
 def read_entries(path):
