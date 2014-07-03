@@ -28,11 +28,13 @@ def make_key(master, salt):
     # XXX: Currently using recommended parameters for online storage.
     return scrypt.hash(master, salt, N=2<<14, r=8, p=1, buflen=KEY_SIZE)
 
-def mac(master, data):
-    salt = random_bytes(8)
+def mac(master, data, salt=None):
+    if salt is None:
+        salt = random_bytes(8)
+    assert len(salt) == 8
     key = make_key(master, salt)
     auth = HMAC.new(key, data, SHA512).digest()
-    return (key, auth)
+    return (salt, auth)
 
 def encrypt(master, plaintext):
     # Compute a random salt.
