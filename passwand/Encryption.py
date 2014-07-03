@@ -19,6 +19,8 @@ def random_bytes(len):
     return random_dev.read(len)
 
 def make_aes(key, iv):
+    assert struct.calcsize('<Q') == 8
+    assert len(iv) == 8
     val = struct.unpack('<Q', iv)[0]
     ctr = Counter.new(128, initial_value=val, allow_wraparound=True)
     return AES.new(key, AES_MODE, counter=ctr)
@@ -62,7 +64,10 @@ def encrypt(master, plaintext):
     src += init_vector
     length += len(init_vector)
 
-    # Pad the plain text with random bytes to 16 byte alignment.
+    # Pad the plain text with random bytes to 16 byte alignment. Agile Bits
+    # considers the padding scheme from IETF draft AEAD-AES-CBC-HMAC-SHA as a
+    # more suitable replacement, but I'm not sure why. It involves
+    # deterministic bytes that seems inherently less secure.
     padding_sz = 16 - length % 16
     padding = random_bytes(padding_sz)
     # and append it to the input.
