@@ -10,6 +10,13 @@ KEY_DERIVATION_ITERATIONS = 1000
 
 HEADER = 'oprime01'
 
+random_dev = None
+def random_bytes(len):
+    global random_dev
+    if random_dev is None:
+        random_dev = Random.new()
+    return random_dev.read(len)
+
 def make_aes(key, iv):
     val = struct.unpack('<Q', iv)[0]
     ctr = Counter.new(128, initial_value=val, allow_wraparound=True)
