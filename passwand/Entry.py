@@ -1,5 +1,6 @@
 import json
 from Encoding import decode, encode
+from Encryption import mac
 
 class Entry(object):
     def __init__(self, properties):
@@ -15,6 +16,24 @@ class Entry(object):
         self.iv = get('iv')
         self.hmac = get('hmac')
         self.hmac_salt = get('hmac_salt')
+
+    def mac(self, master, salt=None):
+        data = ''
+        for f in ['service', 'field', 'value', 'salt', 'iv']:
+            v = getattr(self, f)
+            if v is not None:
+                data += v
+        salt, auth = mac(master, data, salt)
+        return (salt, auth)
+
+    def check_hmac(self, master):
+        if self.hmac is None or self.hmac_salt is None:
+            return False
+        _, auth = self.mac(master, self.hmac_salt)
+        return auth == self.hmac
+
+    def set_hmac(self, master):
+        self.hmac_salt, self.hmac = self.mac(master)
 
     def to_dict(self):
         d = {}
