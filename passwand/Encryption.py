@@ -8,7 +8,6 @@ import scrypt
 
 KEY_SIZE = 32 # bytes
 AES_MODE = AES.MODE_CTR # Counter
-KEY_DERIVATION_ITERATIONS = 1000
 
 HEADER = 'oprime01'
 
