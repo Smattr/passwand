@@ -25,24 +25,30 @@ def make_aes(key, iv):
     ctr = Counter.new(128, initial_value=val, allow_wraparound=True)
     return AES.new(key, AES_MODE, counter=ctr)
 
-def make_key(master, salt):
-    # XXX: Currently using recommended parameters for online storage.
-    return scrypt.hash(master, salt, N=2<<14, r=8, p=1, buflen=KEY_SIZE)
+def make_key(master, salt, work_factor=14):
+    assert work_factor >= 10 and work_factor <= 31
+    return scrypt.hash(master, salt, N=(2 << work_factor), r=8, p=1, buflen=KEY_SIZE)
 
-def mac(master, data, salt=None):
+def mac(master, data, salt=None, work_factor=None):
     if salt is None:
         salt = random_bytes(8)
     assert len(salt) == 8
-    key = make_key(master, salt)
+    kwargs = {}
+    if work_factor is not None:
+        kwargs['work_factor'] = work_factor
+    key = make_key(master, salt, **kwargs)
     auth = HMAC.new(key, data, SHA512).digest()
     return (salt, auth)
 
-def encrypt(master, plaintext):
+def encrypt(master, plaintext, work_factor=None):
     # Compute a random salt.
     salt = random_bytes(8)
 
     assert master is not None
-    key = make_key(master, salt)
+    kwargs = {}
+    if work_factor is not None:
+        kwargs['work_factor'] = work_factor
+    key = make_key(master, salt, **kwargs)
 
     # Compute an initial vector.
     init_vector = random_bytes(8)
@@ -80,9 +86,12 @@ def encrypt(master, plaintext):
     ciphertext = a.encrypt(src)
     return ciphertext, salt, init_vector
 
-def decrypt(master, ciphertext, salt, init_vector):
+def decrypt(master, ciphertext, salt, init_vector, work_factor=None):
     assert len(salt) == 8
-    key = make_key(master, salt)
+    kwargs = {}
+    if work_factor is not None:
+        kwargs['work_factor'] = work_factor
+    key = make_key(master, salt, **kwargs)
 
     assert init_vector is not None
     assert len(init_vector) == 8
