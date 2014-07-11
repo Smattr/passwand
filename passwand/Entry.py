@@ -2,24 +2,20 @@ import json
 from Encoding import decode, encode
 from Encryption import mac
 
+CORE_FIELDS = ['namespace', 'key', 'value', 'salt', 'iv']
+HMAC_FIELDS = ['hmac', 'hmac_salt']
+
 class Entry(object):
     def __init__(self, properties):
-        def get(p):
-            v = properties.get(p)
+        for f in CORE_FIELDS + HMAC_FIELDS:
+            v = properties.get(f)
             if v is not None:
                 v = decode(v)
-            return v
-        self.service = get('service')
-        self.field = get('field')
-        self.value = get('value')
-        self.salt = get('salt')
-        self.iv = get('iv')
-        self.hmac = get('hmac')
-        self.hmac_salt = get('hmac_salt')
+            setattr(self, f, v)
 
     def mac(self, master, salt=None):
         data = ''
-        for f in ['service', 'field', 'value', 'salt', 'iv']:
+        for f in CORE_FIELDS:
             v = getattr(self, f)
             if v is not None:
                 data += v
@@ -37,17 +33,10 @@ class Entry(object):
 
     def to_dict(self):
         d = {}
-        def put(f):
+        for f in CORE_FIELDS + HMAC_FIELDS:
             v = getattr(self, f)
             if v is not None:
                 d[f] = encode(v)
-        put('service')
-        put('field')
-        put('value')
-        put('salt')
-        put('iv')
-        put('hmac')
-        put('hmac_salt')
         return d
 
 def read_entries(path):
