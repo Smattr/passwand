@@ -1,17 +1,19 @@
 import json
 from Encoding import decode, encode
-from Encryption import mac
+from Encryption import Encrypter, mac
 
-CORE_FIELDS = ['namespace', 'key', 'value', 'salt', 'iv']
+ENCRYPTED_FIELDS = ['namespace', 'key', 'value']
+CORE_FIELDS = ENCRYPTED_FIELDS + ['salt', 'iv']
 HMAC_FIELDS = ['hmac', 'hmac_salt']
 
 class Entry(object):
-    def __init__(self, properties):
+    def __init__(self, **kwargs):
         for f in CORE_FIELDS + HMAC_FIELDS:
-            v = properties.get(f)
+            v = kwargs.get(f)
             if v is not None:
                 v = decode(v)
             setattr(self, f, v)
+        self.encrypted = kwargs.get('encrypted', False)
 
     def mac(self, master, salt=None):
         data = ''
@@ -31,7 +33,40 @@ class Entry(object):
     def set_hmac(self, master):
         self.hmac_salt, self.hmac = self.mac(master)
 
+    def _get_encrypter(self, master):
+        kwargs = {}
+        if self.salt is not None:
+            kwargs['salt'] = self.salt
+        if self.iv is not None:
+            kwargs['iv'] = self.iv
+        e = Encrypter(master, **kwargs)
+        self.salt = e.get_salt()
+        self.iv = e.get_initialisation_vector()
+        return e
+
+    def decrypt(self, master):
+        if not self.encrypted:
+            raise Exception('entry is already decrypted')
+        if not self.check_hmac(master):
+            raise Exception('failed HMAC check')
+        e = self._get_encrypter(master)
+        for f in ENCRYPTED_FIELDS:
+            setattr(self, f, e.decrypt(getattr(self, f)))
+        self.encrypted = False
+
+    def encrypt(self, master):
+        if self.encrypted:
+            raise Exception('entry is already encrypted')
+        self.set_hmac(master)
+        e = self._get_encrypter(master)
+        for f in ENCRYPTED_FIELDS:
+            setattr(self, f, e.encrypt(getattr(self, f)))
+        self.encrypted = True
+
     def to_dict(self):
+        if not self.encrypted:
+            # Prevent accidentally exporting unencrypted entries
+            raise Exception('entry is not encrypted')
         d = {}
         for f in CORE_FIELDS + HMAC_FIELDS:
             v = getattr(self, f)
@@ -47,7 +82,8 @@ def read_entries(path):
     for e in entries:
         if not isinstance(e, dict):
             raise Exception('unexpected data encountered')
-        yield Entry(e)
+        e['encrypted'] = True
+        yield Entry(**e)
 
 def write_entries(path, entries):
     with open(path, 'w') as f:
