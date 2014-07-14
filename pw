@@ -56,13 +56,6 @@ def gui_get(argv, parser):
     master = passwand.ask_password('Master password:', '', 'Passwand')
     if master is None:
         return -1
-    master2 = passwand.ask_password('Confirm master password:', '', 'Passwand')
-    if master2 is None:
-        return -1
-    if master != master2:
-        passwand.show_error('Master password mismatch.', 'Passwand')
-        return -1
-    del master2
 
     try:
         v = entries.find(master, namespace, key)
@@ -134,11 +127,6 @@ def get_item(argv, parser):
 
     # Get the master password
     master = getpass.getpass('master password: ')
-    master2 = getpass.getpass('confirm master password: ')
-    if master != master2:
-        print >>sys.stderr, 'master passwords do not match'
-        return -1
-    del master2
 
     try:
         v = entries.find(master, opts.namespace, opts.key)
