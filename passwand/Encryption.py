@@ -11,11 +11,8 @@ AES_MODE = AES.MODE_CTR # Counter
 
 HEADER = 'oprime01'
 
-random_dev = None
+random_dev = Random.new()
 def random_bytes(len):
-    global random_dev
-    if random_dev is None:
-        random_dev = Random.new()
     return random_dev.read(len)
 
 def make_aes(key, iv):
