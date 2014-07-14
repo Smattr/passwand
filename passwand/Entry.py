@@ -57,11 +57,11 @@ class Entry(object):
     def encrypt(self, master):
         if self.encrypted:
             raise Exception('entry is already encrypted')
-        self.set_hmac(master)
         e = self._get_encrypter(master)
         for f in ENCRYPTED_FIELDS:
             setattr(self, f, e.encrypt(getattr(self, f)))
         self.encrypted = True
+        self.set_hmac(master)
 
     def to_dict(self):
         if not self.encrypted:
