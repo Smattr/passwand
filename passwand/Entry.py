@@ -8,12 +8,12 @@ HMAC_FIELDS = ['hmac', 'hmac_salt']
 
 class Entry(object):
     def __init__(self, **kwargs):
+        self.encrypted = kwargs.get('encrypted', False)
         for f in CORE_FIELDS + HMAC_FIELDS:
             v = kwargs.get(f)
-            if v is not None:
+            if v is not None and self.encrypted:
                 v = decode(v)
             setattr(self, f, v)
-        self.encrypted = kwargs.get('encrypted', False)
 
     def mac(self, master, salt=None):
         data = ''
