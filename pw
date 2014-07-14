@@ -33,6 +33,11 @@ class Entries(object):
             if value is not None:
                 return value
         return value
+    def items(self, master):
+        for e in self.entries:
+            e.decrypt(master)
+            yield (e.namespace, e.key)
+            e.encrypt(master)
 
 class Command(object):
     def __init__(self, description, implementation):
@@ -108,6 +113,27 @@ def set_item(argv, parser):
 
     return 0
 
+def list_items(argv, parser):
+    parser.add_argument('--data', '-d',
+        default=os.path.expanduser('~/.passwand.json'),
+        help='data file location')
+    opts = parser.parse_args(argv)
+
+    entries = Entries(opts.data)
+    
+    # Get the master password
+    master = getpass.getpass('master password: ')
+
+    try:
+        for n, k in entries.items(master):
+            print '%s/%s' % (n, k)
+    except Exception as e:
+        print >>sys.stderr, 'lookup failed (wrong master password?): %s' % e
+        return -1
+    del master
+
+    return 0
+
 def get_item(argv, parser):
     parser.add_argument('--namespace', '-n',
         help='namespace for the given entry')
@@ -146,6 +172,7 @@ COMMANDS = {
     'gui-get':Command('retrieve a password via the GUI', gui_get),
     'get':Command('get the value of an existing entry', get_item),
     'set':Command('set the value of a new or existing entry', set_item),
+    'list':Command('list existing namespaces and keys', list_items),
 }
 
 def main(argv):
