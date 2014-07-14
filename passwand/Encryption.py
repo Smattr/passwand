@@ -37,91 +37,99 @@ def mac(master, data, salt=None, work_factor=None):
     auth = HMAC.new(key, data, SHA512).digest()
     return (salt, auth)
 
-def encrypt(master, plaintext, work_factor=None):
-    # Compute a random salt.
-    salt = random_bytes(8)
+class Encrypter(object):
+    def __init__(self, master, salt=None, iv=None, work_factor=None):
+        assert master is not None
+        self.master = master
 
-    assert master is not None
-    kwargs = {}
-    if work_factor is not None:
-        kwargs['work_factor'] = work_factor
-    key = make_key(master, salt, **kwargs)
+        # Compute a random salt if required.
+        if salt is None:
+            salt = random_bytes(8)
+        assert len(salt) == 8
+        self.salt = salt
 
-    # Compute an initial vector.
-    init_vector = random_bytes(8)
+        # Compute a key for use in AES generation.
+        kwargs = {}
+        if work_factor is not None:
+            kwargs['work_factor'] = work_factor
+        self.key = make_key(master, salt, **kwargs)
 
-    a = make_aes(key, init_vector)
+        # Compute an initial vector if required.
+        if iv is None:
+            iv = random_bytes(8)
+        assert len(iv) == 8
+        self.iv = iv
 
-    # Now we're ready to calculate the input to the encryption.
-    src = HEADER
+    def get_initialisation_vector(self):
+        return self.iv
 
-    # First, calculate and pack the length of the plain text. We must do
-    # this because we need to pad it to 16 bytes before encrypting. We append
-    # the length to the source data.
-    assert plaintext is not None
-    length = len(plaintext)
-    assert struct.calcsize('<Q') == 8
-    src += struct.pack('<Q', length)
+    def get_salt(self):
+        return self.salt
 
-    # Now the initialisation vector.
-    src += init_vector
-    length += len(init_vector)
+    def encrypt(self, plaintext):
+        aes = make_aes(self.key, self.iv)
 
-    # Pad the plain text with random bytes to 16 byte alignment. Agile Bits
-    # considers the padding scheme from IETF draft AEAD-AES-CBC-HMAC-SHA as a
-    # more suitable replacement, but I'm not sure why. It involves
-    # deterministic bytes that seems inherently less secure.
-    padding_sz = 16 - length % 16
-    padding = random_bytes(padding_sz)
-    # and append it to the input.
-    src += padding + plaintext
+        # Now we're ready to calculate the input to the encryption.
+        src = HEADER
 
-    # This final input should be 16 byte aligned if we got that right.
-    assert len(src) % 16 == 0
+        # First, calculate and pack the length of the plain text. We append the
+        # length to the input data.
+        assert plaintext is not None
+        length = len(plaintext)
+        assert struct.calcsize('<Q') == 8
+        src += struct.pack('<Q', length)
 
-    # Encrypt the resulting length + plain text + padding.
-    ciphertext = a.encrypt(src)
-    return ciphertext, salt, init_vector
+        # Now the initialisation vector.
+        src += self.iv
+        length += len(self.iv)
 
-def decrypt(master, ciphertext, salt, init_vector, work_factor=None):
-    assert len(salt) == 8
-    kwargs = {}
-    if work_factor is not None:
-        kwargs['work_factor'] = work_factor
-    key = make_key(master, salt, **kwargs)
+        # Pad the plain text with random bytes to 16 byte alignment. Agile Bits
+        # considers the padding scheme from IETF draft AEAD-AES-CBC-HMAC-SHA as
+        # a more suitable replacement, but I'm not sure why. It involves
+        # deterministic bytes that seems inherently less secure.
+        padding_sz = 16 - length % 16
+        padding = random_bytes(padding_sz)
+        # and append it to the input.
+        src += padding + plaintext
 
-    assert init_vector is not None
-    assert len(init_vector) == 8
-    a = make_aes(key, init_vector)
+        # This final input should be 16 byte aligned if we got that right.
+        assert len(src) % 16 == 0
 
-    # Decrypt the annotated plain text.
-    dest = a.decrypt(ciphertext)
+        # Encrypt the resulting length + plain text + padding.
+        ciphertext = aes.encrypt(src)
+        return ciphertext
 
-    if len(dest) % 16 != 0:
-        raise Exception('unaligned unencrypted data')
+    def decrypt(self, ciphertext):
+        aes = make_aes(self.key, self.iv)
 
-    # We should have the data format header.
-    if not dest.startswith(HEADER):
-        raise Exception('invalid resulting data format')
-    dest = dest[len(HEADER):]
+        # Decrypt the annotated plain text.
+        dest = aes.decrypt(ciphertext)
 
-    # Unpack the size of the original plain text.
-    assert struct.calcsize('<Q') == 8
-    if len(dest) < 8:
-        raise Exception('truncated data')
-    length = struct.unpack('<Q', dest[:8])[0]
-    dest = dest[8:]
+        if len(dest) % 16 != 0:
+            raise Exception('unaligned unencrypted data')
 
-    # Check the initialisation vector matches.
-    if len(dest) < 8:
-        raise Exception('missing initialisation vector')
-    if init_vector != dest[:8]:
-        raise Exception('mismatched initialisation vectors')
-    dest = dest[8:]
+        # We should have the data format header.
+        if not dest.startswith(HEADER):
+            raise Exception('invalid resulting data format')
+        dest = dest[len(HEADER):]
 
-    if length > len(dest):
-        raise Exception('invalid length indicated')
-    if len(dest) - length > 16:
-        raise Exception('invalid padding detected')
+        # Unpack the size of the original plain text.
+        assert struct.calcsize('<Q') == 8
+        if len(dest) < 8:
+            raise Exception('truncated data')
+        length = struct.unpack('<Q', dest[:8])[0]
+        dest = dest[8:]
 
-    return dest[len(dest) - length:]
+        # Check the initialisation vector matches.
+        if len(dest) < 8:
+            raise Exception('missing initialisation vector')
+        if self.iv != dest[:8]:
+            raise Exception('mismatched initialisation vectors')
+        dest = dest[8:]
+
+        if length > len(dest):
+            raise Exception('invalid length indicated')
+        if len(dest) - length > 16:
+            raise Exception('invalid padding detected')
+
+        return dest[len(dest) - length:]
