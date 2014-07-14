@@ -1,0 +1,179 @@
+#!/usr/bin/env python
+
+import argparse, getpass, os, passwand, sys
+
+DESCRIPTION = 'password manager'
+
+class Entries(object):
+    def __init__(self, path):
+        if os.path.exists(path):
+            self.entries = list(passwand.read_entries(path))
+        else:
+            self.entries = []
+        self.path = path
+    def update(self, master, namespace, key, value):
+        for e in self.entries:
+            e.decrypt(master)
+            if e.namespace == namespace and e.key == key:
+                self.entries.remove(e)
+                break
+            e.encrypt(master)
+        entry = passwand.Entry(namespace=namespace, key=key, value=value)
+        entry.encrypt(master)
+        self.entries.append(entry)
+    def save(self):
+        passwand.write_entries(self.path, self.entries)
+    def find(self, master, namespace, key):
+        value = None
+        for e in self.entries:
+            e.decrypt(master)
+            if e.namespace == namespace and e.key == key:
+                value = e.value
+            e.encrypt(master)
+            if value is not None:
+                return value
+        return value
+
+class Command(object):
+    def __init__(self, description, implementation):
+        self.description = description
+        self.implementation = implementation
+
+def gui_get(argv, parser):
+    parser.add_argument('--data', '-d',
+        default=os.path.expanduser('~/.passwand.json'),
+        help='data file location')
+    opts = parser.parse_args(argv)
+
+    entries = Entries(opts.data)
+    
+    namespace = passwand.ask_question('Namespace:', '', 'Passwand')
+    if namespace is None:
+        return -1
+    key = passwand.ask_question('Key:', 'password', 'Passwand')
+    if key is None:
+        return -1
+    master = passwand.ask_password('Master password:', '', 'Passwand')
+    if master is None:
+        return -1
+    master2 = passwand.ask_password('Confirm master password:', '', 'Passwand')
+    if master2 is None:
+        return -1
+    if master != master2:
+        passwand.show_error('Master password mismatch.', 'Passwand')
+        return -1
+    del master2
+
+    try:
+        v = entries.find(master, namespace, key)
+    except Exception as e:
+        passwand.show_error('Lookup failed. Incorrect master password? %s' % e, 'Passwand')
+        return -1
+    del master, namespace, key
+
+    if v is not None:
+        passwand.show_message(v, 'Passwand')
+        return 0
+
+    passwand.show_error('No matching value.', 'Passwand')
+    return -1
+
+def set_item(argv, parser):
+    parser.add_argument('--namespace', '-n',
+        help='namespace for the given entry')
+    parser.add_argument('--key', '-k', help='key for the given entry')
+    parser.add_argument('--value', '-v', help='value for the given entry')
+    parser.add_argument('--data', '-d',
+        default=os.path.expanduser('~/.passwand.json'),
+        help='data file location')
+    opts = parser.parse_args(argv)
+
+    entries = Entries(opts.data)
+    
+    # Set up the entry fields
+    if opts.namespace is None:
+        opts.namespace = raw_input('namespace: ')
+    if opts.key is None:
+        opts.key = raw_input('key: ')
+    if opts.value is None:
+        opts.value = getpass.getpass('value: ')
+
+    # Get the master password
+    master = getpass.getpass('master password: ')
+    master2 = getpass.getpass('confirm master password: ')
+    if master != master2:
+        print >>sys.stderr, 'master passwords do not match'
+        return -1
+    del master2
+
+    # Add the entry
+    entries.update(master, opts.namespace, opts.key, opts.value)
+    del master, opts.namespace, opts.key, opts.value
+
+    # Save the entries to disk
+    entries.save()
+
+    return 0
+
+def get_item(argv, parser):
+    parser.add_argument('--namespace', '-n',
+        help='namespace for the given entry')
+    parser.add_argument('--key', '-k', help='key for the given entry')
+    parser.add_argument('--data', '-d',
+        default=os.path.expanduser('~/.passwand.json'),
+        help='data file location')
+    opts = parser.parse_args(argv)
+
+    entries = Entries(opts.data)
+    
+    # Set up the entry fields
+    if opts.namespace is None:
+        opts.namespace = raw_input('namespace: ')
+    if opts.key is None:
+        opts.key = raw_input('key: ')
+
+    # Get the master password
+    master = getpass.getpass('master password: ')
+    master2 = getpass.getpass('confirm master password: ')
+    if master != master2:
+        print >>sys.stderr, 'master passwords do not match'
+        return -1
+    del master2
+
+    try:
+        v = entries.find(master, opts.namespace, opts.key)
+    except Exception as e:
+        print >>sys.stderr, 'lookup failed (wrong master password?): %s' % e
+        return -1
+    del master, opts.namespace, opts.key
+
+    if v is not None:
+        print v
+        return 0
+
+    print >>sys.stderr, 'entry not found'
+    return -1
+
+COMMANDS = {
+    'gui-get':Command('retrieve a password via the GUI', gui_get),
+    'get':Command('get the value of an existing entry', get_item),
+    'set':Command('set the value of a new or existing entry', set_item),
+}
+
+def main(argv):
+    if len(argv) < 2 or argv[1] not in COMMANDS:
+        print >>sys.stderr, 'Usage: %s action args...\n' % argv[0]
+        print >>sys.stderr, '%s\n' % DESCRIPTION
+        print >>sys.stderr, 'commands:'
+        for a, c in COMMANDS.items():
+            print >>sys.stderr, ' %s - %s' % (a, c.description)
+        return -1
+
+    command = argv[1]
+
+    parser = argparse.ArgumentParser(prog='%s %s' % (argv[0], command),
+        description=DESCRIPTION)
+    return COMMANDS[command].implementation(argv[2:], parser)
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv))
