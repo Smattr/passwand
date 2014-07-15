@@ -12,32 +12,30 @@ class Entries(object):
             self.entries = []
         self.path = path
     def update(self, master, namespace, key, value):
+        def check(entry):
+            return entry.namespace == namespace and entry.key == key
         for e in self.entries:
-            e.decrypt(master)
-            if e.namespace == namespace and e.key == key:
+            if (e.do(master, check)):
                 self.entries.remove(e)
                 break
-            e.encrypt(master)
         entry = passwand.Entry(namespace=namespace, key=key, value=value)
         entry.encrypt(master)
         self.entries.append(entry)
     def save(self):
         passwand.write_entries(self.path, self.entries)
     def find(self, master, namespace, key):
-        value = None
+        def get_value(entry):
+            if entry.namespace == namespace and entry.key == key:
+                return entry.value
+            return None
         for e in self.entries:
-            e.decrypt(master)
-            if e.namespace == namespace and e.key == key:
-                value = e.value
-            e.encrypt(master)
+            value = e.do(master, get_value)
             if value is not None:
                 return value
-        return value
-    def items(self, master):
+        return None
+    def foreach(self, master, callback):
         for e in self.entries:
-            e.decrypt(master)
-            yield (e.namespace, e.key)
-            e.encrypt(master)
+            e.do(master, callback)
 
 class Command(object):
     def __init__(self, description, implementation):
@@ -124,9 +122,10 @@ def list_items(argv, parser):
     # Get the master password
     master = getpass.getpass('master password: ')
 
+    def printer(entry):
+        print '%s/%s' % (entry.namespace, entry.key)
     try:
-        for n, k in entries.items(master):
-            print '%s/%s' % (n, k)
+        entries.foreach(master, printer)
     except Exception as e:
         print >>sys.stderr, 'lookup failed (wrong master password?): %s' % e
         return -1

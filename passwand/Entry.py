@@ -44,7 +44,7 @@ class Entry(object):
         self.iv = e.get_initialisation_vector()
         return e
 
-    def decrypt(self, master):
+    def _decrypt(self, master):
         if not self.encrypted:
             raise Exception('entry is already decrypted')
         if not self.check_hmac(master):
@@ -62,6 +62,13 @@ class Entry(object):
             setattr(self, f, e.encrypt(getattr(self, f)))
         self.encrypted = True
         self.set_hmac(master)
+
+    def do(self, master, callback):
+        if self.encrypted:
+            self._decrypt(master)
+        v = callback(self)
+        self.encrypt(master)
+        return v
 
     def to_dict(self):
         if not self.encrypted:
