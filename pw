@@ -36,6 +36,9 @@ class Entries(object):
     def foreach(self, master, callback):
         for e in self.entries:
             e.do(master, callback)
+    def reencrypt(self, old_master, new_master):
+        for e in self.entries:
+            e.reencrypt(old_master, new_master)
 
 class Command(object):
     def __init__(self, description, implementation):
@@ -167,11 +170,39 @@ def get_item(argv, parser):
     print >>sys.stderr, 'entry not found'
     return -1
 
+def change_master(argv, parser):
+    parser.add_argument('--data', '-d',
+        default=os.path.expanduser('~/.passwand.json'),
+        help='data file location')
+    opts = parser.parse_args(argv)
+
+    entries = Entries(opts.data)
+
+    old_master = getpass.getpass('current master password: ')
+    new_master = getpass.getpass('new master password: ')
+    confirm_master = getpass.getpass('confirm new master password: ')
+    if new_master != confirm_master:
+        print >>sys.stderr, 'new passwords do not match'
+        return -1
+    del confirm_master
+
+    try:
+        entries.reencrypt(old_master, new_master)
+    except Exception as e:
+        print >>sys.stderr, 'password change failed (wrong current password?): %s' % e
+        return -1
+    del old_master, new_master
+
+    entries.save()
+
+    return 0
+
 COMMANDS = {
     'gui-get':Command('retrieve a password via the GUI', gui_get),
     'get':Command('get the value of an existing entry', get_item),
     'set':Command('set the value of a new or existing entry', set_item),
     'list':Command('list existing namespaces and keys', list_items),
+    'change-master':Command('change master password', change_master),
 }
 
 def main(argv):

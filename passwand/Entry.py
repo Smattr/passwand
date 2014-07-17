@@ -70,6 +70,11 @@ class Entry(object):
         self.encrypt(master)
         return v
 
+    def reencrypt(self, old_master, new_master):
+        if self.encrypted:
+            self._decrypt(old_master)
+        self.encrypt(new_master)
+
     def to_dict(self):
         if not self.encrypted:
             # Prevent accidentally exporting unencrypted entries
