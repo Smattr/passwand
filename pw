@@ -45,7 +45,7 @@ class Command(object):
         self.description = description
         self.implementation = implementation
 
-def gui_get(argv, parser):
+def gui_type(argv, parser):
     parser.add_argument('--data', '-d',
         default=os.path.expanduser('~/.passwand.json'),
         help='data file location')
@@ -71,7 +71,7 @@ def gui_get(argv, parser):
     del master, namespace, key
 
     if v is not None:
-        passwand.show_message(v, 'Passwand')
+        passwand.send_string(v)
         return 0
 
     passwand.show_error('No matching value.', 'Passwand')
@@ -198,7 +198,7 @@ def change_master(argv, parser):
     return 0
 
 COMMANDS = {
-    'gui-get':Command('retrieve a password via the GUI', gui_get),
+    'gui-type':Command('retrieve a password via the GUI', gui_type),
     'get':Command('get the value of an existing entry', get_item),
     'set':Command('set the value of a new or existing entry', set_item),
     'list':Command('list existing namespaces and keys', list_items),
