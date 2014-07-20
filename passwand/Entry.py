@@ -9,11 +9,15 @@ HMAC_FIELDS = ['hmac', 'hmac_salt']
 class Entry(object):
     def __init__(self, **kwargs):
         self.encrypted = kwargs.get('encrypted', False)
+        self.work_factor = 14
         for f in CORE_FIELDS + HMAC_FIELDS:
             v = kwargs.get(f)
             if v is not None and self.encrypted:
                 v = decode(v)
             setattr(self, f, v)
+
+    def set_work_factor(self, work_factor):
+        self.work_factor = work_factor
 
     def mac(self, master, salt=None):
         data = ''
@@ -21,7 +25,7 @@ class Entry(object):
             v = getattr(self, f)
             if v is not None:
                 data += v
-        salt, auth = mac(master, data, salt)
+        salt, auth = mac(master, data, salt, self.work_factor)
         return (salt, auth)
 
     def check_hmac(self, master):
@@ -39,7 +43,7 @@ class Entry(object):
             kwargs['salt'] = self.salt
         if self.iv is not None:
             kwargs['iv'] = self.iv
-        e = Encrypter(master, **kwargs)
+        e = Encrypter(master, work_factor=self.work_factor, **kwargs)
         self.salt = e.get_salt()
         self.iv = e.get_initialisation_vector()
         return e
