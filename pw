@@ -5,12 +5,17 @@ import argparse, getpass, os, passwand, sys
 DESCRIPTION = 'password manager'
 
 class Entries(object):
-    def __init__(self, path):
+    def __init__(self, path, work_factor=None):
         if os.path.exists(path):
-            self.entries = list(passwand.read_entries(path))
+            self.entries = []
+            for e in passwand.read_entries(path):
+                if work_factor is not None:
+                    e.set_work_factor(work_factor)
+                self.entries.append(e)
         else:
             self.entries = []
         self.path = path
+        self.work_factor = work_factor
     def update(self, master, namespace, key, value):
         def check(entry):
             return entry.namespace == namespace and entry.key == key
@@ -19,6 +24,8 @@ class Entries(object):
                 self.entries.remove(e)
                 break
         entry = passwand.Entry(namespace=namespace, key=key, value=value)
+        if self.work_factor is not None:
+            entry.set_work_factor(self.work_factor)
         entry.encrypt(master)
         self.entries.append(entry)
     def save(self):
@@ -57,14 +64,18 @@ def add_arg(parser, arg):
         parser.add_argument('--key', '-k', help='key for the given entry')
     elif arg == '--value':
         parser.add_argument('--value', '-v', help='value for the given entry')
+    elif arg == '--work-factor':
+        parser.add_argument('--work-factor', '-N', type=int,
+            help='encryption work factor')
     else:
         raise NotImplementedError
 
 def gui_type(argv, parser):
     add_arg(parser, '--data')
+    add_arg(parser, '--work-factor')
     opts = parser.parse_args(argv)
 
-    entries = Entries(opts.data)
+    entries = Entries(opts.data, opts.work_factor)
     
     namespace = passwand.ask_question('Namespace:', '', 'Passwand')
     if namespace is None:
@@ -95,9 +106,10 @@ def set_item(argv, parser):
     add_arg(parser, '--key')
     add_arg(parser, '--value')
     add_arg(parser, '--data')
+    add_arg(parser, '--work-factor')
     opts = parser.parse_args(argv)
 
-    entries = Entries(opts.data)
+    entries = Entries(opts.data, opts.work_factor)
     
     # Set up the entry fields
     if opts.namespace is None:
@@ -126,9 +138,10 @@ def set_item(argv, parser):
 
 def list_items(argv, parser):
     add_arg(parser, '--data')
+    add_arg(parser, '--work-factor')
     opts = parser.parse_args(argv)
 
-    entries = Entries(opts.data)
+    entries = Entries(opts.data, opts.work_factor)
     
     # Get the master password
     master = getpass.getpass('master password: ')
@@ -148,9 +161,10 @@ def get_item(argv, parser):
     add_arg(parser, '--namespace')
     add_arg(parser, '--key')
     add_arg(parser, '--data')
+    add_arg(parser, '--work-factor')
     opts = parser.parse_args(argv)
 
-    entries = Entries(opts.data)
+    entries = Entries(opts.data, opts.work_factor)
     
     # Set up the entry fields
     if opts.namespace is None:
@@ -177,9 +191,10 @@ def get_item(argv, parser):
 
 def change_master(argv, parser):
     add_arg(parser, '--data')
+    add_arg(parser, '--work-factor')
     opts = parser.parse_args(argv)
 
-    entries = Entries(opts.data)
+    entries = Entries(opts.data, opts.work_factor)
 
     old_master = getpass.getpass('current master password: ')
     new_master = getpass.getpass('new master password: ')
