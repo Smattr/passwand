@@ -31,3 +31,12 @@ typedef struct {
  * @return 0 on success
  */
 int passwand_erase(char *s);
+
+/** Export a list of password entries to a file.
+ *
+ * @param path File to export to
+ * @param entries An array of entries to export
+ * @param entry_len The size of the array
+ * @return 0 on success
+ */
+int passwand_export(const char *path, passwand_entry_t *entries, unsigned entry_len);

@@ -124,11 +124,42 @@ static void test_decode_is_base64(void) {
     free(output);
 }
 
-#define TEST(fn) { #fn, fn }
+/* Test exporting 0 entries. */
+static void test_export_nothing(void) {
+
+    /* Create a temporary path. */
+    char tmp[sizeof("/tmp/tmp.XXXXXX")];
+    strcpy(tmp, "/tmp/tmp.XXXXXX");
+    int fd = mkstemp(tmp);
+    CU_ASSERT_NOT_EQUAL_FATAL(fd, -1);
+    close(fd);
+
+    /* Export to this path. */
+    int r = passwand_export(tmp, NULL, 0);
+    if (r != 0)
+        unlink(tmp);
+    CU_ASSERT_EQUAL_FATAL(r, 0);
+
+    /* Read back in the exported data. */
+    FILE *f = fopen(tmp, "r");
+    if (f == NULL)
+        unlink(tmp);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(f);
+    char buffer[100];
+    char *p = fgets(buffer, sizeof(buffer), f);
+    fclose(f);
+    unlink(tmp);
+
+    /* Check we got what we expect. */
+    CU_ASSERT_PTR_NOT_NULL_FATAL(p);
+    CU_ASSERT_STRING_EQUAL(buffer, "[]");
+}
+
 static const struct {
     const char *name;
     void (*fn)(void);
 } TESTS[] = {
+#define TEST(fn) { #fn, fn }
     TEST(test_erase_null),
     TEST(test_erase_basic),
     TEST(test_erase_empty_string),
@@ -138,6 +169,8 @@ static const struct {
     TEST(test_decode_empty),
     TEST(test_decode_basic),
     TEST(test_decode_is_base64),
+    TEST(test_export_nothing),
+#undef TEST
 };
 
 int main(int argc, char **argv) {
