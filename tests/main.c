@@ -98,6 +98,32 @@ static void test_encode_is_base64(void) {
     free(output);
 }
 
+static void test_decode_empty(void) {
+    const char *empty = "";
+    char *r = decode(empty);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(r);
+    CU_ASSERT_STRING_EQUAL(empty, r);
+    free(r);
+}
+
+static void test_decode_basic(void) {
+    const char *basic = "aGVsbG8gd29ybGQ=";
+    char *blah = strdup(basic);
+    char *r = decode(blah);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(r);
+    CU_ASSERT_STRING_EQUAL(r, "hello world");
+    free(r);
+}
+
+/* Confirm that decoding does the same as the standard base64 utility. */
+static void test_decode_is_base64(void) {
+    char *output;
+    int r = run("echo -n \"aGVsbG8gd29ybGQ=\" | base64 --decode", &output);
+    CU_ASSERT_EQUAL_FATAL(r, 0);
+    CU_ASSERT_STRING_EQUAL(output, "hello world");
+    free(output);
+}
+
 #define TEST(fn) { #fn, fn }
 static const struct {
     const char *name;
@@ -109,6 +135,9 @@ static const struct {
     TEST(test_encode_empty),
     TEST(test_encode_basic),
     TEST(test_encode_is_base64),
+    TEST(test_decode_empty),
+    TEST(test_decode_basic),
+    TEST(test_decode_is_base64),
 };
 
 int main(int argc, char **argv) {
