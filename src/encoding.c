@@ -8,11 +8,13 @@
 char *encode(const char *s) {
     char *r = NULL;
 
+    /* Create a base64 filter. */
     BIO *in = BIO_new(BIO_f_base64());
     if (in == NULL)
         goto fail;
     BIO_set_flags(in, BIO_FLAGS_BASE64_NO_NL);
 
+    /* Create an in-memory sink to encode data into. */
     BIO *out = BIO_new(BIO_s_mem());
     if (out == NULL)
         goto fail;
@@ -21,10 +23,12 @@ char *encode(const char *s) {
 
     int len = strlen(s);
 
+    /* Encode the data. */
     if (BIO_write(in, s, len) != len)
         goto fail;
     BIO_flush(in);
 
+    /* Extract it into a string. */
     BUF_MEM *bptr;
     BIO_get_mem_ptr(out, &bptr);
 
