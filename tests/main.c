@@ -20,6 +20,13 @@ static void test_erase_basic(void) {
     CU_ASSERT_STRING_NOT_EQUAL(basic, "hello world");
 }
 
+static void test_erase_empty_string(void) {
+    char empty[1];
+    strcpy(empty, "");
+    int r = passwand_erase(empty);
+    CU_ASSERT_EQUAL(r, 0);
+}
+
 #define TEST(fn) { #fn, fn }
 static const struct {
     const char *name;
@@ -27,6 +34,7 @@ static const struct {
 } TESTS[] = {
     TEST(test_erase_null),
     TEST(test_erase_basic),
+    TEST(test_erase_empty_string),
 };
 
 int main(int argc, char **argv) {
