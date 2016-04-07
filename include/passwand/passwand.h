@@ -19,7 +19,7 @@ typedef struct {
 
     /* fields that don't get exported */
     bool encrypted;
-    unsigned int work_factor;
+    unsigned work_factor;
 
 } passwand_entry_t;
 
