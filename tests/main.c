@@ -1,3 +1,5 @@
+#define _XOPEN_SOURCE 700 /* for open_memstream */
+
 #include <assert.h>
 #include <CUnit/Basic.h>
 #include <CUnit/CUnit.h>
@@ -6,6 +8,50 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#include "../src/encoding.h"
+
+static int run(const char *command, char **output) {
+    assert(command != NULL);
+    assert(output != NULL);
+
+    FILE *p = popen(command, "r");
+    if (p == NULL)
+        return -1;
+
+
+    *output = NULL;
+    size_t buffer_len;
+    FILE *b = open_memstream(output, &buffer_len);
+    if (b == NULL) {
+        pclose(p);
+        return -1;
+    }
+
+    char window[1024];
+    size_t read;
+    while ((read = fread(window, 1, sizeof(window), p)) != 0) {
+        assert(read <= sizeof(window));
+        size_t written = fwrite(window, 1, read, b);
+        if (read != written) {
+            /* out of memory */
+            fclose(b);
+            free(*output);
+            pclose(p);
+            return -1;
+        }
+    }
+
+    if (ferror(p)) {
+        fclose(b);
+        free(*output);
+        pclose(p);
+        return -1;
+    }
+
+    fclose(b);
+    return pclose(p);
+}
 
 static void test_erase_null(void) {
     int r = passwand_erase(NULL);
@@ -27,6 +73,31 @@ static void test_erase_empty_string(void) {
     CU_ASSERT_EQUAL(r, 0);
 }
 
+static void test_encode_empty(void) {
+    const char *empty = "";
+    char *r = encode(empty);
+    CU_ASSERT_PTR_NOT_NULL(r);
+    CU_ASSERT_STRING_EQUAL(empty, r);
+    free(r);
+}
+
+static void test_encode_basic(void) {
+    const char *basic = "hello world";
+    char *r = encode(basic);
+    CU_ASSERT_PTR_NOT_NULL(r);
+    CU_ASSERT_STRING_EQUAL(r, "aGVsbG8gd29ybGQ=");
+    free(r);
+}
+
+/* Confirm that encoding does the same as the standard base64 utility. */
+static void test_encode_is_base64(void) {
+    char *output;
+    int r = run("echo -n \"hello world\" | base64", &output);
+    CU_ASSERT_EQUAL(r, 0);
+    CU_ASSERT_STRING_EQUAL(output, "aGVsbG8gd29ybGQ=\n");
+    free(output);
+}
+
 #define TEST(fn) { #fn, fn }
 static const struct {
     const char *name;
@@ -35,6 +106,9 @@ static const struct {
     TEST(test_erase_null),
     TEST(test_erase_basic),
     TEST(test_erase_empty_string),
+    TEST(test_encode_empty),
+    TEST(test_encode_basic),
+    TEST(test_encode_is_base64),
 };
 
 int main(int argc, char **argv) {
