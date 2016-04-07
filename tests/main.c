@@ -62,7 +62,7 @@ static void test_erase_basic(void) {
     char basic[20];
     strcpy(basic, "hello world");
     int r = passwand_erase(basic);
-    CU_ASSERT_EQUAL(r, 0);
+    CU_ASSERT_EQUAL_FATAL(r, 0);
     CU_ASSERT_STRING_NOT_EQUAL(basic, "hello world");
 }
 
@@ -76,7 +76,7 @@ static void test_erase_empty_string(void) {
 static void test_encode_empty(void) {
     const char *empty = "";
     char *r = encode(empty);
-    CU_ASSERT_PTR_NOT_NULL(r);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(r);
     CU_ASSERT_STRING_EQUAL(empty, r);
     free(r);
 }
@@ -84,7 +84,7 @@ static void test_encode_empty(void) {
 static void test_encode_basic(void) {
     const char *basic = "hello world";
     char *r = encode(basic);
-    CU_ASSERT_PTR_NOT_NULL(r);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(r);
     CU_ASSERT_STRING_EQUAL(r, "aGVsbG8gd29ybGQ=");
     free(r);
 }
@@ -93,7 +93,7 @@ static void test_encode_basic(void) {
 static void test_encode_is_base64(void) {
     char *output;
     int r = run("echo -n \"hello world\" | base64", &output);
-    CU_ASSERT_EQUAL(r, 0);
+    CU_ASSERT_EQUAL_FATAL(r, 0);
     CU_ASSERT_STRING_EQUAL(output, "aGVsbG8gd29ybGQ=\n");
     free(output);
 }
