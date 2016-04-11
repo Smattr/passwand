@@ -155,6 +155,68 @@ static void test_export_nothing(void) {
     CU_ASSERT_STRING_EQUAL(buffer, "[]");
 }
 
+/* Test basic export. */
+static void test_export_basic(void) {
+
+    /* Create a temporary path. */
+    char tmp[sizeof("/tmp/tmp.XXXXXX")];
+    strcpy(tmp, "/tmp/tmp.XXXXXX");
+    int fd = mkstemp(tmp);
+    CU_ASSERT_NOT_EQUAL_FATAL(fd, -1);
+    close(fd);
+
+    /* Create an entry to export. */
+    passwand_entry_t entries[] = {
+        {
+            .space = "hello world",
+            .key = "hello world",
+            .value = "hello world",
+            .hmac = "hello world",
+            .hmac_salt = "hello world",
+            .salt = "hello world",
+            .iv = "hello world",
+            .encrypted = true,
+            .work_factor = 0,
+        },
+    };
+
+    /* Export to this path. */
+    int r = passwand_export(tmp, entries, sizeof(entries) / sizeof(entries[0]));
+    unlink(tmp);
+    CU_ASSERT_EQUAL_FATAL(r, 0);
+}
+
+/* Test that exporting an unencrypted entry fails. */
+static void test_export_unencrypted(void) {
+
+    /* Create a temporary path. */
+    char tmp[sizeof("/tmp/tmp.XXXXXX")];
+    strcpy(tmp, "/tmp/tmp.XXXXXX");
+    int fd = mkstemp(tmp);
+    CU_ASSERT_NOT_EQUAL_FATAL(fd, -1);
+    close(fd);
+
+    /* Create an entry to export. */
+    passwand_entry_t entries[] = {
+        {
+            .space = "hello world",
+            .key = "hello world",
+            .value = "hello world",
+            .hmac = "hello world",
+            .hmac_salt = "hello world",
+            .salt = "hello world",
+            .iv = "hello world",
+            .encrypted = false, /* <-- note, not encrypted */
+            .work_factor = 0,
+        },
+    };
+
+    /* Export to this path. */
+    int r = passwand_export(tmp, entries, sizeof(entries) / sizeof(entries[0]));
+    unlink(tmp);
+    CU_ASSERT_NOT_EQUAL_FATAL(r, 0);
+}
+
 static const struct {
     const char *name;
     void (*fn)(void);
@@ -170,6 +232,8 @@ static const struct {
     TEST(test_decode_basic),
     TEST(test_decode_is_base64),
     TEST(test_export_nothing),
+    TEST(test_export_basic),
+    TEST(test_export_unencrypted),
 #undef TEST
 };
 
