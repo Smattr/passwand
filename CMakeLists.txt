@@ -22,6 +22,12 @@ include_directories (${JSON_INCLUDE_DIRS})
 
 find_library (CUNIT NAMES cunit libcunit cunitlib)
 
+# Libscrypt seems packaged by distro maintainers (not Colin himself) and it
+# gets installed in some messed up way where libscrypt.so is only usable by
+# root. To get around this, we have to guide CMake to the install path and
+# explicitly direct it to libscrypt.so.0.
+find_library (SCRYPT NAME libscrypt.so.0 HINTS /usr/lib)
+
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_library (passwand src/encoding.c src/erase.c src/export.c src/import.c)
