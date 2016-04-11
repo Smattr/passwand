@@ -217,6 +217,29 @@ static void test_export_unencrypted(void) {
     CU_ASSERT_NOT_EQUAL_FATAL(r, 0);
 }
 
+static void test_import_empty_list(void) {
+
+    /* Create a temporary file. */
+    char tmp[sizeof("/tmp/tmp.XXXXXX")];
+    strcpy(tmp, "/tmp/tmp.XXXXXX");
+    int fd = mkstemp(tmp);
+    CU_ASSERT_NOT_EQUAL_FATAL(fd, -1);
+    ssize_t written = write(fd, "[]", strlen("[]"));
+    if (written != strlen("[]"))
+        unlink(tmp);
+    CU_ASSERT_EQUAL_FATAL(written, strlen("[]"));
+
+    /* Now read in the entries */
+    passwand_entry_t *entries;
+    unsigned entry_len;
+    int r = passwand_import(tmp, &entries, &entry_len);
+    unlink(tmp);
+    CU_ASSERT_EQUAL_FATAL(r, 0);
+
+    /* Check we got nothing */
+    CU_ASSERT_EQUAL_FATAL(entry_len, 0);
+}
+
 static const struct {
     const char *name;
     void (*fn)(void);
@@ -234,6 +257,7 @@ static const struct {
     TEST(test_export_nothing),
     TEST(test_export_basic),
     TEST(test_export_unencrypted),
+    TEST(test_import_empty_list),
 #undef TEST
 };
 

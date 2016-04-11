@@ -24,7 +24,7 @@ find_library (CUNIT NAMES cunit libcunit cunitlib)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-add_library (passwand src/encoding.c src/erase.c src/export.c)
+add_library (passwand src/encoding.c src/erase.c src/export.c src/import.c)
 target_link_libraries (passwand ${OPENSSL_LIBRARIES} ${JSON_LIBRARIES})
 
 add_executable (passwand-tests tests/main.c src/encoding.c)

@@ -40,3 +40,12 @@ int passwand_erase(char *s);
  * @return 0 on success
  */
 int passwand_export(const char *path, passwand_entry_t *entries, unsigned entry_len);
+
+/** Import a list of password entries from a file.
+ *
+ * @param path File to import from
+ * @param entries Output argument that will be set to the array of entries read
+ * @param entry_len Output argument for the size of entries
+ * @return 0 on success
+ */
+int passwand_import(const char *path, passwand_entry_t **entries, unsigned *entry_len);
