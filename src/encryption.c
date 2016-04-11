@@ -17,6 +17,8 @@
 
 static const size_t KEY_SIZE = 32; // bytes
 
+static const char HEADER[] = "oprime01";
+
 int random_bytes(uint8_t *buffer, size_t buffer_len) {
     /* XXX: This should really use getrandom when it's more widely available. */
 
