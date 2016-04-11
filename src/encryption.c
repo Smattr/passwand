@@ -6,6 +6,9 @@
 
 #include <fcntl.h>
 #include <libscrypt.h>
+#include <openssl/evp.h>
+#include <openssl/hmac.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -50,6 +53,49 @@ int make_key(const uint8_t *master, size_t master_len, const uint8_t *salt,
     if (libscrypt_scrypt(master, master_len, salt, salt_len,
             ((uint64_t)1) << work_factor, r, p, buffer, KEY_SIZE) != 0)
         return -1;
+
+    return 0;
+}
+
+int mac(const uint8_t *master, size_t master_len, const uint8_t *data,
+        size_t data_len, uint8_t **salt, uint8_t *auth, size_t *auth_len,
+        int work_factor) {
+
+    static const size_t SALT_LEN = 8;
+    bool salt_malloced = false;
+
+    if (*salt == NULL) {
+
+        *salt = malloc(SALT_LEN);
+        if (*salt == NULL)
+            return -1;
+
+        if (random_bytes(*salt, SALT_LEN) != 0) {
+            free(*salt);
+            return -1;
+        }
+
+        salt_malloced = true;
+    }
+
+    uint8_t key[KEY_SIZE];
+    if (make_key(master, master_len, *salt, SALT_LEN, work_factor, key) != 0) {
+        if (salt_malloced)
+            free(*salt);
+        return -1;
+    }
+
+    const EVP_MD *sha512 = EVP_sha512();
+
+    //unsigned char md[EVP_MAX_MD_SIZE];
+    unsigned md_len;
+    if (HMAC(sha512, key, KEY_SIZE, data, data_len, auth, &md_len) == NULL) {
+        if (salt_malloced)
+            free(*salt);
+        return -1;
+    }
+
+    *auth_len = (size_t)md_len;
 
     return 0;
 }
