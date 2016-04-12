@@ -8,6 +8,7 @@
 #include <libscrypt.h>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
+#include <openssl/rand.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -20,24 +21,7 @@ static const size_t KEY_SIZE = 32; // bytes
 static const char HEADER[] = "oprime01";
 
 int random_bytes(uint8_t *buffer, size_t buffer_len) {
-    /* XXX: This should really use getrandom when it's more widely available. */
-
-    /* This is the limit at which getrandom can fail. For this library we
-     * shouldn't ever need to read more than 16 bytes.
-     */
-    if (buffer_len > 256)
-        return -1;
-
-    int fd = open("/dev/random", O_RDONLY);
-    if (fd == -1)
-        return -1;
-
-    ssize_t r = read(fd, buffer, buffer_len);
-    close(fd);
-    if (r != (ssize_t)buffer_len)
-        return -1;
-
-    return 0;
+    return !RAND_bytes(buffer, buffer_len);
 }
 
 int make_key(const uint8_t *master, size_t master_len, const uint8_t *salt,
