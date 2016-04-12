@@ -96,6 +96,48 @@ int aes_encrypt(uint8_t *key, size_t key_len, uint8_t *iv, size_t iv_len,
     return 0;
 }
 
+int aes_decrypt(uint8_t *key, size_t key_len, uint8_t *iv, size_t iv_len,
+        uint8_t *ciphertext, size_t ciphertext_len, uint8_t **plaintext,
+        size_t *plaintext_len) {
+
+    /* See comment in aes_encrypt. */
+    if (key_len != AES_KEY_SIZE || iv_len != AES_BLOCK_SIZE)
+        return -1;
+
+    EVP_CIPHER_CTX *ctx __attribute__((cleanup(ctxfree))) = EVP_CIPHER_CTX_new();
+    if (ctx == NULL)
+        return -1;
+
+    if (EVP_DecryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key, iv) != 1)
+        return -1;
+
+    /* EVP_DecryptUpdate is documented as writing at most
+     * `inl + cipher_block_size`. We leave extra space for a NUL byte.
+     */
+    *plaintext = malloc(ciphertext_len + AES_BLOCK_SIZE + 1);
+    if (*plaintext == NULL)
+        return -1;
+
+    int len;
+    if (EVP_DecryptUpdate(ctx, *plaintext, &len, ciphertext, ciphertext_len) != 1) {
+        free(*plaintext);
+        return -1;
+    }
+    assert(len <= ciphertext_len + AES_BLOCK_SIZE);
+    *plaintext_len = len;
+
+    /* It's OK to write more plain text bytes in this step. */
+    if (EVP_DecryptFinal_ex(ctx, *plaintext + len, &len) != 1) {
+        free(*plaintext);
+        return -1;
+    }
+    *plaintext_len += len;
+    assert(*plaintext_len < ciphertext_len + AES_BLOCK_SIZE + 1);
+    (*plaintext)[*plaintext_len] = '\0';
+
+    return 0;
+}
+
 int make_key(const uint8_t *master, size_t master_len, const uint8_t *salt,
         size_t salt_len, int work_factor, uint8_t *buffer) {
 
