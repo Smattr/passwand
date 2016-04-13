@@ -81,3 +81,17 @@ int random_bytes(uint8_t *buffer, size_t buffer_len)
 int mac(const uint8_t *master, size_t master_len, const uint8_t *data,
     size_t data_len, uint8_t **salt, uint8_t *auth, size_t *auth_len,
     int work_factor) __attribute__((visibility("internal")));
+
+/** Pack data with padding in preparation for encryption
+ *
+ * @param plaintext     Raw data to encrypt
+ * @param plaintext_len Length of raw data to encrypt
+ * @param iv            Initialisation vector
+ * @param iv_len        Length of initiailisation vector
+ * @param[out] data     Packed data
+ * @param[out] data_len Length of packed data.
+ * @return              0 on success
+ */
+int pack_data(const uint8_t *plaintext, size_t plaintext_len, const uint8_t *iv,
+    size_t iv_len, uint8_t **data, size_t *data_len)
+    __attribute__((visibility("internal")));

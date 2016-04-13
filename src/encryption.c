@@ -6,6 +6,7 @@
 
 #include <assert.h>
 #include "encryption.h"
+#include <endian.h>
 #include <fcntl.h>
 #include <libscrypt.h>
 #include <openssl/evp.h>
@@ -14,6 +15,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -193,6 +195,53 @@ int mac(const uint8_t *master, size_t master_len, const uint8_t *data,
     }
 
     *auth_len = (size_t)md_len;
+
+    return 0;
+}
+
+int pack_data(const uint8_t *plaintext, size_t plaintext_len, const uint8_t *iv,
+        size_t iv_len, uint8_t **data, size_t *data_len) {
+    assert(data != NULL);
+    assert(data_len != NULL);
+
+    /* Calculate the final length of the unpadded data. */
+    size_t length = strlen(HEADER) - 1 + sizeof(uint64_t) + iv_len +
+        plaintext_len;
+
+    /* The padding needs to align the final data to a 16-byte boundary. */
+    size_t padding_len = AES_BLOCK_SIZE - length % AES_BLOCK_SIZE;
+
+    /* Generate the padding */
+    uint8_t padding[AES_BLOCK_SIZE];
+    int r = random_bytes(padding, padding_len);
+    if (r != 0)
+        return -1;
+
+    /* We're now ready to write the packed data. */
+
+    *data_len = length + padding_len;
+    assert(*data_len % AES_BLOCK_SIZE == 0);
+    *data = malloc(*data_len);
+    if (*data == NULL)
+        return -1;
+
+    size_t offset = 0;
+
+    memcpy(*data, HEADER, strlen(HEADER));
+    offset += strlen(HEADER);
+
+    uint64_t encoded_pt_len = htole64(plaintext_len);
+    memcpy(*data + offset, &encoded_pt_len, sizeof(encoded_pt_len));
+    offset += sizeof(encoded_pt_len);
+
+    memcpy(*data + offset, iv, iv_len);
+    offset += iv_len;
+
+    memcpy(*data + offset, padding, padding_len);
+    offset += padding_len;
+
+    memcpy(*data + offset, plaintext, plaintext_len);
+    offset += plaintext_len;
 
     return 0;
 }
