@@ -110,3 +110,76 @@ TEST(aes_key_size1, "test AES128 reads only 128 bits of a supplied key") {
 
     free(p);
 }
+
+TEST(aes_key_size2, "test AES128 reads 128 bits of a supplied key") {
+
+    /* This test is the companion to aes_key_size1, and tests that AES128 does
+     * read 128 bits of the key, not less. Where code is similar, see the
+     * comments in aes_key_size1.
+     */
+
+    unsigned char iv[16] = { 0 };
+
+    /* Create a 128-bit key where accessing its last byte will cause a trap.
+     * This should allow us to detect if AES128 does not read to the end of the
+     * key.
+     */
+    int pagesize = sysconf(_SC_PAGESIZE);
+    assert(pagesize >= 16 && "AES key does not fit in a page");
+    void *p;
+    int r = posix_memalign(&p, pagesize, pagesize * 2);
+    CU_ASSERT_EQUAL_FATAL(r, 0);
+    /* Write a dummy key into the end of the first page and first byte of second. */
+    unsigned char *key = p + pagesize - 15;
+    memset(key, 0, 16);
+    /* Make the second page inaccessible. */
+    r = mprotect(p + pagesize, pagesize, PROT_NONE);
+    CU_ASSERT_EQUAL_FATAL(r, 0);
+
+    /* Setup a context for encryption. */
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+    CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
+
+    /* Operations from here on should cause a SIGSEGV if we understand AES, so
+     * setup a signal handler so we can recover.
+     */
+    r = register_handler();
+    CU_ASSERT_EQUAL_FATAL(r, 0);
+    int j = setjmp(env);
+    if (j == 0) {
+
+        /* Do a dummy encryption to force use of the key. */
+
+        r = EVP_EncryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key, iv);
+        CU_ASSERT_EQUAL_FATAL(r, 1);
+
+        unsigned char in[sizeof "hello world"];
+        strcpy((char*)in, "hello world");
+
+        unsigned char out[sizeof(in) + 16 - 1];
+
+        int len;
+        r = EVP_EncryptUpdate(ctx, out, &len, in, sizeof(in));
+        CU_ASSERT_EQUAL_FATAL(r, 1);
+
+        /* If we reached here then we didn't trigger SIGSEGV :( */
+        CU_FAIL("failed to read to the end of 128-bit key");
+
+    }
+
+    /* If we reached here, then we should have triggered a SIGSEGV. */
+    CU_ASSERT_EQUAL_FATAL(j, 1);
+
+    r = deregister_handler();
+    CU_ASSERT_EQUAL_FATAL(r, 0);
+
+    EVP_CIPHER_CTX_free(ctx);
+
+    /* We need to unprotect the page we previously protected because we're
+     * about to give it back to the heap.
+     */
+    r = mprotect(p + pagesize, pagesize, PROT_READ|PROT_WRITE);
+    CU_ASSERT_EQUAL_FATAL(r, 0);
+
+    free(p);
+}
