@@ -21,6 +21,7 @@ static void handler(int signum) {
 static int register_handler(void) {
     const struct sigaction sa = {
         .sa_handler = handler,
+        .sa_flags = SA_NODEFER,
     };
     return sigaction(SIGSEGV, &sa, NULL);
 }
