@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 project (passwand)
 
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -W -Wall -Wextra")
+add_definitions (-D_XOPEN_SOURCE=700)
 
 if (NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE Release)
@@ -33,7 +34,9 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_library (passwand src/encoding.c src/erase.c src/encryption.c src/export.c src/import.c)
 target_link_libraries (passwand ${OPENSSL_LIBRARIES} ${JSON_LIBRARIES} ${SCRYPT})
 
-add_executable (passwand-tests tests/main.c src/encoding.c)
+add_executable (passwand-tests src/encoding.c tests/main.c tests/test_decode.c
+    tests/test_encode.c tests/test_erase.c tests/test_export.c
+    tests/test_import.c tests/util.c)
 target_link_libraries (passwand-tests passwand ${CUNIT})
 
 enable_testing ()
