@@ -7,9 +7,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "test.h"
 #include <unistd.h>
 
 #include "../src/encoding.h"
+
+struct test_case *test_cases;
 
 static int run(const char *command, char **output) {
     assert(command != NULL);
@@ -335,24 +338,22 @@ static const struct {
     const char *name;
     void (*fn)(void);
 } TESTS[] = {
-#define TEST(fn) { #fn, fn }
-    TEST(test_erase_null),
-    TEST(test_erase_basic),
-    TEST(test_erase_empty_string),
-    TEST(test_encode_empty),
-    TEST(test_encode_basic),
-    TEST(test_encode_is_base64),
-    TEST(test_decode_empty),
-    TEST(test_decode_basic),
-    TEST(test_decode_is_base64),
-    TEST(test_export_nothing),
-    TEST(test_export_basic),
-    TEST(test_export_unencrypted),
-    TEST(test_import_empty_list),
-    TEST(test_import_basic),
-    TEST(test_import_missing_field),
-    TEST(test_import_extra_field),
-#undef TEST
+    { "test_erase_null", test_erase_null, },
+    { "test_erase_basic", test_erase_basic, },
+    { "test_erase_empty_string", test_erase_empty_string, },
+    { "test_encode_empty", test_encode_empty, },
+    { "test_encode_basic", test_encode_basic, },
+    { "test_encode_is_base64", test_encode_is_base64, },
+    { "test_decode_empty", test_decode_empty, },
+    { "test_decode_basic", test_decode_basic, },
+    { "test_decode_is_base64", test_decode_is_base64, },
+    { "test_export_nothing", test_export_nothing, },
+    { "test_export_basic", test_export_basic, },
+    { "test_export_unencrypted", test_export_unencrypted, },
+    { "test_import_empty_list", test_import_empty_list, },
+    { "test_import_basic", test_import_basic, },
+    { "test_import_missing_field", test_import_missing_field, },
+    { "test_import_extra_field", test_import_extra_field, },
 };
 
 int main(int argc, char **argv) {
