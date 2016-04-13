@@ -211,7 +211,11 @@ int pack_data(const uint8_t *plaintext, size_t plaintext_len, const uint8_t *iv,
     /* The padding needs to align the final data to a 16-byte boundary. */
     size_t padding_len = AES_BLOCK_SIZE - length % AES_BLOCK_SIZE;
 
-    /* Generate the padding */
+    /* Generate the padding. Agile Bits considers the padding scheme from IETF
+     * draft AEAD-AES-CBC-HMAC-SHA as a more suitable replacement, but I'm not
+     * sure why. It involves deterministic bytes that seems inherently less
+     * secure.
+     */
     uint8_t padding[AES_BLOCK_SIZE];
     int r = random_bytes(padding, padding_len);
     if (r != 0)
@@ -230,16 +234,20 @@ int pack_data(const uint8_t *plaintext, size_t plaintext_len, const uint8_t *iv,
     memcpy(*packed_plaintext, HEADER, strlen(HEADER));
     offset += strlen(HEADER);
 
+    /* Pack the length of the plain text as a little endian 8-byte number. */
     uint64_t encoded_pt_len = htole64(plaintext_len);
     memcpy(*packed_plaintext + offset, &encoded_pt_len, sizeof(encoded_pt_len));
     offset += sizeof(encoded_pt_len);
 
+    /* Pack the initialisation vector. */
     memcpy(*packed_plaintext + offset, iv, iv_len);
     offset += iv_len;
 
+    /* Pack the padding, *prepending* the plain text. */
     memcpy(*packed_plaintext + offset, padding, padding_len);
     offset += padding_len;
 
+    /* Pack the plain text itself. */
     memcpy(*packed_plaintext + offset, plaintext, plaintext_len);
     offset += plaintext_len;
 
