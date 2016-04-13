@@ -26,8 +26,8 @@ int make_key(const uint8_t *master, size_t master_len, const uint8_t *salt,
  * @param key_len             Length of encryption key in bytes (must be 16)
  * @param iv                  Initialisation vector
  * @param iv_len              Length of initialisation vector (must be 16)
- * @param plaintext           Data to encrypt
- * @param plaintext_len       Length of data to encrypt (must be a multiple of
+ * @param packed_plaintext           Data to encrypt
+ * @param packed_plaintext_len       Length of data to encrypt (must be a multiple of
  *                            16)
  * @param[out] ciphertext     Encrypted data
  * @param[out] ciphertext_len Length of encrypted data
@@ -35,7 +35,7 @@ int make_key(const uint8_t *master, size_t master_len, const uint8_t *salt,
  * @return                    0 on success
  */
 int aes_encrypt(uint8_t *key, size_t key_len, uint8_t *iv, size_t iv_len,
-    uint8_t *plaintext, size_t plaintext_len, uint8_t **ciphertext,
+    uint8_t *packed_plaintext, size_t packed_plaintext_len, uint8_t **ciphertext,
     size_t *ciphertext_len) __attribute__((visibility("internal")));
 
 /** Decrypt data
@@ -48,14 +48,14 @@ int aes_encrypt(uint8_t *key, size_t key_len, uint8_t *iv, size_t iv_len,
  * @param iv_len              Length of initialisation vector (must be 16)
  * @param ciphertext          Data to decrypt
  * @param ciphertext_len      Length of data to decrypt
- * @param[out] plaintext      Decrypted data
- * @param[out] plaintext_len  Length of decrypted data
+ * @param[out] packed_plaintext      Decrypted data
+ * @param[out] packed_plaintext_len  Length of decrypted data
  *
  * @return                    0 on success
  */
 int aes_decrypt(uint8_t *key, size_t key_len, uint8_t *iv, size_t iv_len,
-    uint8_t *ciphertext, size_t ciphertext_len, uint8_t **plaintext,
-    size_t *plaintext_len) __attribute__((visibility("internal")));
+    uint8_t *ciphertext, size_t ciphertext_len, uint8_t **packed_plaintext,
+    size_t *packed_plaintext_len) __attribute__((visibility("internal")));
 
 /** Generate some random bytes
  *
@@ -84,14 +84,14 @@ int mac(const uint8_t *master, size_t master_len, const uint8_t *data,
 
 /** Pack data with padding in preparation for encryption
  *
- * @param plaintext     Raw data to encrypt
- * @param plaintext_len Length of raw data to encrypt
- * @param iv            Initialisation vector
- * @param iv_len        Length of initiailisation vector
- * @param[out] data     Packed data
- * @param[out] data_len Length of packed data.
- * @return              0 on success
+ * @param plaintext                 Raw data to encrypt
+ * @param plaintext_len             Length of raw data to encrypt
+ * @param iv                        Initialisation vector
+ * @param iv_len                    Length of initiailisation vector
+ * @param[out] packed_plaintext     Packed data
+ * @param[out] packed_plaintext_len Length of packed data.
+ * @return                          0 on success
  */
 int pack_data(const uint8_t *plaintext, size_t plaintext_len, const uint8_t *iv,
-    size_t iv_len, uint8_t **data, size_t *data_len)
+    size_t iv_len, uint8_t **packed_plaintext, size_t *packed_plaintext_len)
     __attribute__((visibility("internal")));

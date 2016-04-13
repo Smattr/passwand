@@ -37,7 +37,7 @@ static void ctxfree(void *p) {
 }
 
 int aes_encrypt(uint8_t *key, size_t key_len, uint8_t *iv, size_t iv_len,
-        uint8_t *plaintext, size_t plaintext_len, uint8_t **ciphertext,
+        uint8_t *packed_plaintext, size_t packed_plaintext_len, uint8_t **ciphertext,
         size_t *ciphertext_len) {
 
     /* We expect the key and IV to match the parameters of the algorithm we're
@@ -50,7 +50,7 @@ int aes_encrypt(uint8_t *key, size_t key_len, uint8_t *iv, size_t iv_len,
      * permits a single encrypting step with no implementation-introduced
      * padding.
      */
-    if (plaintext_len % AES_BLOCK_SIZE != 0)
+    if (packed_plaintext_len % AES_BLOCK_SIZE != 0)
         return -1;
 
     EVP_CIPHER_CTX *ctx __attribute__((cleanup(ctxfree))) = EVP_CIPHER_CTX_new();
@@ -67,24 +67,24 @@ int aes_encrypt(uint8_t *key, size_t key_len, uint8_t *iv, size_t iv_len,
     /* EVP_EncryptUpdate is documented as being able to write at most
      * `inl + cipher_block_size - 1`.
      */
-    *ciphertext = malloc(plaintext_len + AES_BLOCK_SIZE - 1);
+    *ciphertext = malloc(packed_plaintext_len + AES_BLOCK_SIZE - 1);
     if (*ciphertext == NULL)
         return -1;
 
     /* Argh, OpenSSL API. */
     int len;
 
-    if (EVP_EncryptUpdate(ctx, *ciphertext, &len, plaintext, plaintext_len) != 1) {
+    if (EVP_EncryptUpdate(ctx, *ciphertext, &len, packed_plaintext, packed_plaintext_len) != 1) {
         free(*ciphertext);
         return -1;
     }
     *ciphertext_len = len;
-    assert(*ciphertext_len < plaintext_len + AES_BLOCK_SIZE);
+    assert(*ciphertext_len < packed_plaintext_len + AES_BLOCK_SIZE);
 
     /* If we've got everything right, this finalisation should return no further
      * data.
      */
-    unsigned char temp[plaintext_len + AES_BLOCK_SIZE - 1];
+    unsigned char temp[packed_plaintext_len + AES_BLOCK_SIZE - 1];
     int excess;
     if (EVP_EncryptFinal_ex(ctx, temp, &excess) != 1 || excess != 0) {
         free(*ciphertext);
@@ -95,8 +95,8 @@ int aes_encrypt(uint8_t *key, size_t key_len, uint8_t *iv, size_t iv_len,
 }
 
 int aes_decrypt(uint8_t *key, size_t key_len, uint8_t *iv, size_t iv_len,
-        uint8_t *ciphertext, size_t ciphertext_len, uint8_t **plaintext,
-        size_t *plaintext_len) {
+        uint8_t *ciphertext, size_t ciphertext_len, uint8_t **packed_plaintext,
+        size_t *packed_plaintext_len) {
 
     /* See comment in aes_encrypt. */
     if (key_len != AES_KEY_SIZE || iv_len != AES_BLOCK_SIZE)
@@ -112,27 +112,27 @@ int aes_decrypt(uint8_t *key, size_t key_len, uint8_t *iv, size_t iv_len,
     /* EVP_DecryptUpdate is documented as writing at most
      * `inl + cipher_block_size`. We leave extra space for a NUL byte.
      */
-    *plaintext = malloc(ciphertext_len + AES_BLOCK_SIZE + 1);
-    if (*plaintext == NULL)
+    *packed_plaintext = malloc(ciphertext_len + AES_BLOCK_SIZE + 1);
+    if (*packed_plaintext == NULL)
         return -1;
 
     int len;
-    if (EVP_DecryptUpdate(ctx, *plaintext, &len, ciphertext, ciphertext_len) != 1) {
-        free(*plaintext);
+    if (EVP_DecryptUpdate(ctx, *packed_plaintext, &len, ciphertext, ciphertext_len) != 1) {
+        free(*packed_plaintext);
         return -1;
     }
     assert(len >= 0);
     assert((unsigned)len <= ciphertext_len + AES_BLOCK_SIZE);
-    *plaintext_len = len;
+    *packed_plaintext_len = len;
 
     /* It's OK to write more plain text bytes in this step. */
-    if (EVP_DecryptFinal_ex(ctx, *plaintext + len, &len) != 1) {
-        free(*plaintext);
+    if (EVP_DecryptFinal_ex(ctx, *packed_plaintext + len, &len) != 1) {
+        free(*packed_plaintext);
         return -1;
     }
-    *plaintext_len += len;
-    assert(*plaintext_len < ciphertext_len + AES_BLOCK_SIZE + 1);
-    (*plaintext)[*plaintext_len] = '\0';
+    *packed_plaintext_len += len;
+    assert(*packed_plaintext_len < ciphertext_len + AES_BLOCK_SIZE + 1);
+    (*packed_plaintext)[*packed_plaintext_len] = '\0';
 
     return 0;
 }
@@ -200,9 +200,9 @@ int mac(const uint8_t *master, size_t master_len, const uint8_t *data,
 }
 
 int pack_data(const uint8_t *plaintext, size_t plaintext_len, const uint8_t *iv,
-        size_t iv_len, uint8_t **data, size_t *data_len) {
-    assert(data != NULL);
-    assert(data_len != NULL);
+        size_t iv_len, uint8_t **packed_plaintext, size_t *packed_plaintext_len) {
+    assert(packed_plaintext != NULL);
+    assert(packed_plaintext_len != NULL);
 
     /* Calculate the final length of the unpadded data. */
     size_t length = strlen(HEADER) - 1 + sizeof(uint64_t) + iv_len +
@@ -219,28 +219,28 @@ int pack_data(const uint8_t *plaintext, size_t plaintext_len, const uint8_t *iv,
 
     /* We're now ready to write the packed data. */
 
-    *data_len = length + padding_len;
-    assert(*data_len % AES_BLOCK_SIZE == 0);
-    *data = malloc(*data_len);
-    if (*data == NULL)
+    *packed_plaintext_len = length + padding_len;
+    assert(*packed_plaintext_len % AES_BLOCK_SIZE == 0);
+    *packed_plaintext = malloc(*packed_plaintext_len);
+    if (*packed_plaintext == NULL)
         return -1;
 
     size_t offset = 0;
 
-    memcpy(*data, HEADER, strlen(HEADER));
+    memcpy(*packed_plaintext, HEADER, strlen(HEADER));
     offset += strlen(HEADER);
 
     uint64_t encoded_pt_len = htole64(plaintext_len);
-    memcpy(*data + offset, &encoded_pt_len, sizeof(encoded_pt_len));
+    memcpy(*packed_plaintext + offset, &encoded_pt_len, sizeof(encoded_pt_len));
     offset += sizeof(encoded_pt_len);
 
-    memcpy(*data + offset, iv, iv_len);
+    memcpy(*packed_plaintext + offset, iv, iv_len);
     offset += iv_len;
 
-    memcpy(*data + offset, padding, padding_len);
+    memcpy(*packed_plaintext + offset, padding, padding_len);
     offset += padding_len;
 
-    memcpy(*data + offset, plaintext, plaintext_len);
+    memcpy(*packed_plaintext + offset, plaintext, plaintext_len);
     offset += plaintext_len;
 
     return 0;
