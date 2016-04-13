@@ -18,11 +18,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-/* XXX: I think this is actually excessive. It seems to me like we generate a
- * 256-bit key, but then only use it for 128-bit AES.
- */
-static const size_t KEY_SIZE = 32; // bytes
-
 static const char HEADER[] = "oprime01";
 
 static const size_t AES_BLOCK_SIZE = 16; // bytes
@@ -153,7 +148,7 @@ int make_key(const uint8_t *master, size_t master_len, const uint8_t *salt,
     static const uint32_t p = 1;
 
     if (libscrypt_scrypt(master, master_len, salt, salt_len,
-            ((uint64_t)1) << work_factor, r, p, buffer, KEY_SIZE) != 0)
+            ((uint64_t)1) << work_factor, r, p, buffer, AES_KEY_SIZE) != 0)
         return -1;
 
     return 0;
@@ -180,7 +175,7 @@ int mac(const uint8_t *master, size_t master_len, const uint8_t *data,
         salt_malloced = true;
     }
 
-    uint8_t key[KEY_SIZE];
+    uint8_t key[AES_KEY_SIZE];
     if (make_key(master, master_len, *salt, SALT_LEN, work_factor, key) != 0) {
         if (salt_malloced)
             free(*salt);
@@ -191,7 +186,7 @@ int mac(const uint8_t *master, size_t master_len, const uint8_t *data,
 
     //unsigned char md[EVP_MAX_MD_SIZE];
     unsigned md_len;
-    if (HMAC(sha512, key, KEY_SIZE, data, data_len, auth, &md_len) == NULL) {
+    if (HMAC(sha512, key, sizeof(key), data, data_len, auth, &md_len) == NULL) {
         if (salt_malloced)
             free(*salt);
         return -1;
