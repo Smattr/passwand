@@ -123,7 +123,8 @@ int aes_decrypt(uint8_t *key, size_t key_len, uint8_t *iv, size_t iv_len,
         free(*plaintext);
         return -1;
     }
-    assert(len <= ciphertext_len + AES_BLOCK_SIZE);
+    assert(len >= 0);
+    assert((unsigned)len <= ciphertext_len + AES_BLOCK_SIZE);
     *plaintext_len = len;
 
     /* It's OK to write more plain text bytes in this step. */
