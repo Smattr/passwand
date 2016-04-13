@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include <assert.h>
+#include "encryption.h"
 #include <fcntl.h>
 #include <libscrypt.h>
 #include <openssl/evp.h>
