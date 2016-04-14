@@ -53,8 +53,8 @@ int aes_encrypt(const uint8_t *key, size_t key_len, const uint8_t *iv, size_t iv
  *
  * @return                    0 on success
  */
-int aes_decrypt(uint8_t *key, size_t key_len, uint8_t *iv, size_t iv_len,
-    uint8_t *ciphertext, size_t ciphertext_len, uint8_t **packed_plaintext,
+int aes_decrypt(const uint8_t *key, size_t key_len, const uint8_t *iv, size_t iv_len,
+    const uint8_t *ciphertext, size_t ciphertext_len, uint8_t **packed_plaintext,
     size_t *packed_plaintext_len) __attribute__((visibility("internal")));
 
 /** Generate an authentication code
