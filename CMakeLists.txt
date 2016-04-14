@@ -38,7 +38,7 @@ target_link_libraries (passwand ${OPENSSL_LIBRARIES} ${JSON_LIBRARIES} ${SCRYPT}
 add_executable (passwand-tests src/encoding.c src/encryption.c tests/main.c
     tests/test_decode.c tests/test_decrypt.c tests/test_encode.c
     tests/test_encrypt.c tests/test_erase.c tests/test_export.c
-    tests/test_import.c tests/util.c)
+    tests/test_import.c tests/test_pack.c tests/test_random_bytes.c tests/util.c)
 target_link_libraries (passwand-tests passwand ${CUNIT})
 
 enable_testing ()
