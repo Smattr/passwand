@@ -201,7 +201,7 @@ int pack_data(const uint8_t *plaintext, size_t plaintext_len, const uint8_t *iv,
     assert(packed_plaintext_len != NULL);
 
     /* Calculate the final length of the unpadded data. */
-    size_t length = strlen(HEADER) - 1 + sizeof(uint64_t) + iv_len +
+    size_t length = strlen(HEADER) + sizeof(uint64_t) + iv_len +
         plaintext_len;
 
     /* The padding needs to align the final data to a 16-byte boundary. */
