@@ -34,8 +34,8 @@ int make_key(const uint8_t *master, size_t master_len, const uint8_t *salt,
  *
  * @return                    0 on success
  */
-int aes_encrypt(uint8_t *key, size_t key_len, uint8_t *iv, size_t iv_len,
-    uint8_t *packed_plaintext, size_t packed_plaintext_len, uint8_t **ciphertext,
+int aes_encrypt(const uint8_t *key, size_t key_len, const uint8_t *iv, size_t iv_len,
+    const uint8_t *packed_plaintext, size_t packed_plaintext_len, uint8_t **ciphertext,
     size_t *ciphertext_len) __attribute__((visibility("internal")));
 
 /** Decrypt data

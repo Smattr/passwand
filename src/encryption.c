@@ -32,8 +32,8 @@ static void ctxfree(void *p) {
         EVP_CIPHER_CTX_free(*ctx);
 }
 
-int aes_encrypt(uint8_t *key, size_t key_len, uint8_t *iv, size_t iv_len,
-        uint8_t *packed_plaintext, size_t packed_plaintext_len, uint8_t **ciphertext,
+int aes_encrypt(const uint8_t *key, size_t key_len, const uint8_t *iv, size_t iv_len,
+        const uint8_t *packed_plaintext, size_t packed_plaintext_len, uint8_t **ciphertext,
         size_t *ciphertext_len) {
 
     /* We expect the key and IV to match the parameters of the algorithm we're
