@@ -1,5 +1,6 @@
 #pragma once
 
+#include <errno.h>
 #include <stdbool.h>
 
 typedef struct {
@@ -22,6 +23,23 @@ typedef struct {
     unsigned work_factor;
 
 } passwand_entry_t;
+
+typedef enum {
+    PW_OK = 0,          /* no error */
+    PW_IO = EIO,        /* I/O error */
+    PW_NOMEM = ENOMEM,  /* out of memory */
+    PW_OVERFLOW,        /* integer overflow */
+    PW_BAD_KEY_SIZE,    /* incorrect key length */
+    PW_BAD_IV_SIZE,     /* incorrect initialisation vector length */
+    PW_BAD_WF,          /* incorrect work factor */
+    PW_UNALIGNED,       /* unaligned data */
+    PW_CRYPTO,          /* failure in underlying crypto library */
+    PW_HEADER_MISMATCH, /* mismatched header value */
+    PW_IV_MISMATCH,     /* mismatched initialisation vector */
+    PW_TRUNCATED,       /* data was too short */
+    PW_NOT_ENCRYPTED,   /* exfiltration attempted with unencrypted data */
+    PW_BAD_JSON,        /* imported data did not conform to expected schema */
+} passwand_error_t;
 
 /** Securely erase the memory backing a password.
  *
