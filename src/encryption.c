@@ -8,6 +8,7 @@
 #include "encryption.h"
 #include <endian.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <libscrypt.h>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
@@ -63,7 +64,9 @@ int aes_encrypt(const uint8_t *key, size_t key_len, const uint8_t *iv, size_t iv
     /* EVP_EncryptUpdate is documented as being able to write at most
      * `inl + cipher_block_size - 1`.
      */
-    *ciphertext = malloc(packed_plaintext_len + AES_BLOCK_SIZE - 1);
+    if (SIZE_MAX - (AES_BLOCK_SIZE - 1) < packed_plaintext_len)
+        return -1;
+    *ciphertext = malloc(packed_plaintext_len + (AES_BLOCK_SIZE - 1));
     if (*ciphertext == NULL)
         return -1;
 
@@ -75,10 +78,10 @@ int aes_encrypt(const uint8_t *key, size_t key_len, const uint8_t *iv, size_t iv
         return -1;
     }
     *ciphertext_len = len;
-    assert(*ciphertext_len < packed_plaintext_len + AES_BLOCK_SIZE);
+    assert(*ciphertext_len <= packed_plaintext_len + (AES_BLOCK_SIZE - 1));
 
     /* If we've got everything right, this finalisation should return no further
-     * data.
+     * data. XXX: don't stack-allocate this here.
      */
     unsigned char temp[packed_plaintext_len + AES_BLOCK_SIZE - 1];
     int excess;
@@ -108,6 +111,8 @@ int aes_decrypt(const uint8_t *key, size_t key_len, const uint8_t *iv, size_t iv
     /* EVP_DecryptUpdate is documented as writing at most
      * `inl + cipher_block_size`. We leave extra space for a NUL byte.
      */
+    if (SIZE_MAX - AES_BLOCK_SIZE - 1 < ciphertext_len)
+        return -1;
     *packed_plaintext = malloc(ciphertext_len + AES_BLOCK_SIZE + 1);
     if (*packed_plaintext == NULL)
         return -1;
@@ -184,7 +189,7 @@ int mac(const uint8_t *master, size_t master_len, const uint8_t *data,
 
     //unsigned char md[EVP_MAX_MD_SIZE];
     unsigned md_len;
-    if (HMAC(sha512, key, sizeof(key), data, data_len, auth, &md_len) == NULL) {
+    if (HMAC(sha512, key, sizeof key, data, data_len, auth, &md_len) == NULL) {
         if (salt_malloced)
             free(*salt);
         return -1;
@@ -201,8 +206,11 @@ int pack_data(const uint8_t *plaintext, size_t plaintext_len, const uint8_t *iv,
     assert(packed_plaintext_len != NULL);
 
     /* Calculate the final length of the unpadded data. */
-    size_t length = strlen(HEADER) + sizeof(uint64_t) + iv_len +
-        plaintext_len;
+    if (SIZE_MAX - strlen(HEADER) - sizeof(uint64_t) < iv_len)
+        return -1;
+    if (SIZE_MAX - strlen(HEADER) - sizeof(uint64_t) - iv_len < plaintext_len)
+        return -1;
+    size_t length = strlen(HEADER) + sizeof(uint64_t) + iv_len + plaintext_len;
 
     /* The padding needs to align the final data to a 16-byte boundary. */
     size_t padding_len = AES_BLOCK_SIZE - length % AES_BLOCK_SIZE;
@@ -219,6 +227,8 @@ int pack_data(const uint8_t *plaintext, size_t plaintext_len, const uint8_t *iv,
 
     /* We're now ready to write the packed data. */
 
+    if (SIZE_MAX - length < padding_len)
+        return -1;
     *packed_plaintext_len = length + padding_len;
     assert(*packed_plaintext_len % AES_BLOCK_SIZE == 0);
     *packed_plaintext = malloc(*packed_plaintext_len);

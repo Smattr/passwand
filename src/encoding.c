@@ -1,8 +1,10 @@
 #include <assert.h>
 #include "encoding.h"
+#include <limits.h>
 #include <openssl/bio.h>
 #include <openssl/buffer.h>
 #include <openssl/evp.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -38,6 +40,10 @@ char *encode(const char *s) {
     BUF_MEM *bptr;
     BIO_get_mem_ptr(out, &bptr);
 
+    if (SIZE_MAX - 1 < bptr->length) {
+        BIO_free_all(b64);
+        return NULL;
+    }
     char *r = malloc(bptr->length + 1);
     if (r == NULL) {
         BIO_free_all(b64);
@@ -77,6 +83,10 @@ char *decode(const char *s) {
      */
     BUF_MEM *pp __attribute__((unused));
     long data_len = BIO_get_mem_data(pipe, &pp);
+    if (SIZE_MAX - 1 < (size_t)data_len) {
+        BIO_free_all(pipe);
+        return NULL;
+    }
     char *r = malloc(data_len + 1);
     if (r == NULL) {
         BIO_free_all(pipe);
