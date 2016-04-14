@@ -41,19 +41,19 @@ char *encode(const char *s) {
     BIO_get_mem_ptr(out, &bptr);
 
     if (SIZE_MAX - 1 < bptr->length) {
-        BIO_free_all(b64);
+        BIO_free_all(pipe);
         return NULL;
     }
     char *r = malloc(bptr->length + 1);
     if (r == NULL) {
-        BIO_free_all(b64);
+        BIO_free_all(pipe);
         return NULL;
     }
 
     memcpy(r, bptr->data, bptr->length);
     r[bptr->length] = '\0';
 
-    BIO_free_all(b64);
+    BIO_free_all(pipe);
 
     return r;
 }
