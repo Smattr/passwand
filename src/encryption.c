@@ -249,3 +249,55 @@ int pack_data(const uint8_t *plaintext, size_t plaintext_len, const uint8_t *iv,
 
     return 0;
 }
+
+int unpack_data(const uint8_t *packed_plaintext, size_t packed_plaintext_len,
+        const uint8_t *iv, size_t iv_len, uint8_t **plaintext,
+        size_t *plaintext_len) {
+    assert(packed_plaintext != NULL);
+    assert(iv != NULL);
+    assert(plaintext != NULL);
+    assert(plaintext_len != NULL);
+
+    if (packed_plaintext_len % AES_BLOCK_SIZE != 0)
+        return -1;
+
+    /* Check we have the correct header. */
+    if (packed_plaintext_len < strlen(HEADER) ||
+            strncmp((const char*)packed_plaintext, HEADER, strlen(HEADER)) != 0)
+        return -1;
+    packed_plaintext += strlen(HEADER);
+    packed_plaintext_len -= strlen(HEADER);
+
+    /* Unpack the size of the original plain text. */
+    uint64_t encoded_pt_len;
+    if (packed_plaintext_len < sizeof(encoded_pt_len))
+        return -1;
+    memcpy(&encoded_pt_len, packed_plaintext, sizeof(encoded_pt_len));
+    *plaintext_len = le64toh(encoded_pt_len);
+    packed_plaintext += sizeof(encoded_pt_len);
+    packed_plaintext_len -= sizeof(encoded_pt_len);
+
+    /* Check the initialisation vector matches. */
+    if (packed_plaintext_len < iv_len)
+        return -1;
+    if (memcmp(packed_plaintext, iv, iv_len) != 0)
+        return -1;
+    packed_plaintext += iv_len;
+    packed_plaintext_len -= iv_len;
+
+    /* Check we do indeed have enough space for the plain text left. */
+    if (packed_plaintext_len < *plaintext_len)
+        return -1;
+
+    /* Check the data was padded correctly. */
+    if (packed_plaintext_len - *plaintext_len > 16)
+        return -1;
+
+    /* Now we're ready to unpack it. */
+    *plaintext = malloc(*plaintext_len);
+    if (*plaintext == NULL)
+        return -1;
+    memcpy(*plaintext, packed_plaintext, *plaintext_len);
+
+    return 0;
+}

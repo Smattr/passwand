@@ -86,3 +86,17 @@ int mac(const uint8_t *master, size_t master_len, const uint8_t *data,
 int pack_data(const uint8_t *plaintext, size_t plaintext_len, const uint8_t *iv,
     size_t iv_len, uint8_t **packed_plaintext, size_t *packed_plaintext_len)
     __attribute__((visibility("internal")));
+
+/** Unpack data that was produced by pack_data
+ *
+ * @param packed_plaintext     Packed data to unpack
+ * @param packed_plaintext_len Length of packed data
+ * @param iv                   Initialisation vector for validation
+ * @param iv_len               Length of initialisation vector
+ * @param[out] plaintext       Data unpacked
+ * @param[out] plaintext_len   Length of data unpacked
+ * @return                     0 on success
+ */
+int unpack_data(const uint8_t *packed_plaintext, size_t packed_plaintext_len,
+    const uint8_t *iv, size_t iv_len, uint8_t **plaintext,
+    size_t *plaintext_len) __attribute__((visibility("internal")));
