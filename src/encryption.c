@@ -297,7 +297,7 @@ int unpack_data(const uint8_t *packed_plaintext, size_t packed_plaintext_len,
     *plaintext = malloc(*plaintext_len);
     if (*plaintext == NULL)
         return -1;
-    memcpy(*plaintext, packed_plaintext, *plaintext_len);
+    memcpy(*plaintext, packed_plaintext + packed_plaintext_len - *plaintext_len, *plaintext_len);
 
     return 0;
 }
