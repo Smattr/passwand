@@ -46,9 +46,9 @@ typedef enum {
  * If input is the NULL pointer, this function is a no-op.
  *
  * @param s A NUL-terminated string
- * @return 0 on success
+ * @return PW_OK on success
  */
-int passwand_erase(char *s);
+passwand_error_t passwand_erase(char *s);
 
 /** Export a list of password entries to a file.
  *

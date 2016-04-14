@@ -16,16 +16,16 @@
  */
 void *(*volatile memset_explicit)(void*, int, size_t) = memset;
 
-int passwand_erase(char *s) {
+passwand_error_t passwand_erase(char *s) {
 
     if (s == NULL)
-        return 0;
+        return PW_OK;
 
     size_t len = strlen(s);
 
     memset_explicit(s, 0, len);
     __sync_synchronize();
 
-    return 0;
+    return PW_OK;
 }
 #pragma GCC pop_options
