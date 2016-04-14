@@ -1,3 +1,4 @@
+#include "../src/encryption.h"
 #include <assert.h>
 #include <CUnit/CUnit.h>
 #include <openssl/evp.h>
@@ -328,4 +329,49 @@ TEST(aes_iv_size2, "test AES128 reads 16 bytes of a supplied initialisation vect
     CU_ASSERT_EQUAL_FATAL(r, 0);
 
     free(p);
+}
+
+TEST(encrypt_empty, "encrypting the empty string") {
+    const uint8_t key[16] = { 0 };
+    const uint8_t iv[16] = { 0 };
+    const uint8_t ppt[1] = { 0 };
+
+    uint8_t *ct;
+    size_t ct_len;
+
+    int r = aes_encrypt(key, sizeof key, iv, sizeof iv, ppt, 0, &ct, &ct_len);
+    CU_ASSERT_EQUAL_FATAL(r, 0);
+
+    free(ct);
+}
+
+TEST(encrypt_basic, "basic encrypt functionality") {
+    const uint8_t key[16] = { 0 };
+    const uint8_t iv[16] = { 0 };
+    uint8_t ppt[16] = { 0 };
+    memcpy(ppt, "hello world", strlen("hello world"));
+
+    uint8_t *ct;
+    size_t ct_len;
+
+    int r = aes_encrypt(key, sizeof key, iv, sizeof iv, ppt, sizeof ppt, &ct,
+        &ct_len);
+    CU_ASSERT_EQUAL_FATAL(r, 0);
+    CU_ASSERT_EQUAL_FATAL(ct_len > 0, true);
+
+    free(ct);
+}
+
+TEST(encrypt_unaligned, "test that we fail to encrypt unaligned data") {
+    const uint8_t key[16] = { 0 };
+    const uint8_t iv[16] = { 0 };
+    uint8_t ppt[16] = { 0 };
+    memcpy(ppt, "hello world", strlen("hello world"));
+
+    uint8_t *ct;
+    size_t ct_len;
+
+    int r = aes_encrypt(key, sizeof key, iv, sizeof iv, ppt,
+        strlen("hello world"), &ct, &ct_len);
+    CU_ASSERT_NOT_EQUAL_FATAL(r, 0);
 }
