@@ -78,6 +78,7 @@ static ssize_t read_bytes(int fd, void *buf, size_t count) {
                 return r;
         } else {
             assert(l >= 0 && l <= (ssize_t)count);
+            r += l;
             count -= (size_t)l;
             buf += l;
         }
