@@ -57,15 +57,6 @@ int aes_decrypt(uint8_t *key, size_t key_len, uint8_t *iv, size_t iv_len,
     uint8_t *ciphertext, size_t ciphertext_len, uint8_t **packed_plaintext,
     size_t *packed_plaintext_len) __attribute__((visibility("internal")));
 
-/** Generate some random bytes
- *
- * @param[out] buffer Random data
- * @param buffer_len  Number of bytes requested
- * @return            0 on success
- */
-int random_bytes(uint8_t *buffer, size_t buffer_len)
-    __attribute__((visibility("internal")));
-
 /** Generate an authentication code
  *
  * @param master        Master key

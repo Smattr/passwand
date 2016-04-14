@@ -11,7 +11,7 @@
 #include <libscrypt.h>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
-#include <openssl/rand.h>
+#include "random.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -24,10 +24,6 @@ static const char HEADER[] = "oprime01";
 
 static const size_t AES_BLOCK_SIZE = 16; // bytes
 static const size_t AES_KEY_SIZE = 16; // bytes
-
-int random_bytes(uint8_t *buffer, size_t buffer_len) {
-    return !RAND_bytes(buffer, buffer_len);
-}
 
 static void ctxfree(void *p) {
     assert(p != NULL);
