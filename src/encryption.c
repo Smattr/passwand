@@ -19,6 +19,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include "types.h"
 #include <unistd.h>
 
 static const char HEADER[] = "oprime01";
@@ -33,21 +34,19 @@ static void ctxfree(void *p) {
         EVP_CIPHER_CTX_free(*ctx);
 }
 
-int aes_encrypt(const uint8_t *key, size_t key_len, const uint8_t *iv, size_t iv_len,
-        const uint8_t *packed_plaintext, size_t packed_plaintext_len, uint8_t **ciphertext,
-        size_t *ciphertext_len) {
+int aes_encrypt(const k_t *key, const iv_t *iv, const ppt_t *pp, ct_t *c) {
 
     /* We expect the key and IV to match the parameters of the algorithm we're
      * going to use them in.
      */
-    if (key_len != AES_KEY_SIZE || iv_len != AES_BLOCK_SIZE)
+    if (key->length != AES_KEY_SIZE || iv->length != AES_BLOCK_SIZE)
         return -1;
 
     /* We require the plain text to be aligned to the block size because this
      * permits a single encrypting step with no implementation-introduced
      * padding.
      */
-    if (packed_plaintext_len % AES_BLOCK_SIZE != 0)
+    if (pp->length % AES_BLOCK_SIZE != 0)
         return -1;
 
     EVP_CIPHER_CTX *ctx __attribute__((cleanup(ctxfree))) = EVP_CIPHER_CTX_new();
@@ -58,88 +57,87 @@ int aes_encrypt(const uint8_t *key, size_t key_len, const uint8_t *iv, size_t iv
      * We use AES128 here because it has a more well designed key schedule than
      * AES256. CTR mode is recommended by Agile Bits over CBC mode.
      */
-    if (EVP_EncryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key, iv) != 1)
+    if (EVP_EncryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key->data, iv->data)
+            != 1)
         return -1;
 
     /* EVP_EncryptUpdate is documented as being able to write at most
      * `inl + cipher_block_size - 1`.
      */
-    if (SIZE_MAX - (AES_BLOCK_SIZE - 1) < packed_plaintext_len)
+    if (SIZE_MAX - (AES_BLOCK_SIZE - 1) < pp->length)
         return -1;
-    *ciphertext = malloc(packed_plaintext_len + (AES_BLOCK_SIZE - 1));
-    if (*ciphertext == NULL)
+    c->data = malloc(pp->length + (AES_BLOCK_SIZE - 1));
+    if (c->data == NULL)
         return -1;
 
     /* Argh, OpenSSL API. */
     int len;
 
-    if (EVP_EncryptUpdate(ctx, *ciphertext, &len, packed_plaintext, packed_plaintext_len) != 1) {
-        free(*ciphertext);
+    if (EVP_EncryptUpdate(ctx, c->data, &len, pp->data, pp->length) != 1) {
+        free(c->data);
         return -1;
     }
-    *ciphertext_len = len;
-    assert(*ciphertext_len <= packed_plaintext_len + (AES_BLOCK_SIZE - 1));
+    c->length = len;
+    assert(c->length <= pp->length + (AES_BLOCK_SIZE - 1));
 
     /* If we've got everything right, this finalisation should return no further
      * data. XXX: don't stack-allocate this here.
      */
-    unsigned char temp[packed_plaintext_len + AES_BLOCK_SIZE - 1];
+    unsigned char temp[pp->length + AES_BLOCK_SIZE - 1];
     int excess;
     if (EVP_EncryptFinal_ex(ctx, temp, &excess) != 1 || excess != 0) {
-        free(*ciphertext);
+        free(c->data);
         return -1;
     }
 
     return 0;
 }
 
-int aes_decrypt(const uint8_t *key, size_t key_len, const uint8_t *iv, size_t iv_len,
-        const uint8_t *ciphertext, size_t ciphertext_len, uint8_t **packed_plaintext,
-        size_t *packed_plaintext_len) {
+int aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_t *pp) {
 
     /* See comment in aes_encrypt. */
-    if (key_len != AES_KEY_SIZE || iv_len != AES_BLOCK_SIZE)
+    if (key->length != AES_KEY_SIZE || iv->length != AES_BLOCK_SIZE)
         return -1;
 
     EVP_CIPHER_CTX *ctx __attribute__((cleanup(ctxfree))) = EVP_CIPHER_CTX_new();
     if (ctx == NULL)
         return -1;
 
-    if (EVP_DecryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key, iv) != 1)
+    if (EVP_DecryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key->data, iv->data) != 1)
         return -1;
 
     /* EVP_DecryptUpdate is documented as writing at most
      * `inl + cipher_block_size`. We leave extra space for a NUL byte.
      */
-    if (SIZE_MAX - AES_BLOCK_SIZE - 1 < ciphertext_len)
+    if (SIZE_MAX - AES_BLOCK_SIZE - 1 < c->length)
         return -1;
-    *packed_plaintext = malloc(ciphertext_len + AES_BLOCK_SIZE + 1);
-    if (*packed_plaintext == NULL)
+    pp->data = malloc(c->length + AES_BLOCK_SIZE + 1);
+    if (pp->data == NULL)
         return -1;
 
     int len;
-    if (EVP_DecryptUpdate(ctx, *packed_plaintext, &len, ciphertext, ciphertext_len) != 1) {
-        free(*packed_plaintext);
+    if (EVP_DecryptUpdate(ctx, pp->data, &len, c->data, c->length) != 1) {
+        free(pp->data);
         return -1;
     }
     assert(len >= 0);
-    assert((unsigned)len <= ciphertext_len + AES_BLOCK_SIZE);
-    *packed_plaintext_len = len;
+    assert((unsigned)len <= c->length + AES_BLOCK_SIZE);
+    pp->length = len;
 
     /* It's OK to write more plain text bytes in this step. */
-    if (EVP_DecryptFinal_ex(ctx, *packed_plaintext + len, &len) != 1) {
-        free(*packed_plaintext);
+    if (EVP_DecryptFinal_ex(ctx, pp->data + len, &len) != 1) {
+        free(pp->data);
         return -1;
     }
-    *packed_plaintext_len += len;
-    assert(*packed_plaintext_len < ciphertext_len + AES_BLOCK_SIZE + 1);
-    (*packed_plaintext)[*packed_plaintext_len] = '\0';
+    pp->length += len;
+    assert(pp->length < c->length + AES_BLOCK_SIZE + 1);
+    pp->data[pp->length] = '\0';
 
     return 0;
 }
 
-int make_key(const uint8_t *master, size_t master_len, const uint8_t *salt,
-        size_t salt_len, int work_factor, uint8_t *buffer) {
+int make_key(const k_t *master, const salt_t *salt, int work_factor,
+        uint8_t *buffer) {
 
     if (work_factor == -1)
         work_factor = 14; // default value
@@ -150,28 +148,28 @@ int make_key(const uint8_t *master, size_t master_len, const uint8_t *salt,
     static const uint32_t r = 8;
     static const uint32_t p = 1;
 
-    if (libscrypt_scrypt(master, master_len, salt, salt_len,
+    if (libscrypt_scrypt(master->data, master->length, salt->data, salt->length,
             ((uint64_t)1) << work_factor, r, p, buffer, AES_KEY_SIZE) != 0)
         return -1;
 
     return 0;
 }
 
-int mac(const uint8_t *master, size_t master_len, const uint8_t *data,
-        size_t data_len, uint8_t **salt, uint8_t *auth, size_t *auth_len,
-        int work_factor) {
+int mac(const k_t *master, const ppt_t *data, salt_t *salt, uint8_t *auth,
+        size_t *auth_len, int work_factor) {
 
     static const size_t SALT_LEN = 8;
     bool salt_malloced = false;
 
-    if (*salt == NULL) {
+    if (salt->data == NULL) {
 
-        *salt = malloc(SALT_LEN);
-        if (*salt == NULL)
+        salt->data = malloc(SALT_LEN);
+        if (salt->data == NULL)
             return -1;
+        salt->length = SALT_LEN;
 
-        if (random_bytes(*salt, SALT_LEN) != 0) {
-            free(*salt);
+        if (random_bytes(salt->data, salt->length) != 0) {
+            free(salt->data);
             return -1;
         }
 
@@ -179,9 +177,9 @@ int mac(const uint8_t *master, size_t master_len, const uint8_t *data,
     }
 
     uint8_t key[AES_KEY_SIZE];
-    if (make_key(master, master_len, *salt, SALT_LEN, work_factor, key) != 0) {
+    if (make_key(master, salt, work_factor, key) != 0) {
         if (salt_malloced)
-            free(*salt);
+            free(salt->data);
         return -1;
     }
 
@@ -189,9 +187,9 @@ int mac(const uint8_t *master, size_t master_len, const uint8_t *data,
 
     //unsigned char md[EVP_MAX_MD_SIZE];
     unsigned md_len;
-    if (HMAC(sha512, key, sizeof key, data, data_len, auth, &md_len) == NULL) {
+    if (HMAC(sha512, key, sizeof key, data->data, data->length, auth, &md_len) == NULL) {
         if (salt_malloced)
-            free(*salt);
+            free(salt->data);
         return -1;
     }
 
@@ -200,17 +198,15 @@ int mac(const uint8_t *master, size_t master_len, const uint8_t *data,
     return 0;
 }
 
-int pack_data(const uint8_t *plaintext, size_t plaintext_len, const uint8_t *iv,
-        size_t iv_len, uint8_t **packed_plaintext, size_t *packed_plaintext_len) {
-    assert(packed_plaintext != NULL);
-    assert(packed_plaintext_len != NULL);
+int pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp) {
+    assert(pp != NULL);
 
     /* Calculate the final length of the unpadded data. */
-    if (SIZE_MAX - strlen(HEADER) - sizeof(uint64_t) < iv_len)
+    if (SIZE_MAX - strlen(HEADER) - sizeof(uint64_t) < iv->length)
         return -1;
-    if (SIZE_MAX - strlen(HEADER) - sizeof(uint64_t) - iv_len < plaintext_len)
+    if (SIZE_MAX - strlen(HEADER) - sizeof(uint64_t) - iv->length < p->length)
         return -1;
-    size_t length = strlen(HEADER) + sizeof(uint64_t) + iv_len + plaintext_len;
+    size_t length = strlen(HEADER) + sizeof(uint64_t) + iv->length + p->length;
 
     /* The padding needs to align the final data to a 16-byte boundary. */
     size_t padding_len = AES_BLOCK_SIZE - length % AES_BLOCK_SIZE;
@@ -229,85 +225,86 @@ int pack_data(const uint8_t *plaintext, size_t plaintext_len, const uint8_t *iv,
 
     if (SIZE_MAX - length < padding_len)
         return -1;
-    *packed_plaintext_len = length + padding_len;
-    assert(*packed_plaintext_len % AES_BLOCK_SIZE == 0);
-    *packed_plaintext = malloc(*packed_plaintext_len);
-    if (*packed_plaintext == NULL)
+    pp->length = length + padding_len;
+    assert(pp->length % AES_BLOCK_SIZE == 0);
+    pp->data = malloc(pp->length);
+    if (pp->data == NULL)
         return -1;
 
     size_t offset = 0;
 
-    memcpy(*packed_plaintext, HEADER, strlen(HEADER));
+    memcpy(pp->data, HEADER, strlen(HEADER));
     offset += strlen(HEADER);
 
     /* Pack the length of the plain text as a little endian 8-byte number. */
-    uint64_t encoded_pt_len = htole64(plaintext_len);
-    memcpy(*packed_plaintext + offset, &encoded_pt_len, sizeof(encoded_pt_len));
+    uint64_t encoded_pt_len = htole64(p->length);
+    memcpy(pp->data + offset, &encoded_pt_len, sizeof(encoded_pt_len));
     offset += sizeof(encoded_pt_len);
 
     /* Pack the initialisation vector. */
-    memcpy(*packed_plaintext + offset, iv, iv_len);
-    offset += iv_len;
+    memcpy(pp->data + offset, iv->data, iv->length);
+    offset += iv->length;
 
     /* Pack the padding, *prepending* the plain text. */
-    memcpy(*packed_plaintext + offset, padding, padding_len);
+    memcpy(pp->data + offset, padding, padding_len);
     offset += padding_len;
 
     /* Pack the plain text itself. */
-    memcpy(*packed_plaintext + offset, plaintext, plaintext_len);
-    offset += plaintext_len;
+    memcpy(pp->data + offset, p->data, p->length);
+    offset += p->length;
 
     return 0;
 }
 
-int unpack_data(const uint8_t *packed_plaintext, size_t packed_plaintext_len,
-        const uint8_t *iv, size_t iv_len, uint8_t **plaintext,
-        size_t *plaintext_len) {
-    assert(packed_plaintext != NULL);
+int unpack_data(const ppt_t *pp, const iv_t *iv, pt_t *p) {
+    assert(pp != NULL);
+    assert(pp->data != NULL);
     assert(iv != NULL);
-    assert(plaintext != NULL);
-    assert(plaintext_len != NULL);
+    assert(iv->data != NULL);
+    assert(p != NULL);
 
-    if (packed_plaintext_len % AES_BLOCK_SIZE != 0)
+    if (pp->length % AES_BLOCK_SIZE != 0)
         return -1;
+
+    ppt_t d = *pp;
 
     /* Check we have the correct header. */
-    if (packed_plaintext_len < strlen(HEADER) ||
-            strncmp((const char*)packed_plaintext, HEADER, strlen(HEADER)) != 0)
+    if (d.length < strlen(HEADER) ||
+            strncmp((const char*)d.data, HEADER, strlen(HEADER)) != 0)
         return -1;
-    packed_plaintext += strlen(HEADER);
-    packed_plaintext_len -= strlen(HEADER);
+    d.data += strlen(HEADER);
+    d.length -= strlen(HEADER);
 
     /* Unpack the size of the original plain text. */
     uint64_t encoded_pt_len;
-    if (packed_plaintext_len < sizeof(encoded_pt_len))
+    if (d.length < sizeof(encoded_pt_len))
         return -1;
-    memcpy(&encoded_pt_len, packed_plaintext, sizeof(encoded_pt_len));
-    *plaintext_len = le64toh(encoded_pt_len);
-    packed_plaintext += sizeof(encoded_pt_len);
-    packed_plaintext_len -= sizeof(encoded_pt_len);
+    memcpy(&encoded_pt_len, d.data, sizeof(encoded_pt_len));
+    p->length = le64toh(encoded_pt_len);
+    d.data += sizeof(encoded_pt_len);
+    d.length -= sizeof(encoded_pt_len);
 
     /* Check the initialisation vector matches. */
-    if (packed_plaintext_len < iv_len)
+    if (d.length < iv->length)
         return -1;
-    if (memcmp(packed_plaintext, iv, iv_len) != 0)
+    if (memcmp(d.data, iv->data, iv->length) != 0)
         return -1;
-    packed_plaintext += iv_len;
-    packed_plaintext_len -= iv_len;
+    d.data += iv->length;
+    d.length -= iv->length;
 
     /* Check we do indeed have enough space for the plain text left. */
-    if (packed_plaintext_len < *plaintext_len)
+    if (d.length < p->length)
         return -1;
 
     /* Check the data was padded correctly. */
-    if (packed_plaintext_len - *plaintext_len > 16)
+    if (d.length - p->length > 16)
         return -1;
 
     /* Now we're ready to unpack it. */
-    *plaintext = malloc(*plaintext_len);
-    if (*plaintext == NULL)
+    p->data = malloc(p->length);
+    if (p->data == NULL)
         return -1;
-    memcpy(*plaintext, packed_plaintext + packed_plaintext_len - *plaintext_len, *plaintext_len);
+    memcpy(p->data, d.data + d.length - p->length, p->length);
 
     return 0;
 }
