@@ -8,6 +8,7 @@
  * below.
  */
 
+#pragma GCC push_options
 #pragma GCC optimize("no-builtin-memset")
 int passwand_erase(char *s) {
 
@@ -21,3 +22,4 @@ int passwand_erase(char *s) {
 
     return 0;
 }
+#pragma GCC pop_options
