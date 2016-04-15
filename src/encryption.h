@@ -13,7 +13,7 @@
  * @param[out] buffer Generated key (must have at least 16 bytes accessible)
  * @return            0 on success
  */
-int make_key(const k_t *master, const salt_t *salt, int work_factor,
+int make_key(const m_t *master, const salt_t *salt, int work_factor,
     uint8_t *buffer) __attribute__((visibility("internal")));
 
 /** Encrypt data
@@ -52,7 +52,7 @@ int aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_t *pp)
  * @param work_factor   Scrypt work factor (see above)
  * @return              0 on success
  */
-int mac(const k_t *master, const ppt_t *data, salt_t *salt, uint8_t *auth,
+int mac(const m_t *master, const ppt_t *data, salt_t *salt, uint8_t *auth,
     size_t *auth_len, int work_factor) __attribute__((visibility("internal")));
 
 /** Pack data with padding in preparation for encryption

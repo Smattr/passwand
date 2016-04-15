@@ -10,6 +10,12 @@
  * plain text in a function that is expecting cipher text.
  */
 
+/* Master passphrase */
+typedef struct {
+    uint8_t *data;
+    size_t length;
+} m_t;
+
 /* Encryption keys */
 typedef struct {
     uint8_t *data;
