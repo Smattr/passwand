@@ -100,9 +100,14 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master,
 
 #undef ENC
 
-    /* Don't calculate the MAC at this point. We'll do that later before
-     * exporting an entry.
-     */
+    /* Set the HMAC. */
+    err = passwand_entry_set_mac(master, e);
+    if (err != PW_OK) {
+        free(e->value);
+        free(e->key);
+        free(e->space);
+        return PW_NO_MEM;
+    }
 
     /* Save the salt. */
     e->salt = malloc(sizeof _salt);
