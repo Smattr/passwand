@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <passwand/passwand.h>
 #include "random.h"
 #include <stddef.h>
 #include <stdint.h>
@@ -87,18 +88,18 @@ static ssize_t read_bytes(int fd, void *buf, size_t count) {
     return r;
 }
 
-int random_bytes(uint8_t *buffer, size_t buffer_len) {
+passwand_error_t random_bytes(uint8_t *buffer, size_t buffer_len) {
     assert(buffer != NULL);
     assert(buffer_len <= 512 && "exceeding blocking read limits of /dev/random");
 
     if (buffer_len == 0)
-        return 0;
+        return PW_OK;
 
     int fd = open_dev_random();
     if (fd == -1)
-        return -1;
+        return PW_IO;
 
     ssize_t r = read_bytes(fd, buffer, buffer_len);
     close(fd);
-    return r != (ssize_t)buffer_len;
+    return r == (ssize_t)buffer_len ? PW_OK : PW_IO;
 }
