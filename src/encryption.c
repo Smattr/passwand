@@ -166,12 +166,13 @@ passwand_error_t make_key(const m_t *master, const salt_t *salt, int work_factor
     return PW_OK;
 }
 
-int mac(const m_t *master, const ppt_t *data, const salt_t *salt, uint8_t *auth,
+passwand_error_t mac(const m_t *master, const ppt_t *data, const salt_t *salt, uint8_t *auth,
         size_t *auth_len, int work_factor) {
 
     k_t key;
-    if (make_key(master, salt, work_factor, &key) != PW_OK)
-        return -1;
+    passwand_error_t err = make_key(master, salt, work_factor, &key);
+    if (err != PW_OK)
+        return err;
 
     const EVP_MD *sha512 = EVP_sha512();
 
@@ -180,11 +181,11 @@ int mac(const m_t *master, const ppt_t *data, const salt_t *salt, uint8_t *auth,
     unsigned char *r = HMAC(sha512, key.data, key.length, data->data, data->length, auth, &md_len);
     free(key.data);
     if (r == NULL)
-        return -1;
+        return PW_CRYPTO;
 
     *auth_len = (size_t)md_len;
 
-    return 0;
+    return PW_OK;
 }
 
 passwand_error_t pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp) {
