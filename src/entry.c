@@ -13,8 +13,10 @@
 static void autowipe(void *p) {
     assert(p != NULL);
     k_t *k = p;
-    if (k->data != NULL)
+    if (k->data != NULL) {
         passwand_erase(k->data, k->length);
+        free(k->data);
+    }
 }
 
 passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master,
