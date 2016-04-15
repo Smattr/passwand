@@ -47,7 +47,7 @@ static void autojsonput(void *p) {
         json_object_put(*j);
 }
 
-int passwand_import(const char *path, passwand_entry_t **entries,
+passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
         unsigned *entry_len) {
     assert(entries != NULL);
     assert(entry_len != NULL);
@@ -55,15 +55,15 @@ int passwand_import(const char *path, passwand_entry_t **entries,
     /* MMap the input so JSON-C can stream it. */
     int f __attribute__((cleanup(autoclose))) = open(path, O_RDONLY);
     if (f == -1)
-        return -1;
+        return PW_IO;
 
     struct stat st;
     if (fstat(f, &st) != 0)
-        return -1;
+        return PW_IO;
 
     void *p = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, f, 0);
     if (p == MAP_FAILED)
-        return -1;
+        return PW_IO;
     munmap_data_t unmapper __attribute__((unused, cleanup(autounmap))) = {
         .addr = p,
         .length = st.st_size,
@@ -73,22 +73,22 @@ int passwand_import(const char *path, passwand_entry_t **entries,
     json_tokener *tok __attribute__((cleanup(autojsonfree)))
         = json_tokener_new();
     if (tok == NULL)
-        return -1;
+        return PW_NO_MEM;
 
     json_object *j __attribute__((cleanup(autojsonput)))
         = json_tokener_parse_ex(tok, p, st.st_size);
     if (j == NULL)
-        return -1;
+        return PW_BAD_JSON;
 
     if (!json_object_is_type(j, json_type_array))
-        return -1;
+        return PW_BAD_JSON;
 
     /* We're now ready to start reading the entries themselves. */
 
     *entry_len = json_object_array_length(j);
     *entries = calloc(*entry_len, sizeof(passwand_entry_t));
     if (*entries == NULL)
-        return -1;
+        return PW_NO_MEM;
 
     for (unsigned i = 0; i < *entry_len; i++) {
 
@@ -97,7 +97,7 @@ int passwand_import(const char *path, passwand_entry_t **entries,
         if (!json_object_is_type(m, json_type_object)) {
             /* One of the array entries was not an object (dictionary). */
             free(*entries);
-            return -1;
+            return PW_BAD_JSON;
         }
 
 #define GET(field) \
@@ -106,13 +106,16 @@ int passwand_import(const char *path, passwand_entry_t **entries,
         if (v == NULL || !json_object_is_type(v, json_type_string)) { \
             /* The value of this member was not a string. */ \
             free(*entries); \
-            return -1; \
+            return PW_BAD_JSON; \
         } \
-        (*entries)[i].field = decode(json_object_get_string(v)); \
-        if ((*entries)[i].field == NULL) { \
+        passwand_error_t err = decode(json_object_get_string(v), &((*entries)[i].field)); \
+        if (err == PW_IO) { \
             /* The value was not valid base64 encoded. */ \
             free(*entries); \
-            return -1; \
+            return PW_BAD_JSON; \
+        } else if (err != PW_OK) { \
+            free(*entries); \
+            return err; \
         } \
     } while (0)
 
@@ -130,5 +133,5 @@ int passwand_import(const char *path, passwand_entry_t **entries,
         (*entries)[i].encrypted = true;
     }
 
-    return 0;
+    return PW_OK;
 }

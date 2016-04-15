@@ -57,21 +57,22 @@ passwand_error_t encode(const char *s, char **e) {
     return PW_OK;
 }
 
-char *decode(const char *s) {
+passwand_error_t decode(const char *s, char **d) {
 
     assert(s != NULL);
+    assert(d != NULL);
 
     /* Create a base64 filter. */
     BIO *b64 __attribute__((cleanup(autobiofree))) = BIO_new(BIO_f_base64());
     if (b64 == NULL)
-        return NULL;
+        return PW_NO_MEM;
     BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
 
 
     /* Create a source to read encoded data from. */
     BIO *in = BIO_new_mem_buf((void*)s, -1);
     if (in == NULL)
-        return NULL;
+        return PW_NO_MEM;
 
     BIO *pipe = BIO_push(b64, in);
     b64 = NULL;
@@ -82,20 +83,20 @@ char *decode(const char *s) {
     BUF_MEM *pp __attribute__((unused));
     long data_len = BIO_get_mem_data(pipe, &pp);
     if (SIZE_MAX - 1 < (size_t)data_len)
-        return NULL;
-    char *r = malloc(data_len + 1);
-    if (r == NULL)
-        return NULL;
+        return PW_OVERFLOW;
+    *d = malloc(data_len + 1);
+    if (*d == NULL)
+        return PW_NO_MEM;
 
     /* Do the actual decoding. */
-    int read = BIO_read(pipe, r, data_len);
+    int read = BIO_read(pipe, *d, data_len);
 
     assert((long)read <= data_len);
     if (read < 0) {
-        free(r);
-        return NULL;
+        free(*d);
+        return PW_IO;
     }
-    r[read] = '\0';
+    (*d)[read] = '\0';
 
-    return r;
+    return PW_OK;
 }

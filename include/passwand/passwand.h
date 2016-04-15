@@ -64,6 +64,6 @@ passwand_error_t passwand_export(const char *path, passwand_entry_t *entries, un
  * @param path File to import from
  * @param entries Output argument that will be set to the array of entries read
  * @param entry_len Output argument for the size of entries
- * @return 0 on success
+ * @return PW_OK on success
  */
-int passwand_import(const char *path, passwand_entry_t **entries, unsigned *entry_len);
+passwand_error_t passwand_import(const char *path, passwand_entry_t **entries, unsigned *entry_len);
