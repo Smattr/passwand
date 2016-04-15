@@ -2,21 +2,23 @@
 
 #include <errno.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 
 typedef struct {
 
     /* encrypted fields */
-    char *space;
-    char *key;
-    char *value;
+    uint8_t *space;     size_t space_len;
+    uint8_t *key;       size_t key_len;
+    uint8_t *value;     size_t value_len;
 
     /* hmac fields */
-    char *hmac;
-    char *hmac_salt;
+    uint8_t *hmac;      size_t hmac_len;
+    uint8_t *hmac_salt; size_t hmac_salt_len;
 
     /* other core fields */
-    char *salt;
-    char *iv;
+    uint8_t *salt;      size_t salt_len;
+    uint8_t *iv;        size_t iv_len;
 
     /* fields that don't get exported */
     bool encrypted;
@@ -47,10 +49,11 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
  *
  * If input is the NULL pointer, this function is a no-op.
  *
- * @param s A NUL-terminated string
+ * @param s Data to erase
+ * @param len Length of data
  * @return PW_OK on success
  */
-passwand_error_t passwand_erase(char *s);
+passwand_error_t passwand_erase(uint8_t *s, size_t len);
 
 /** Export a list of password entries to a file.
  *

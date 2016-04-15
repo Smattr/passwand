@@ -48,13 +48,13 @@ TEST(export_basic, "basic export functionality") {
     /* Create an entry to export. */
     passwand_entry_t entries[] = {
         {
-            .space = "hello world",
-            .key = "hello world",
-            .value = "hello world",
-            .hmac = "hello world",
-            .hmac_salt = "hello world",
-            .salt = "hello world",
-            .iv = "hello world",
+            .space = (uint8_t*)"hello world",
+            .key = (uint8_t*)"hello world",
+            .value = (uint8_t*)"hello world",
+            .hmac = (uint8_t*)"hello world",
+            .hmac_salt = (uint8_t*)"hello world",
+            .salt = (uint8_t*)"hello world",
+            .iv = (uint8_t*)"hello world",
             .encrypted = true,
             .work_factor = 0,
         },
@@ -78,13 +78,13 @@ TEST(export_unencrypted, "test that exporting an unencrypted entry fails") {
     /* Create an entry to export. */
     passwand_entry_t entries[] = {
         {
-            .space = "hello world",
-            .key = "hello world",
-            .value = "hello world",
-            .hmac = "hello world",
-            .hmac_salt = "hello world",
-            .salt = "hello world",
-            .iv = "hello world",
+            .space = (uint8_t*)"hello world",
+            .key = (uint8_t*)"hello world",
+            .value = (uint8_t*)"hello world",
+            .hmac = (uint8_t*)"hello world",
+            .hmac_salt = (uint8_t*)"hello world",
+            .salt = (uint8_t*)"hello world",
+            .iv = (uint8_t*)"hello world",
             .encrypted = false, /* <-- note, not encrypted */
             .work_factor = 0,
         },

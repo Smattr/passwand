@@ -15,10 +15,13 @@ static void autobiofree(void *p) {
         BIO_free_all(*b);
 }
 
-passwand_error_t encode(const char *s, char **e) {
+passwand_error_t encode(const uint8_t *s, size_t len, char **e) {
 
     assert(s != NULL);
     assert(e != NULL);
+
+    if (len > (size_t)INT_MAX)
+        return PW_OVERFLOW;
 
     /* Create a base64 filter. */
     BIO *b64 __attribute__((cleanup(autobiofree))) = BIO_new(BIO_f_base64());
@@ -34,10 +37,8 @@ passwand_error_t encode(const char *s, char **e) {
     BIO *pipe __attribute__((cleanup(autobiofree))) = BIO_push(b64, out);
     b64 = NULL;
 
-    int len = strlen(s);
-
     /* Encode the data. */
-    if (BIO_write(pipe, s, len) != len)
+    if (BIO_write(pipe, s, len) != (int)len)
         return PW_IO;
     BIO_flush(pipe);
 
@@ -57,7 +58,7 @@ passwand_error_t encode(const char *s, char **e) {
     return PW_OK;
 }
 
-passwand_error_t decode(const char *s, char **d) {
+passwand_error_t decode(const char *s, uint8_t **d, size_t *len) {
 
     assert(s != NULL);
     assert(d != NULL);
@@ -81,22 +82,20 @@ passwand_error_t decode(const char *s, char **d) {
      * overestimates.
      */
     BUF_MEM *pp __attribute__((unused));
-    long data_len = BIO_get_mem_data(pipe, &pp);
-    if (SIZE_MAX - 1 < (size_t)data_len)
-        return PW_OVERFLOW;
-    *d = malloc(data_len + 1);
+    long sz = BIO_get_mem_data(pipe, &pp);
+    *d = malloc(sz);
     if (*d == NULL)
         return PW_NO_MEM;
 
     /* Do the actual decoding. */
-    int read = BIO_read(pipe, *d, data_len);
+    int read = BIO_read(pipe, *d, sz);
 
-    assert((long)read <= data_len);
+    assert((long)read <= sz);
     if (read < 0) {
         free(*d);
         return PW_IO;
     }
-    (*d)[read] = '\0';
+    *len = read;
 
     return PW_OK;
 }

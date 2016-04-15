@@ -108,7 +108,7 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
             free(*entries); \
             return PW_BAD_JSON; \
         } \
-        passwand_error_t err = decode(json_object_get_string(v), &((*entries)[i].field)); \
+        passwand_error_t err = decode(json_object_get_string(v), &((*entries)[i].field), &((*entries)[i].field##_len)); \
         if (err == PW_IO) { \
             /* The value was not valid base64 encoded. */ \
             free(*entries); \

@@ -76,13 +76,20 @@ TEST(import_basic, "basic import functionality") {
 
     /* Check we got an entry */
     CU_ASSERT_EQUAL_FATAL(entry_len, 1);
-    CU_ASSERT_STRING_EQUAL(entries[0].space, "hello world");
-    CU_ASSERT_STRING_EQUAL(entries[0].key, "hello world");
-    CU_ASSERT_STRING_EQUAL(entries[0].value, "hello world");
-    CU_ASSERT_STRING_EQUAL(entries[0].hmac, "hello world");
-    CU_ASSERT_STRING_EQUAL(entries[0].hmac_salt, "hello world");
-    CU_ASSERT_STRING_EQUAL(entries[0].salt, "hello world");
-    CU_ASSERT_STRING_EQUAL(entries[0].iv, "hello world");
+    CU_ASSERT_EQUAL_FATAL(entries[0].space_len, strlen("hello world"));
+    CU_ASSERT_EQUAL_FATAL(strncmp((const char*)entries[0].space, "hello world", entries[0].space_len), 0);
+    CU_ASSERT_EQUAL_FATAL(entries[0].key_len, strlen("hello world"));
+    CU_ASSERT_EQUAL_FATAL(strncmp((const char*)entries[0].key, "hello world", entries[0].key_len), 0);
+    CU_ASSERT_EQUAL_FATAL(entries[0].value_len, strlen("hello world"));
+    CU_ASSERT_EQUAL_FATAL(strncmp((const char*)entries[0].value, "hello world", entries[0].value_len), 0);
+    CU_ASSERT_EQUAL_FATAL(entries[0].hmac_len, strlen("hello world"));
+    CU_ASSERT_EQUAL_FATAL(strncmp((const char*)entries[0].hmac, "hello world", entries[0].hmac_len), 0);
+    CU_ASSERT_EQUAL_FATAL(entries[0].hmac_salt_len, strlen("hello world"));
+    CU_ASSERT_EQUAL_FATAL(strncmp((const char*)entries[0].hmac_salt, "hello world", entries[0].hmac_salt_len), 0);
+    CU_ASSERT_EQUAL_FATAL(entries[0].salt_len, strlen("hello world"));
+    CU_ASSERT_EQUAL_FATAL(strncmp((const char*)entries[0].salt, "hello world", entries[0].salt_len), 0);
+    CU_ASSERT_EQUAL_FATAL(entries[0].iv_len, strlen("hello world"));
+    CU_ASSERT_EQUAL_FATAL(strncmp((const char*)entries[0].iv, "hello world", entries[0].iv_len), 0);
 }
 
 TEST(import_extra_field, "test having a superfluous field is fine") {
@@ -110,11 +117,18 @@ TEST(import_extra_field, "test having a superfluous field is fine") {
 
     /* Check we got an entry */
     CU_ASSERT_EQUAL_FATAL(entry_len, 1);
-    CU_ASSERT_STRING_EQUAL(entries[0].space, "hello world");
-    CU_ASSERT_STRING_EQUAL(entries[0].key, "hello world");
-    CU_ASSERT_STRING_EQUAL(entries[0].value, "hello world");
-    CU_ASSERT_STRING_EQUAL(entries[0].hmac, "hello world");
-    CU_ASSERT_STRING_EQUAL(entries[0].hmac_salt, "hello world");
-    CU_ASSERT_STRING_EQUAL(entries[0].salt, "hello world");
-    CU_ASSERT_STRING_EQUAL(entries[0].iv, "hello world");
+    CU_ASSERT_EQUAL_FATAL(entries[0].space_len, strlen("hello world"));
+    CU_ASSERT_EQUAL_FATAL(strncmp((const char*)entries[0].space, "hello world", entries[0].space_len), 0);
+    CU_ASSERT_EQUAL_FATAL(entries[0].key_len, strlen("hello world"));
+    CU_ASSERT_EQUAL_FATAL(strncmp((const char*)entries[0].key, "hello world", entries[0].key_len), 0);
+    CU_ASSERT_EQUAL_FATAL(entries[0].value_len, strlen("hello world"));
+    CU_ASSERT_EQUAL_FATAL(strncmp((const char*)entries[0].value, "hello world", entries[0].value_len), 0);
+    CU_ASSERT_EQUAL_FATAL(entries[0].hmac_len, strlen("hello world"));
+    CU_ASSERT_EQUAL_FATAL(strncmp((const char*)entries[0].hmac, "hello world", entries[0].hmac_len), 0);
+    CU_ASSERT_EQUAL_FATAL(entries[0].hmac_salt_len, strlen("hello world"));
+    CU_ASSERT_EQUAL_FATAL(strncmp((const char*)entries[0].hmac_salt, "hello world", entries[0].hmac_salt_len), 0);
+    CU_ASSERT_EQUAL_FATAL(entries[0].salt_len, strlen("hello world"));
+    CU_ASSERT_EQUAL_FATAL(strncmp((const char*)entries[0].salt, "hello world", entries[0].salt_len), 0);
+    CU_ASSERT_EQUAL_FATAL(entries[0].iv_len, strlen("hello world"));
+    CU_ASSERT_EQUAL_FATAL(strncmp((const char*)entries[0].iv, "hello world", entries[0].iv_len), 0);
 }

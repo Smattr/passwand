@@ -1,6 +1,7 @@
 #include "../src/encoding.h"
 #include <CUnit/CUnit.h>
 #include <passwand/passwand.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include "test.h"
@@ -8,22 +9,24 @@
 
 TEST(decode_empty, "decoding the empty string") {
     const char *empty = "";
-    char *r;
-    passwand_error_t err = decode(empty, &r);
+    uint8_t *r;
+    size_t r_len;
+    passwand_error_t err = decode(empty, &r, &r_len);
     CU_ASSERT_EQUAL_FATAL(err, PW_OK);
     CU_ASSERT_PTR_NOT_NULL_FATAL(r);
-    CU_ASSERT_STRING_EQUAL(empty, r);
+    CU_ASSERT_EQUAL_FATAL(r_len, 0);
     free(r);
 }
 
 TEST(decode_basic, "basic functionality of decode") {
     const char *basic = "aGVsbG8gd29ybGQ=";
-    char *blah = strdup(basic);
-    char *r;
-    passwand_error_t err = decode(blah, &r);
+    uint8_t *r;
+    size_t r_len;
+    passwand_error_t err = decode(basic, &r, &r_len);
     CU_ASSERT_EQUAL_FATAL(err, PW_OK);
     CU_ASSERT_PTR_NOT_NULL_FATAL(r);
-    CU_ASSERT_STRING_EQUAL(r, "hello world");
+    CU_ASSERT_EQUAL_FATAL(r_len, strlen("hello world"));
+    CU_ASSERT_EQUAL_FATAL(strncmp((const char*)r, "hello world", r_len), 0);
     free(r);
 }
 

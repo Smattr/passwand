@@ -2,6 +2,7 @@
 #include "encoding.h"
 #include <json.h>
 #include <passwand/passwand.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -22,11 +23,12 @@ static void disown(void *p) {
 }
 
 /* Add a given key and value to a JSON dictionary. Returns 0 on success. */
-static passwand_error_t add_to_dict(json_object *d, const char *key, const char *value) {
+static passwand_error_t add_to_dict(json_object *d, const char *key,
+        const uint8_t *value, size_t value_len) {
 
     /* First encode the value which may contain arbitrary data. */
     char *encoded;
-    passwand_error_t err = encode(value, &encoded);
+    passwand_error_t err = encode(value, value_len, &encoded);
     if (err != PW_OK)
         return err;
 
@@ -64,7 +66,7 @@ passwand_error_t passwand_export(const char *path, passwand_entry_t *entries, un
 
 #define ADD(field) \
     do { \
-        passwand_error_t err = add_to_dict(d, #field, entries[i].field); \
+        passwand_error_t err = add_to_dict(d, #field, entries[i].field, entries[i].field##_len); \
         if (err != PW_OK) { \
             json_object_put(d); \
             return err; \
