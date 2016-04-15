@@ -42,9 +42,39 @@ typedef enum {
     PW_BAD_PADDING,     /* data was incorrectly padded */
     PW_NOT_ENCRYPTED,   /* exfiltration attempted with unencrypted data */
     PW_BAD_JSON,        /* imported data did not conform to expected schema */
+    PW_BAD_HMAC,        /* message failed authentication */
 } passwand_error_t;
 
-passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, const char *space, const char *key, const char *value, int work_factor);
+/** Create a new entry
+ *
+ * @param[out] e      The entry to initialise
+ * @param master      The master passphrase
+ * @param space       The space field
+ * @param key         The key field
+ * @param value       The value field
+ * @param work_factor The Scrypt work factor
+ * @return            PW_OK on success
+ */
+passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master,
+    const char *space, const char *key, const char *value, int work_factor);
+
+/** Set the authentication code on an entry
+ *
+ * @param master The master passphrase
+ * @param e      The entry whose authentication code to set
+ * @return       PW_OK on success
+ */
+passwand_error_t passwand_entry_set_mac(const char *master,
+        passwand_entry_t *e);
+
+/** Authenticate an entry
+ *
+ * @param master Master passphrase
+ * @param e      Entry to authenticate
+ * @return       PW_OK on success
+ */
+passwand_error_t passwand_entry_check_mac(const char *master,
+        passwand_entry_t *e);
 
 /** Securely erase the memory backing a password.
  *

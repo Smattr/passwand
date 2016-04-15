@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "encryption.h"
+#include <limits.h>
 #include <passwand/passwand.h>
 #include "random.h"
 #include <stdbool.h>
@@ -136,4 +137,103 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master,
     e->work_factor = work_factor;
 
     return PW_OK;
+}
+
+static passwand_error_t get_mac(const char *master, passwand_entry_t *e, mac_t *mac) {
+
+    if (!e->encrypted)
+        return PW_NOT_ENCRYPTED;
+
+    static const unsigned HMAC_SALT_LEN = 8; // bytes
+
+    if (e->hmac == NULL) {
+        /* No existing salt; generate one now. */
+        uint8_t *s = malloc(HMAC_SALT_LEN);
+        if (s == NULL)
+            return PW_NO_MEM;
+        passwand_error_t err = random_bytes(s, HMAC_SALT_LEN);
+        if (err != PW_OK) {
+            free(s);
+            return err;
+        }
+        e->hmac_salt = s;
+        e->hmac_salt_len = HMAC_SALT_LEN;
+    }
+
+    salt_t salt = {
+        .data = e->hmac_salt,
+        .length = e->hmac_salt_len,
+    };
+
+    /* Concatenate all the field data we'll MAC. */
+    if (SIZE_MAX - e->space_len < e->key_len)
+        return PW_OVERFLOW;
+    if (SIZE_MAX - e->space_len - e->key_len < e->value_len)
+        return PW_OVERFLOW;
+    size_t len = e->space_len + e->key_len + e->value_len;
+    uint8_t *_data = malloc(len);
+    if (_data == NULL)
+        return PW_NO_MEM;
+    memcpy(_data, e->space, e->space_len);
+    memcpy(_data + e->space_len, e->key, e->key_len);
+    memcpy(_data + e->space_len + e->key_len, e->value, e->value_len);
+    data_t data = {
+        .data = _data,
+        .length = len,
+    };
+
+    /* Now generate the MAC. */
+    m_t m = {
+        .data = (uint8_t*)master,
+        .length = strlen(master),
+    };
+    passwand_error_t err = hmac(&m, &data, &salt, mac, e->work_factor);
+    free(_data);
+
+    return err;
+}
+
+passwand_error_t passwand_entry_set_mac(const char *master,
+        passwand_entry_t *e) {
+    assert(e != NULL);
+
+    if (e->hmac != NULL) {
+        free(e->hmac);
+        e->hmac = NULL;
+    }
+    if (e->hmac_salt != NULL) {
+        free(e->hmac_salt);
+        e->hmac_salt = NULL;
+    }
+
+    mac_t mac;
+    passwand_error_t err = get_mac(master, e, &mac);
+    if (err != PW_OK)
+        return err;
+
+    e->hmac = mac.data;
+    e->hmac_len = mac.length;
+
+    return PW_OK;
+}
+
+passwand_error_t passwand_entry_check_mac(const char *master,
+        passwand_entry_t *e) {
+    assert(master != NULL);
+    assert(e != NULL);
+
+    if (e->hmac == NULL)
+        return PW_BAD_HMAC;
+
+    mac_t mac;
+    passwand_error_t err = get_mac(master, e, &mac);
+    if (err != PW_OK)
+        return err;
+
+    bool r = mac.length == e->hmac_len &&
+        memcmp(mac.data, e->hmac, mac.length) == 0;
+
+    free(mac.data);
+
+    return r ? PW_OK : PW_BAD_HMAC;
 }
