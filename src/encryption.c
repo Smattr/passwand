@@ -166,33 +166,12 @@ passwand_error_t make_key(const m_t *master, const salt_t *salt, int work_factor
     return PW_OK;
 }
 
-int mac(const m_t *master, const ppt_t *data, salt_t *salt, uint8_t *auth,
+int mac(const m_t *master, const ppt_t *data, const salt_t *salt, uint8_t *auth,
         size_t *auth_len, int work_factor) {
 
-    static const size_t SALT_LEN = 8;
-    bool salt_malloced = false;
-
-    if (salt->data == NULL) {
-
-        salt->data = malloc(SALT_LEN);
-        if (salt->data == NULL)
-            return -1;
-        salt->length = SALT_LEN;
-
-        if (random_bytes(salt->data, salt->length) != 0) {
-            free(salt->data);
-            return -1;
-        }
-
-        salt_malloced = true;
-    }
-
     k_t key;
-    if (make_key(master, salt, work_factor, &key) != PW_OK) {
-        if (salt_malloced)
-            free(salt->data);
+    if (make_key(master, salt, work_factor, &key) != PW_OK)
         return -1;
-    }
 
     const EVP_MD *sha512 = EVP_sha512();
 
@@ -200,11 +179,8 @@ int mac(const m_t *master, const ppt_t *data, salt_t *salt, uint8_t *auth,
     unsigned md_len;
     unsigned char *r = HMAC(sha512, key.data, key.length, data->data, data->length, auth, &md_len);
     free(key.data);
-    if (r == NULL) {
-        if (salt_malloced)
-            free(salt->data);
+    if (r == NULL)
         return -1;
-    }
 
     *auth_len = (size_t)md_len;
 
