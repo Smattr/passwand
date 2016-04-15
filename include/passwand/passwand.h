@@ -41,6 +41,8 @@ typedef enum {
     PW_BAD_JSON,        /* imported data did not conform to expected schema */
 } passwand_error_t;
 
+passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, const char *space, const char *key, const char *value, int work_factor);
+
 /** Securely erase the memory backing a password.
  *
  * If input is the NULL pointer, this function is a no-op.

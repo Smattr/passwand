@@ -136,8 +136,10 @@ int aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_t *pp) {
     return 0;
 }
 
-int make_key(const m_t *master, const salt_t *salt, int work_factor,
-        uint8_t *buffer) {
+int make_key(const m_t *master, const salt_t *salt, int work_factor, k_t *key) {
+    assert(master != NULL);
+    assert(salt != NULL);
+    assert(key != NULL);
 
     if (work_factor == -1)
         work_factor = 14; // default value
@@ -148,9 +150,18 @@ int make_key(const m_t *master, const salt_t *salt, int work_factor,
     static const uint32_t r = 8;
     static const uint32_t p = 1;
 
-    if (libscrypt_scrypt(master->data, master->length, salt->data, salt->length,
-            ((uint64_t)1) << work_factor, r, p, buffer, AES_KEY_SIZE) != 0)
+    uint8_t *buffer = malloc(AES_KEY_SIZE);
+    if (buffer == NULL)
         return -1;
+
+    if (libscrypt_scrypt(master->data, master->length, salt->data, salt->length,
+            ((uint64_t)1) << work_factor, r, p, buffer, AES_KEY_SIZE) != 0) {
+        free(buffer);
+        return -1;
+    }
+
+    key->data = buffer;
+    key->length = AES_KEY_SIZE;
 
     return 0;
 }
@@ -176,8 +187,8 @@ int mac(const m_t *master, const ppt_t *data, salt_t *salt, uint8_t *auth,
         salt_malloced = true;
     }
 
-    uint8_t key[AES_KEY_SIZE];
-    if (make_key(master, salt, work_factor, key) != 0) {
+    k_t key;
+    if (make_key(master, salt, work_factor, &key) != 0) {
         if (salt_malloced)
             free(salt->data);
         return -1;
@@ -187,7 +198,9 @@ int mac(const m_t *master, const ppt_t *data, salt_t *salt, uint8_t *auth,
 
     //unsigned char md[EVP_MAX_MD_SIZE];
     unsigned md_len;
-    if (HMAC(sha512, key, sizeof key, data->data, data->length, auth, &md_len) == NULL) {
+    unsigned char *r = HMAC(sha512, key.data, key.length, data->data, data->length, auth, &md_len);
+    free(key.data);
+    if (r == NULL) {
         if (salt_malloced)
             free(salt->data);
         return -1;

@@ -10,11 +10,11 @@
  * @param salt        Salt
  * @param work_factor Work factor to use in Scrypt (must be between 10 and 31
  *                    or -1 for the default)
- * @param[out] buffer Generated key (must have at least 16 bytes accessible)
+ * @param[out] key    Generated key
  * @return            0 on success
  */
-int make_key(const m_t *master, const salt_t *salt, int work_factor,
-    uint8_t *buffer) __attribute__((visibility("internal")));
+int make_key(const m_t *master, const salt_t *salt, int work_factor, k_t *key)
+    __attribute__((visibility("internal")));
 
 /** Encrypt data
  *
