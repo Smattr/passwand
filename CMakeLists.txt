@@ -29,6 +29,25 @@ find_library (CUNIT NAMES cunit libcunit cunitlib)
 # explicitly direct it to libscrypt.so.0.
 find_library (SCRYPT NAME libscrypt.so.0 HINTS /usr/lib)
 
+# Try to find GTK3 or, failing that, GTK2. If neither are found, just disable
+# building the GUI client.
+pkg_check_modules (GTK3 gtk+-3.0)
+if (GTK3_FOUND)
+  include_directories (${GTK3_INCLUDE_DIRS})
+  set (GTK_LIBRARIES "${GTK3_LIBRARIES}")
+else (GTK3_FOUND)
+  pkg_check_modules (GTK2 gtk+-2.0)
+  if (GTK2_FOUND)
+    include_directories (${GTK2_INCLUDE_DIRS})
+    set (GTK_LIBRARIES "${GTK2_LIBRARIES}")
+  endif (GTK2_FOUND)
+endif (GTK3_FOUND)
+
+if (GTK3_FOUND OR GTK2_FOUND)
+  add_executable (pw-gui src/pw-gui.c)
+  target_link_libraries (pw-gui ${GTK_LIBRARIES})
+endif (GTK3_FOUND OR GTK2_FOUND)
+
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_library (passwand src/encoding.c src/erase.c src/encryption.c src/endian.c
