@@ -64,10 +64,9 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master,
             .data = (uint8_t*)field, \
             .length = strlen(field), \
         }; \
-        unsigned __int128 _iv_le = htole128(_iv); \
         iv_t iv = { \
-            .data = (uint8_t*)&_iv_le, \
-            .length = sizeof _iv_le, \
+            .data = (uint8_t*)&_iv, \
+            .length = sizeof _iv, \
         }; \
         ppt_t pp; \
         err = pack_data(&p, &iv, &pp); \
