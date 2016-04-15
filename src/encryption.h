@@ -48,13 +48,12 @@ int aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_t *pp)
  * @param master        Master key
  * @param data          Data to authenticate
  * @param salt          Salt
- * @param[out] auth     Authentication code
- * @param[out] auth_len Length of authentication code
+ * @param[out] mac      Authentication code
  * @param work_factor   Scrypt work factor (see above)
  * @return              PW_OK on success
  */
-passwand_error_t mac(const m_t *master, const ppt_t *data, const salt_t *salt, uint8_t *auth,
-    size_t *auth_len, int work_factor) __attribute__((visibility("internal")));
+passwand_error_t hmac(const m_t *master, const data_t *data, const salt_t *salt,
+    mac_t *mac, int work_factor) __attribute__((visibility("internal")));
 
 /** Pack data with padding in preparation for encryption
  *

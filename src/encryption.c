@@ -166,8 +166,8 @@ passwand_error_t make_key(const m_t *master, const salt_t *salt, int work_factor
     return PW_OK;
 }
 
-passwand_error_t mac(const m_t *master, const ppt_t *data, const salt_t *salt, uint8_t *auth,
-        size_t *auth_len, int work_factor) {
+passwand_error_t hmac(const m_t *master, const data_t *data, const salt_t *salt, mac_t *mac,
+        int work_factor) {
 
     k_t key;
     passwand_error_t err = make_key(master, salt, work_factor, &key);
@@ -177,13 +177,21 @@ passwand_error_t mac(const m_t *master, const ppt_t *data, const salt_t *salt, u
     const EVP_MD *sha512 = EVP_sha512();
 
     //unsigned char md[EVP_MAX_MD_SIZE];
+    mac->data = malloc(EVP_MAX_MD_SIZE);
+    if (mac->data == NULL) {
+        free(key.data);
+        return PW_NO_MEM;
+    }
     unsigned md_len;
-    unsigned char *r = HMAC(sha512, key.data, key.length, data->data, data->length, auth, &md_len);
+    unsigned char *r = HMAC(sha512, key.data, key.length, data->data,
+        data->length, mac->data, &md_len);
     free(key.data);
-    if (r == NULL)
+    if (r == NULL) {
+        free(mac->data);
         return PW_CRYPTO;
+    }
 
-    *auth_len = (size_t)md_len;
+    mac->length = md_len;
 
     return PW_OK;
 }

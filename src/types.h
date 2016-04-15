@@ -51,3 +51,15 @@ typedef struct {
     uint8_t *data;
     size_t length;
 } ct_t;
+
+/* Message authentication code */
+typedef struct {
+    uint8_t *data;
+    size_t length;
+} mac_t;
+
+/* Arbitrary data */
+typedef struct {
+    uint8_t *data;
+    size_t length;
+} data_t;
