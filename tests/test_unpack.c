@@ -1,6 +1,7 @@
 #include "../src/encryption.h"
 #include "../src/types.h"
 #include <CUnit/CUnit.h>
+#include <passwand/passwand.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -24,8 +25,8 @@ TEST(unpack_basic, "test unpacking something we packed") {
 
     ppt_t pp;
 
-    int r = pack_data(&p, &iv, &pp);
-    CU_ASSERT_EQUAL_FATAL(r, 0);
+    passwand_error_t r = pack_data(&p, &iv, &pp);
+    CU_ASSERT_EQUAL_FATAL(r, PW_OK);
     CU_ASSERT_EQUAL_FATAL(pp.length > 0, true);
 
     /* Now try to unpack it. */
@@ -33,7 +34,7 @@ TEST(unpack_basic, "test unpacking something we packed") {
     pt_t out;
 
     r = unpack_data(&pp, &iv, &out);
-    CU_ASSERT_EQUAL_FATAL(r, 0);
+    CU_ASSERT_EQUAL_FATAL(r, PW_OK);
     CU_ASSERT_EQUAL_FATAL(out.length, p.length);
     CU_ASSERT_EQUAL_FATAL(memcmp(p.data, out.data, out.length), 0);
 

@@ -61,9 +61,9 @@ int mac(const m_t *master, const ppt_t *data, salt_t *salt, uint8_t *auth,
  * @param p       Raw data to encrypt
  * @param iv      Initialisation vector
  * @param[out] pp Packed data
- * @return        0 on success
+ * @return        PW_OK on success
  */
-int pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp)
+passwand_error_t pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp)
     __attribute__((visibility("internal")));
 
 /** Unpack data that was produced by pack_data
@@ -71,7 +71,7 @@ int pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp)
  * @param pp     Packed data to unpack
  * @param iv     Initialisation vector for validation
  * @param[out] p Data unpacked
- * @return       0 on success
+ * @return       PW_OK on success
  */
-int unpack_data(const ppt_t *pp, const iv_t *iv, pt_t *p)
+passwand_error_t unpack_data(const ppt_t *pp, const iv_t *iv, pt_t *p)
     __attribute__((visibility("internal")));

@@ -211,14 +211,14 @@ int mac(const m_t *master, const ppt_t *data, salt_t *salt, uint8_t *auth,
     return 0;
 }
 
-int pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp) {
+passwand_error_t pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp) {
     assert(pp != NULL);
 
     /* Calculate the final length of the unpadded data. */
     if (SIZE_MAX - strlen(HEADER) - sizeof(uint64_t) < iv->length)
-        return -1;
+        return PW_OVERFLOW;
     if (SIZE_MAX - strlen(HEADER) - sizeof(uint64_t) - iv->length < p->length)
-        return -1;
+        return PW_OVERFLOW;
     size_t length = strlen(HEADER) + sizeof(uint64_t) + iv->length + p->length;
 
     /* The padding needs to align the final data to a 16-byte boundary. */
@@ -230,19 +230,19 @@ int pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp) {
      * secure.
      */
     uint8_t padding[AES_BLOCK_SIZE];
-    int r = random_bytes(padding, padding_len);
-    if (r != 0)
-        return -1;
+    passwand_error_t r = random_bytes(padding, padding_len);
+    if (r != PW_OK)
+        return r;
 
     /* We're now ready to write the packed data. */
 
     if (SIZE_MAX - length < padding_len)
-        return -1;
+        return PW_OVERFLOW;
     pp->length = length + padding_len;
     assert(pp->length % AES_BLOCK_SIZE == 0);
     pp->data = malloc(pp->length);
     if (pp->data == NULL)
-        return -1;
+        return PW_NO_MEM;
 
     size_t offset = 0;
 
@@ -266,10 +266,10 @@ int pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp) {
     memcpy(pp->data + offset, p->data, p->length);
     offset += p->length;
 
-    return 0;
+    return PW_OK;
 }
 
-int unpack_data(const ppt_t *pp, const iv_t *iv, pt_t *p) {
+passwand_error_t unpack_data(const ppt_t *pp, const iv_t *iv, pt_t *p) {
     assert(pp != NULL);
     assert(pp->data != NULL);
     assert(iv != NULL);
@@ -277,21 +277,21 @@ int unpack_data(const ppt_t *pp, const iv_t *iv, pt_t *p) {
     assert(p != NULL);
 
     if (pp->length % AES_BLOCK_SIZE != 0)
-        return -1;
+        return PW_UNALIGNED;
 
     ppt_t d = *pp;
 
     /* Check we have the correct header. */
     if (d.length < strlen(HEADER) ||
             strncmp((const char*)d.data, HEADER, strlen(HEADER)) != 0)
-        return -1;
+        return PW_HEADER_MISMATCH;
     d.data += strlen(HEADER);
     d.length -= strlen(HEADER);
 
     /* Unpack the size of the original plain text. */
     uint64_t encoded_pt_len;
     if (d.length < sizeof(encoded_pt_len))
-        return -1;
+        return PW_TRUNCATED;
     memcpy(&encoded_pt_len, d.data, sizeof(encoded_pt_len));
     p->length = le64toh(encoded_pt_len);
     d.data += sizeof(encoded_pt_len);
@@ -299,25 +299,25 @@ int unpack_data(const ppt_t *pp, const iv_t *iv, pt_t *p) {
 
     /* Check the initialisation vector matches. */
     if (d.length < iv->length)
-        return -1;
+        return PW_TRUNCATED;
     if (memcmp(d.data, iv->data, iv->length) != 0)
-        return -1;
+        return PW_IV_MISMATCH;
     d.data += iv->length;
     d.length -= iv->length;
 
     /* Check we do indeed have enough space for the plain text left. */
     if (d.length < p->length)
-        return -1;
+        return PW_TRUNCATED;
 
     /* Check the data was padded correctly. */
     if (d.length - p->length > 16)
-        return -1;
+        return PW_BAD_PADDING;
 
     /* Now we're ready to unpack it. */
     p->data = malloc(p->length);
     if (p->data == NULL)
-        return -1;
+        return PW_NO_MEM;
     memcpy(p->data, d.data + d.length - p->length, p->length);
 
-    return 0;
+    return PW_OK;
 }

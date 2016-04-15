@@ -39,6 +39,7 @@ typedef enum {
     PW_HEADER_MISMATCH, /* mismatched header value */
     PW_IV_MISMATCH,     /* mismatched initialisation vector */
     PW_TRUNCATED,       /* data was too short */
+    PW_BAD_PADDING,     /* data was incorrectly padded */
     PW_NOT_ENCRYPTED,   /* exfiltration attempted with unencrypted data */
     PW_BAD_JSON,        /* imported data did not conform to expected schema */
 } passwand_error_t;

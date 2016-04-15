@@ -1,6 +1,7 @@
 #include "../src/encryption.h"
 #include "../src/types.h"
 #include <CUnit/CUnit.h>
+#include <passwand/passwand.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -23,8 +24,8 @@ TEST(pack_basic, "basic packing functionality") {
 
     ppt_t pp;
 
-    int r = pack_data(&p, &iv, &pp);
-    CU_ASSERT_EQUAL_FATAL(r, 0);
+    passwand_error_t r = pack_data(&p, &iv, &pp);
+    CU_ASSERT_EQUAL_FATAL(r, PW_OK);
     CU_ASSERT_EQUAL_FATAL(pp.length > 0, true);
 
     free(pp.data);
