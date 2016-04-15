@@ -1,5 +1,6 @@
 #pragma once
 
+#include <passwand/passwand.h>
 #include <stddef.h>
 #include <stdint.h>
 #include "types.h"
@@ -11,9 +12,9 @@
  * @param work_factor Work factor to use in Scrypt (must be between 10 and 31
  *                    or -1 for the default)
  * @param[out] key    Generated key
- * @return            0 on success
+ * @return            PW_OK on success
  */
-int make_key(const m_t *master, const salt_t *salt, int work_factor, k_t *key)
+passwand_error_t make_key(const m_t *master, const salt_t *salt, int work_factor, k_t *key)
     __attribute__((visibility("internal")));
 
 /** Encrypt data

@@ -136,7 +136,7 @@ int aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_t *pp) {
     return 0;
 }
 
-int make_key(const m_t *master, const salt_t *salt, int work_factor, k_t *key) {
+passwand_error_t make_key(const m_t *master, const salt_t *salt, int work_factor, k_t *key) {
     assert(master != NULL);
     assert(salt != NULL);
     assert(key != NULL);
@@ -145,25 +145,25 @@ int make_key(const m_t *master, const salt_t *salt, int work_factor, k_t *key) {
         work_factor = 14; // default value
 
     if (work_factor < 10 || work_factor > 31)
-        return -1;
+        return PW_BAD_WF;
 
     static const uint32_t r = 8;
     static const uint32_t p = 1;
 
     uint8_t *buffer = malloc(AES_KEY_SIZE);
     if (buffer == NULL)
-        return -1;
+        return PW_NO_MEM;
 
     if (libscrypt_scrypt(master->data, master->length, salt->data, salt->length,
             ((uint64_t)1) << work_factor, r, p, buffer, AES_KEY_SIZE) != 0) {
         free(buffer);
-        return -1;
+        return PW_CRYPTO;
     }
 
     key->data = buffer;
     key->length = AES_KEY_SIZE;
 
-    return 0;
+    return PW_OK;
 }
 
 int mac(const m_t *master, const ppt_t *data, salt_t *salt, uint8_t *auth,
@@ -188,7 +188,7 @@ int mac(const m_t *master, const ppt_t *data, salt_t *salt, uint8_t *auth,
     }
 
     k_t key;
-    if (make_key(master, salt, work_factor, &key) != 0) {
+    if (make_key(master, salt, work_factor, &key) != PW_OK) {
         if (salt_malloced)
             free(salt->data);
         return -1;
