@@ -124,7 +124,8 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master,
 
     /* Save the *initial* value of the IV. */
     _iv -= 3;
-    e->iv = malloc(sizeof _iv);
+    unsigned __int128 _iv_le = htole128(_iv);
+    e->iv = malloc(sizeof _iv_le);
     if (e->iv == NULL) {
         free(e->salt);
         free(e->value);
@@ -132,8 +133,8 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master,
         free(e->space);
         return PW_NO_MEM;
     }
-    memcpy(e->iv, &_iv, sizeof _iv);
-    e->iv_len = sizeof _iv;
+    memcpy(e->iv, &_iv_le, sizeof _iv_le);
+    e->iv_len = sizeof _iv_le;
 
     e->encrypted = true;
 
