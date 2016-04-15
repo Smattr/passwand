@@ -246,3 +246,91 @@ passwand_error_t passwand_entry_check_mac(const char *master,
 
     return r ? PW_OK : PW_BAD_HMAC;
 }
+
+static void autoerase(void *p) {
+    assert(p != NULL);
+    char **s = p;
+    if (*s != NULL) {
+        passwand_erase((uint8_t*)*s, strlen(*s));
+        free(*s);
+    }
+}
+
+passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
+        void (*action)(void *state, const char *space, const char *key, const char *value),
+        void *state) {
+    assert(master != NULL);
+    assert(e != NULL);
+    assert(action != NULL);
+
+    /* First check the MAC. */
+    passwand_error_t err = passwand_entry_check_mac(master, e);
+    if (err != PW_OK)
+        return err;
+
+    /* Generate the encryption key. */
+    m_t m = {
+        .data = (uint8_t*)master,
+        .length = strlen(master),
+    };
+    salt_t salt = {
+        .data = e->salt,
+        .length = e->salt_len,
+    };
+    k_t k __attribute__((cleanup(autowipe))) = { .data = NULL };
+    err = make_key(&m, &salt, e->work_factor, &k);
+    if (err != PW_OK)
+        return err;
+
+    /* Extract the leading initialisation vector. */
+    if (e->iv_len != 16)
+        return PW_IV_MISMATCH;
+    unsigned __int128 _iv_le;
+    memcpy(&_iv_le, e->iv, e->iv_len);
+    unsigned __int128 _iv = letoh128(_iv_le);
+
+    char *space __attribute__((cleanup(autoerase))) = NULL;
+    char *key __attribute__((cleanup(autoerase))) = NULL;
+    char *value __attribute__((cleanup(autoerase))) = NULL;
+
+#define DEC(field) \
+    do { \
+        iv_t iv = { \
+            .data = (uint8_t*)&_iv, \
+            .length = sizeof _iv, \
+        }; \
+        ct_t c = { \
+            .data = e->field, \
+            .length = e->field##_len, \
+        }; \
+        ppt_t pp __attribute__((cleanup(autowipe))) = { .data = NULL }; \
+        err = aes_decrypt(&k, &iv, &c, &pp); \
+        if (err != PW_OK) { \
+            return err; \
+        } \
+        pt_t p __attribute__((cleanup(autowipe))) = { .data = NULL }; \
+        err = unpack_data(&pp, &iv, &p); \
+        if (err != PW_OK) { \
+            return err; \
+        } \
+        if (SIZE_MAX - p.length < 1) { \
+            return PW_OVERFLOW; \
+        } \
+        field = malloc(p.length + 1); \
+        if (field == NULL) { \
+            return  PW_NO_MEM; \
+        } \
+        memcpy(field, p.data, p.length); \
+        field[p.length] = '\0'; \
+    } while (0)
+
+    DEC(space);
+    DEC(key);
+    DEC(value);
+
+#undef DEC
+
+    action(state, space, key, value);
+
+    return PW_OK;
+}

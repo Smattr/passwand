@@ -76,6 +76,21 @@ passwand_error_t passwand_entry_set_mac(const char *master,
 passwand_error_t passwand_entry_check_mac(const char *master,
         passwand_entry_t *e);
 
+/** Perform an action with a decrypted entry
+ *
+ * This function does the work of decrypting the entry before calling the user
+ * action and then securely cleaning up afterwards.
+ *
+ * @param master The master passphrase
+ * @param e      The entry to decrypt
+ * @param action The user action to perform
+ * @param state  State passed to the user action
+ * @return       PW_OK on success
+ */
+passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
+        void (*action)(void *state, const char *space, const char *key, const char *value),
+        void *state);
+
 /** Securely erase the memory backing a password.
  *
  * If input is the NULL pointer, this function is a no-op.
