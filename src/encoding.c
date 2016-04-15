@@ -15,20 +15,21 @@ static void autobiofree(void *p) {
         BIO_free_all(*b);
 }
 
-char *encode(const char *s) {
+passwand_error_t encode(const char *s, char **e) {
 
     assert(s != NULL);
+    assert(e != NULL);
 
     /* Create a base64 filter. */
     BIO *b64 __attribute__((cleanup(autobiofree))) = BIO_new(BIO_f_base64());
     if (b64 == NULL)
-        return NULL;
+        return PW_NO_MEM;
     BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
 
     /* Create an in-memory sink to encode data into. */
     BIO *out = BIO_new(BIO_s_mem());
     if (out == NULL)
-        return NULL;
+        return PW_NO_MEM;
 
     BIO *pipe __attribute__((cleanup(autobiofree))) = BIO_push(b64, out);
     b64 = NULL;
@@ -37,7 +38,7 @@ char *encode(const char *s) {
 
     /* Encode the data. */
     if (BIO_write(pipe, s, len) != len)
-        return NULL;
+        return PW_IO;
     BIO_flush(pipe);
 
     /* Extract it into a string. */
@@ -45,15 +46,15 @@ char *encode(const char *s) {
     BIO_get_mem_ptr(out, &bptr);
 
     if (SIZE_MAX - 1 < bptr->length)
-        return NULL;
-    char *r = malloc(bptr->length + 1);
-    if (r == NULL)
-        return NULL;
+        return PW_OVERFLOW;
+    *e = malloc(bptr->length + 1);
+    if (*e == NULL)
+        return PW_NO_MEM;
 
-    memcpy(r, bptr->data, bptr->length);
-    r[bptr->length] = '\0';
+    memcpy(*e, bptr->data, bptr->length);
+    (*e)[bptr->length] = '\0';
 
-    return r;
+    return PW_OK;
 }
 
 char *decode(const char *s) {

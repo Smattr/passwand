@@ -22,50 +22,52 @@ static void disown(void *p) {
 }
 
 /* Add a given key and value to a JSON dictionary. Returns 0 on success. */
-static int add_to_dict(json_object *d, const char *key, const char *value) {
+static passwand_error_t add_to_dict(json_object *d, const char *key, const char *value) {
 
     /* First encode the value which may contain arbitrary data. */
-    char *encoded = encode(value);
-    if (encoded == NULL)
-        return -1;
+    char *encoded;
+    passwand_error_t err = encode(value, &encoded);
+    if (err != PW_OK)
+        return err;
 
     /* Encapsulate the value in a JSON object. */
     json_object *v = json_object_new_string(encoded);
     free(encoded);
     if (v == NULL)
-        return -1;
+        return PW_NO_MEM;
 
     /* Add the key and value to the dictionary. */
     json_object_object_add(d, key, v);
 
-    return 0;
+    return PW_OK;
 }
 
-int passwand_export(const char *path, passwand_entry_t *entries, unsigned entry_len) {
+passwand_error_t passwand_export(const char *path, passwand_entry_t *entries, unsigned entry_len) {
     assert(path != NULL);
     assert(entries != NULL || entry_len == 0);
 
     /* Create a new array as the top level JSON object in the export file. */
     json_object *j __attribute__((cleanup(disown))) = json_object_new_array();
     if (j == NULL)
-        return -1;
+        return PW_NO_MEM;
 
     for (unsigned i = 0; i < entry_len; i++) {
 
         /* We should only be exporting encrypted entries. */
         if (!entries[i].encrypted)
-            return -1;
+            return PW_NOT_ENCRYPTED;
 
         /* Encapsulate each entry in a JSON dictionary. */
         json_object *d = json_object_new_object();
         if (d == NULL)
-            return -1;
+            return PW_NO_MEM;
 
 #define ADD(field) \
     do { \
-        if (add_to_dict(d, #field, entries[i].field) != 0) { \
+        passwand_error_t err = add_to_dict(d, #field, entries[i].field); \
+        if (err != PW_OK) { \
             json_object_put(d); \
-            return -1; \
+            return err; \
         } \
     } while (0)
 
@@ -86,11 +88,11 @@ int passwand_export(const char *path, passwand_entry_t *entries, unsigned entry_
 
     FILE *f __attribute__((cleanup(close))) = fopen(path, "w");
     if (f == NULL)
-        return -1;
+        return PW_IO;
 
     const char *json = json_object_to_json_string_ext(j, JSON_C_TO_STRING_PLAIN);
     if (fputs(json, f) == EOF)
-        return -1;
+        return PW_IO;
 
-    return 0;
+    return PW_OK;
 }

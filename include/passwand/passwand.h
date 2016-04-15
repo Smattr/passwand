@@ -27,7 +27,7 @@ typedef struct {
 typedef enum {
     PW_OK = 0,          /* no error */
     PW_IO = EIO,        /* I/O error */
-    PW_NOMEM = ENOMEM,  /* out of memory */
+    PW_NO_MEM = ENOMEM, /* out of memory */
     PW_OVERFLOW,        /* integer overflow */
     PW_BAD_KEY_SIZE,    /* incorrect key length */
     PW_BAD_IV_SIZE,     /* incorrect initialisation vector length */
@@ -55,9 +55,9 @@ passwand_error_t passwand_erase(char *s);
  * @param path File to export to
  * @param entries An array of entries to export
  * @param entry_len The size of the array
- * @return 0 on success
+ * @return PW_OK on success
  */
-int passwand_export(const char *path, passwand_entry_t *entries, unsigned entry_len);
+passwand_error_t passwand_export(const char *path, passwand_entry_t *entries, unsigned entry_len);
 
 /** Import a list of password entries from a file.
  *
