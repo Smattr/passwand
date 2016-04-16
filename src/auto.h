@@ -38,7 +38,7 @@ static inline void autowipept_t(void *p) {
 }
 #define AUTO_PT_T(name) __attribute__((cleanup(autowipept_t))) pt_t name = { .data = NULL }
 
-static void autoerase(void *p) {
+static inline void autoerase(void *p) {
     assert(p != NULL);
     char **s = p;
     if (*s != NULL) {
