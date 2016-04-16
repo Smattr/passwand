@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "auto.h"
 #include "encryption.h"
 #include "endian.h"
 #include <limits.h>
@@ -9,15 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "types.h"
-
-static void autowipe(void *p) {
-    assert(p != NULL);
-    k_t *k = p;
-    if (k->data != NULL) {
-        passwand_erase(k->data, k->length);
-        free(k->data);
-    }
-}
 
 passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master,
         const char *space, const char *key, const char *value,
@@ -45,7 +37,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master,
         .data = (uint8_t*)master,
         .length = strlen(master),
     };
-    k_t k __attribute__((cleanup(autowipe))) = { .data = NULL };
+    AUTO_K_T(k);
     err = make_key(&m, &salt, work_factor, &k);
     if (err != PW_OK)
         return err;
@@ -250,15 +242,6 @@ passwand_error_t passwand_entry_check_mac(const char *master,
     return r ? PW_OK : PW_BAD_HMAC;
 }
 
-static void autoerase(void *p) {
-    assert(p != NULL);
-    char **s = p;
-    if (*s != NULL) {
-        passwand_erase((uint8_t*)*s, strlen(*s));
-        free(*s);
-    }
-}
-
 passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
         void (*action)(void *state, const char *space, const char *key, const char *value),
         void *state) {
@@ -282,7 +265,7 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
         .data = e->salt,
         .length = e->salt_len,
     };
-    k_t k __attribute__((cleanup(autowipe))) = { .data = NULL };
+    AUTO_K_T(k);
     err = make_key(&m, &salt, e->work_factor, &k);
     if (err != PW_OK)
         return err;
@@ -294,9 +277,9 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
     memcpy(&_iv_le, e->iv, e->iv_len);
     unsigned __int128 _iv = le128toh(_iv_le);
 
-    char *space __attribute__((cleanup(autoerase))) = NULL;
-    char *key __attribute__((cleanup(autoerase))) = NULL;
-    char *value __attribute__((cleanup(autoerase))) = NULL;
+    AUTO_SECURE_STRING(space);
+    AUTO_SECURE_STRING(key);
+    AUTO_SECURE_STRING(value);
 
 #define DEC(field) \
     do { \
@@ -308,12 +291,12 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
             .data = e->field, \
             .length = e->field##_len, \
         }; \
-        ppt_t pp __attribute__((cleanup(autowipe))) = { .data = NULL }; \
+        AUTO_PPT_T(pp); \
         err = aes_decrypt(&k, &iv, &c, &pp); \
         if (err != PW_OK) { \
             return err; \
         } \
-        pt_t p __attribute__((cleanup(autowipe))) = { .data = NULL }; \
+        AUTO_PT_T(p); \
         err = unpack_data(&pp, &iv, &p); \
         if (err != PW_OK) { \
             return err; \
