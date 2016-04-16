@@ -59,6 +59,24 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master,
     if (err != PW_OK)
         return err;
 
+#define CLEAN(field) \
+    do { \
+        if (e->field != NULL) { \
+            passwand_erase(e->field, e->field##_len); \
+            free(e->field); \
+        } \
+    } while (0)
+#define CLEANUP() \
+    do { \
+        CLEAN(iv); \
+        CLEAN(salt); \
+        CLEAN(hmac_salt); \
+        CLEAN(hmac); \
+        CLEAN(value); \
+        CLEAN(key); \
+        CLEAN(space); \
+    } while (0)
+
     /* Now pack and encrypt each field. */
 #define ENC(field) \
     do { \
@@ -72,52 +90,39 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master,
         }; \
         ppt_t pp; \
         err = pack_data(&p, &iv, &pp); \
-        if (err == PW_OK) { \
-            ct_t c; \
-            err = aes_encrypt(&k, &iv, &pp, &c); \
-            free(pp.data); \
-            if (err == PW_OK) { \
-                e->field = c.data; \
-                e->field##_len = c.length; \
-            } \
+        if (err != PW_OK) { \
+            CLEANUP(); \
+            return err; \
         } \
+        ct_t c; \
+        err = aes_encrypt(&k, &iv, &pp, &c); \
+        free(pp.data); \
+        if (err != PW_OK) { \
+            CLEANUP(); \
+            return err; \
+        } \
+        e->field = c.data; \
+        e->field##_len = c.length; \
         _iv++; \
     } while (0)
 
     ENC(space);
-    if (err != PW_OK)
-        return err;
-
     ENC(key);
-    if (err != PW_OK) {
-        free(e->space);
-        return err;
-    }
-
     ENC(value);
-    if (err != PW_OK) {
-        free(e->key);
-        free(e->space);
-        return err;
-    }
 
 #undef ENC
 
     /* Set the HMAC. */
     err = passwand_entry_set_mac(master, e);
     if (err != PW_OK) {
-        free(e->value);
-        free(e->key);
-        free(e->space);
+        CLEANUP();
         return PW_NO_MEM;
     }
 
     /* Save the salt. */
     e->salt = malloc(sizeof _salt);
     if (e->salt == NULL) {
-        free(e->value);
-        free(e->key);
-        free(e->space);
+        CLEANUP();
         return PW_NO_MEM;
     }
     memcpy(e->salt, &_salt, sizeof _salt);
@@ -128,10 +133,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master,
     unsigned __int128 _iv_le = htole128(_iv);
     e->iv = malloc(sizeof _iv_le);
     if (e->iv == NULL) {
-        free(e->salt);
-        free(e->value);
-        free(e->key);
-        free(e->space);
+        CLEANUP();
         return PW_NO_MEM;
     }
     memcpy(e->iv, &_iv_le, sizeof _iv_le);
@@ -273,6 +275,8 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
         .data = (uint8_t*)master,
         .length = strlen(master),
     };
+    assert(e->salt != NULL);
+    assert(e->salt_len > 0);
     salt_t salt = {
         .data = e->salt,
         .length = e->salt_len,
