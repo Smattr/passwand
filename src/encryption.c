@@ -22,11 +22,6 @@
 #include "types.h"
 #include <unistd.h>
 
-static const char HEADER[] = "oprime01";
-
-static const size_t AES_BLOCK_SIZE = 16; // bytes
-static const size_t AES_KEY_SIZE = 16; // bytes
-
 static void ctxfree(void *p) {
     assert(p != NULL);
     EVP_CIPHER_CTX **ctx = p;

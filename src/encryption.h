@@ -5,6 +5,13 @@
 #include <stdint.h>
 #include "types.h"
 
+#define HEADER "oprime01"
+
+enum {
+    AES_BLOCK_SIZE = 16, // bytes
+    AES_KEY_SIZE = 16, // bytes
+};
+
 /** Construct a key for use in AES encryption
  *
  * @param master      Master key
