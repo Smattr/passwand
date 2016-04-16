@@ -49,6 +49,7 @@ static void autojsonput(void *p) {
 
 passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
         unsigned *entry_len) {
+    assert(path != NULL);
     assert(entries != NULL);
     assert(entry_len != NULL);
 
@@ -92,11 +93,25 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
 
     for (unsigned i = 0; i < *entry_len; i++) {
 
+#define FREE_PRECEDING() \
+    do { \
+        for (unsigned j = 0; j <= i; j++) { \
+            free((*entries)[j].space); \
+            free((*entries)[j].key); \
+            free((*entries)[j].value); \
+            free((*entries)[j].hmac); \
+            free((*entries)[j].hmac_salt); \
+            free((*entries)[j].salt); \
+            free((*entries)[j].iv); \
+        } \
+        free(*entries); \
+    } while (0)
+
         json_object *m = json_object_array_get_idx(j, i);
         assert(m != NULL);
         if (!json_object_is_type(m, json_type_object)) {
             /* One of the array entries was not an object (dictionary). */
-            free(*entries);
+            FREE_PRECEDING();
             return PW_BAD_JSON;
         }
 
@@ -105,16 +120,16 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
         json_object *v = json_object_object_get(m, #field); \
         if (v == NULL || !json_object_is_type(v, json_type_string)) { \
             /* The value of this member was not a string. */ \
-            free(*entries); \
+            FREE_PRECEDING(); \
             return PW_BAD_JSON; \
         } \
         passwand_error_t err = decode(json_object_get_string(v), &((*entries)[i].field), &((*entries)[i].field##_len)); \
         if (err == PW_IO) { \
             /* The value was not valid base64 encoded. */ \
-            free(*entries); \
+            FREE_PRECEDING(); \
             return PW_BAD_JSON; \
         } else if (err != PW_OK) { \
-            free(*entries); \
+            FREE_PRECEDING(); \
             return err; \
         } \
     } while (0)
@@ -127,10 +142,15 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
         GET(salt);
         GET(iv);
 
+#undef GET
+
         /* Mark all imported entries as encrypted as anything persistent on
          * disk should have been encrypted during export.
          */
         (*entries)[i].encrypted = true;
+
+#undef FREE_PRECEDING
+
     }
 
     return PW_OK;
