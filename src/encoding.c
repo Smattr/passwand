@@ -93,6 +93,7 @@ passwand_error_t decode(const char *s, uint8_t **d, size_t *len) {
     assert((long)read <= sz);
     if (read < 0) {
         free(*d);
+        *d = NULL;
         return PW_IO;
     }
     *len = read;
