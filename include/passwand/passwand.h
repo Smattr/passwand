@@ -48,6 +48,7 @@ typedef enum {
 /* Various other ungrouped constants */
 enum {
     PW_SALT_LEN = 8,    /* Length of salt added to the master passphrase */
+    PW_IV_LEN = 16,     /* Length of initialisation vector */
 };
 
 /** Create a new entry

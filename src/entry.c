@@ -206,6 +206,7 @@ static passwand_error_t get_mac(const char *master, passwand_entry_t *e, mac_t *
 
 passwand_error_t passwand_entry_set_mac(const char *master,
         passwand_entry_t *e) {
+    assert(master != NULL);
     assert(e != NULL);
 
     if (e->hmac != NULL) {
@@ -287,7 +288,7 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
         return err;
 
     /* Extract the leading initialisation vector. */
-    if (e->iv_len != 16)
+    if (e->iv_len != PW_IV_LEN)
         return PW_IV_MISMATCH;
     unsigned __int128 _iv_le;
     memcpy(&_iv_le, e->iv, e->iv_len);
