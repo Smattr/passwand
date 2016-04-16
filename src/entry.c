@@ -292,7 +292,7 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
         return PW_IV_MISMATCH;
     unsigned __int128 _iv_le;
     memcpy(&_iv_le, e->iv, e->iv_len);
-    unsigned __int128 _iv = letoh128(_iv_le);
+    unsigned __int128 _iv = le128toh(_iv_le);
 
     char *space __attribute__((cleanup(autoerase))) = NULL;
     char *key __attribute__((cleanup(autoerase))) = NULL;
