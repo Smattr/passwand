@@ -44,7 +44,7 @@ else (GTK3_FOUND)
 endif (GTK3_FOUND)
 
 if (GTK3_FOUND OR GTK2_FOUND)
-  add_executable (pw-gui src/pw-gui.c)
+  add_executable (pw-gui exe/gui.c)
   target_link_libraries (pw-gui ${GTK_LIBRARIES})
 endif (GTK3_FOUND OR GTK2_FOUND)
 
