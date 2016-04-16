@@ -1,8 +1,10 @@
 #pragma once
 
+#include <openssl/evp.h>
 #include <passwand/passwand.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 #include "types.h"
 
 #define HEADER "oprime01"
@@ -24,6 +26,12 @@ enum {
 passwand_error_t make_key(const m_t *master, const salt_t *salt, int work_factor, k_t *key)
     __attribute__((visibility("internal")));
 
+static inline size_t make_key_length(const m_t *master __attribute__((unused)),
+        const salt_t *salt __attribute__((unused)),
+        int work_factor __attribute__((unused))) {
+    return AES_KEY_SIZE;
+}
+
 /** Encrypt data
  *
  * This function uses AES128 in CTR mode.
@@ -36,6 +44,11 @@ passwand_error_t make_key(const m_t *master, const salt_t *salt, int work_factor
  */
 int aes_encrypt(const k_t *key, const iv_t *iv, const ppt_t *pp, ct_t *c)
     __attribute__((visibility("internal")));
+
+static inline size_t aes_encrypt_length(const k_t *key __attribute__((unused)),
+        const iv_t *iv __attribute__((unused)), const ppt_t *pp) {
+    return pp->length + (AES_BLOCK_SIZE - 1);
+}
 
 /** Decrypt data
  *
@@ -50,6 +63,11 @@ int aes_encrypt(const k_t *key, const iv_t *iv, const ppt_t *pp, ct_t *c)
 int aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_t *pp)
     __attribute__((visibility("internal")));
 
+static inline size_t aes_decrypt_length(const k_t *key __attribute__((unused)),
+        const iv_t *iv __attribute__((unused)), const ct_t *c) {
+    return c->length + AES_BLOCK_SIZE + 1;
+}
+
 /** Generate an authentication code
  *
  * @param master        Master key
@@ -62,6 +80,13 @@ int aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_t *pp)
 passwand_error_t hmac(const m_t *master, const data_t *data, const salt_t *salt,
     mac_t *mac, int work_factor) __attribute__((visibility("internal")));
 
+static inline size_t hmac_length(const m_t *master __attribute__((unused)),
+        const data_t *data __attribute__((unused)),
+        const salt_t *salt __attribute__((unused)),
+        int work_factor __attribute__((unused))) {
+    return EVP_MAX_MD_SIZE;
+}
+
 /** Pack data with padding in preparation for encryption
  *
  * @param p       Raw data to encrypt
@@ -72,6 +97,12 @@ passwand_error_t hmac(const m_t *master, const data_t *data, const salt_t *salt,
 passwand_error_t pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp)
     __attribute__((visibility("internal")));
 
+static inline size_t pack_data_length(const pt_t *p, const iv_t *iv) {
+    size_t length = strlen(HEADER) + sizeof(uint64_t) + iv->length + p->length;
+    size_t padding_len = AES_BLOCK_SIZE - length % AES_BLOCK_SIZE;
+    return length + padding_len;
+}
+
 /** Unpack data that was produced by pack_data
  *
  * @param pp     Packed data to unpack
@@ -81,3 +112,7 @@ passwand_error_t pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp)
  */
 passwand_error_t unpack_data(const ppt_t *pp, const iv_t *iv, pt_t *p)
     __attribute__((visibility("internal")));
+
+static inline size_t unpack_data_length(const ppt_t *pp, const iv_t *iv) {
+    return pp->length - strlen(HEADER) - sizeof(uint64_t) - iv->length;
+}
