@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include <assert.h>
+#include "auto.h"
 #include "encryption.h"
 #include <endian.h>
 #include <fcntl.h>
@@ -135,6 +136,8 @@ passwand_error_t make_key(const m_t *master, const salt_t *salt, int work_factor
     assert(master != NULL);
     assert(salt != NULL);
     assert(key != NULL);
+    assert(key->data != NULL);
+    assert(key->length == make_key_length(master, salt, work_factor));
 
     if (work_factor == -1)
         work_factor = 14; // default value
@@ -145,18 +148,9 @@ passwand_error_t make_key(const m_t *master, const salt_t *salt, int work_factor
     static const uint32_t r = 8;
     static const uint32_t p = 1;
 
-    uint8_t *buffer = malloc(AES_KEY_SIZE);
-    if (buffer == NULL)
-        return PW_NO_MEM;
-
     if (libscrypt_scrypt(master->data, master->length, salt->data, salt->length,
-            ((uint64_t)1) << work_factor, r, p, buffer, AES_KEY_SIZE) != 0) {
-        free(buffer);
+            ((uint64_t)1) << work_factor, r, p, key->data, key->length) != 0)
         return PW_CRYPTO;
-    }
-
-    key->data = buffer;
-    key->length = AES_KEY_SIZE;
 
     return PW_OK;
 }
@@ -164,7 +158,7 @@ passwand_error_t make_key(const m_t *master, const salt_t *salt, int work_factor
 passwand_error_t hmac(const m_t *master, const data_t *data, const salt_t *salt, mac_t *mac,
         int work_factor) {
 
-    k_t key;
+    AUTO_K_T(key);
     passwand_error_t err = make_key(master, salt, work_factor, &key);
     if (err != PW_OK)
         return err;
@@ -173,14 +167,11 @@ passwand_error_t hmac(const m_t *master, const data_t *data, const salt_t *salt,
 
     //unsigned char md[EVP_MAX_MD_SIZE];
     mac->data = malloc(EVP_MAX_MD_SIZE);
-    if (mac->data == NULL) {
-        free(key.data);
+    if (mac->data == NULL)
         return PW_NO_MEM;
-    }
     unsigned md_len;
     unsigned char *r = HMAC(sha512, key.data, key.length, data->data,
         data->length, mac->data, &md_len);
-    free(key.data);
     if (r == NULL) {
         free(mac->data);
         return PW_CRYPTO;
