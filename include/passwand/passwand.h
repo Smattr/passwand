@@ -45,6 +45,11 @@ typedef enum {
     PW_BAD_HMAC,        /* message failed authentication */
 } passwand_error_t;
 
+/* Various other ungrouped constants */
+enum {
+    PW_SALT_LEN = 8,    /* Length of salt added to the master passphrase */
+};
+
 /** Create a new entry
  *
  * @param[out] e      The entry to initialise

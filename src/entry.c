@@ -31,7 +31,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master,
     memset(e, 0, sizeof *e);
 
     /* Generate a random 8-byte salt. */
-    uint8_t _salt[8];
+    uint8_t _salt[PW_SALT_LEN];
     passwand_error_t err = random_bytes(_salt, sizeof _salt);
     if (err != PW_OK)
         return err;
