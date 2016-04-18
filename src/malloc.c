@@ -141,6 +141,8 @@ void passwand_secure_free(void *p, size_t size) {
 
     size = round_size(size);
 
+    passwand_erase(p, size);
+
     /* Look for a chunk this is a adjacent to in order to just concatenate it
      * if possible.
      */
