@@ -5,14 +5,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-/* Close a file. See usage of this below in cleanup attributes. */
-static void close(void *p) {
-    assert(p != NULL);
-    FILE **f = p;
-    if (*f != NULL)
-        fclose(*f);
-}
+#include <string.h>
+#include <unistd.h>
 
 /* Free a JSON object. See usage of this below in cleanup attributes. */
 static void disown(void *p) {
@@ -88,13 +82,24 @@ passwand_error_t passwand_export(const char *path, passwand_entry_t *entries, un
 
     /* Now write out the array to the given file. */
 
-    FILE *f __attribute__((cleanup(close))) = fopen(path, "w");
-    if (f == NULL)
+    char tmp[] = "/tmp/tmp.XXXXXX";
+    int fd = mkstemp(tmp);
+    if (fd == -1)
         return PW_IO;
 
     const char *json = json_object_to_json_string_ext(j, JSON_C_TO_STRING_PLAIN);
-    if (fputs(json, f) == EOF)
+    size_t len = strlen(json);
+    ssize_t written = write(fd, json, len);
+    close(fd);
+    if (written < 0 || (size_t)written != len) {
+        unlink(tmp);
         return PW_IO;
+    }
+
+    if (rename(tmp, path) == -1) {
+        unlink(tmp);
+        return PW_IO;
+    }
 
     return PW_OK;
 }
