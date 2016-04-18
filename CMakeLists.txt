@@ -49,6 +49,7 @@ if (GTK3_FOUND OR GTK2_FOUND)
 endif (GTK3_FOUND OR GTK2_FOUND)
 
 add_executable (pw-cli exe/cli.c exe/argparse.c)
+target_link_libraries (pw-cli passwand)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/include)
 
