@@ -48,6 +48,8 @@ if (GTK3_FOUND OR GTK2_FOUND)
   target_link_libraries (pw-gui ${GTK_LIBRARIES})
 endif (GTK3_FOUND OR GTK2_FOUND)
 
+add_executable (pw-cli exe/cli.c exe/argparse.c)
+
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_library (passwand src/encoding.c src/erase.c src/encryption.c src/endian.c
