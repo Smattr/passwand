@@ -147,4 +147,17 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
 
     return action(&options);
+    if (options.data == NULL) {
+        /* Setup default path. */
+        char *home = secure_getenv("HOME");
+        if (home == NULL)
+            DIE("can't determine home directory");
+        char *path = malloc(strlen(home) + strlen("/.passwand.json") + 1);
+        if (path == NULL)
+            DIE("out of memory while constructing default path");
+        strcpy(path, home);
+        strcat(path, "/.passwand.json");
+        options.data = path;
+    }
+
 }
