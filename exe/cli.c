@@ -14,7 +14,12 @@
         exit(EXIT_FAILURE); \
     } while (0)
 
-static int getpassword(const char *prompt, char **master, size_t *len) {
+typedef struct {
+    char *master;
+    size_t master_len;
+} master_t;
+
+static int getpassword(const char *prompt, master_t *master) {
     static const size_t CHUNK = 128;
 
     char *m;
@@ -64,8 +69,8 @@ static int getpassword(const char *prompt, char **master, size_t *len) {
     }
 
     m[index] = '\0';
-    *master = m;
-    *len = size;
+    master->master = m;
+    master->master_len = size;
     return 0;
 }
 
@@ -74,7 +79,7 @@ typedef struct {
     bool found;
 } find_state_t;
 
-static void find(void *state, const char *space, const char *key,
+static void get_body(void *state, const char *space, const char *key,
         const char *value) {
     assert(state != NULL);
     assert(space != NULL);
@@ -107,9 +112,8 @@ static int get(const options_t *options, passwand_entry_t *entries, unsigned ent
     REQUIRED(key);
     IGNORED(value);
 
-    char *master;
-    size_t size;
-    if (getpassword(NULL, &master, &size) != 0)
+    master_t master;
+    if (getpassword(NULL, &master) != 0)
         DIE("failed to read master password");
 
     find_state_t st = {
@@ -117,12 +121,12 @@ static int get(const options_t *options, passwand_entry_t *entries, unsigned ent
         .found = false,
     };
     for (unsigned i = 0; !st.found && i < entry_len; i++) {
-        if (passwand_entry_do(master, &entries[i], find, &st) != PW_OK) {
-            passwand_secure_free(master, size);
+        if (passwand_entry_do(master.master, &entries[i], get_body, &st) != PW_OK) {
+            passwand_secure_free(master.master, master.master_len);
             DIE("failed to handle entry %u", i);
         }
     }
-    passwand_secure_free(master, size);
+    passwand_secure_free(master.master, master.master_len);
 
     if (!st.found)
         DIE("not found");
@@ -130,8 +134,71 @@ static int get(const options_t *options, passwand_entry_t *entries, unsigned ent
     return EXIT_SUCCESS;
 }
 
+typedef struct {
+    bool found;
+    unsigned index;
+    const char *space;
+    const char *key;
+} set_state_t;
+
+static void set_body(void *state, const char *space, const char *key, const char *value) {
+    assert(state != NULL);
+    assert(space != NULL);
+    assert(key != NULL);
+    assert(value != NULL);
+
+    set_state_t *st = state;
+    if (strcmp(st->space, space) == 0 && strcmp(st->key, key) == 0) {
+        /* This entry matches the one we just set. Mark it. */
+        st->found = true;
+    } else {
+        st->index++;
+    }
+}
+
 static int set(const options_t *options, passwand_entry_t *entries, unsigned entry_len) {
-    return EXIT_FAILURE;
+    REQUIRED(space);
+    REQUIRED(key);
+    REQUIRED(value);
+
+    master_t master;
+    if (getpassword(NULL, &master) != 0)
+        DIE("failed to read master password");
+
+    passwand_entry_t e;
+    if (passwand_entry_new(&e, master.master, options->space, options->key, options->value,
+            options->work_factor) != PW_OK)
+        DIE("failed to create new entry");
+
+    /* Figure out if the entry we've just created collides with (and overwrites) an existing one.
+     */
+    set_state_t st = {
+        .found = false,
+        .index = 0,
+        .space = options->space,
+        .key = options->key,
+    };
+    for (unsigned i = 0; !st.found && i < entry_len; i++) {
+        if (passwand_entry_do(master.master, &entries[i], set_body, &st) != PW_OK) {
+            passwand_secure_free(master.master, master.master_len);
+            DIE("failed to handle entry %u", i);
+        }
+    }
+    passwand_secure_free(master.master, master.master_len);
+
+    passwand_entry_t *new_entries = calloc(entry_len + (st.found ? 0 : 1), sizeof(passwand_entry_t));
+    if (new_entries == NULL)
+        DIE("out of memory");
+
+    memcpy(new_entries, entries, sizeof(passwand_entry_t) * st.index);
+    if (st.found)
+        memcpy(new_entries + st.index, entries + st.index + 1, sizeof(passwand_entry_t) * (entry_len - st.index - 1));
+    size_t new_entry_len = st.found ? entry_len : entry_len + 1;
+
+    if (passwand_export(options->data, new_entries, new_entry_len) != PW_OK)
+        DIE("failed to export entries");
+
+    return EXIT_SUCCESS;
 }
 
 static int list(const options_t *options, passwand_entry_t *entries, unsigned entry_len) {
@@ -139,9 +206,8 @@ static int list(const options_t *options, passwand_entry_t *entries, unsigned en
     IGNORED(key);
     IGNORED(value);
 
-    char *master;
-    size_t size;
-    if (getpassword(NULL, &master, &size) != 0)
+    master_t master;
+    if (getpassword(NULL, &master) != 0)
         DIE("failed to read master password");
 
     /* Note that this nested function does not induce a trampoline because it does not modify local
@@ -155,17 +221,21 @@ static int list(const options_t *options, passwand_entry_t *entries, unsigned en
     }
 
     for (unsigned i = 0; i < entry_len; i++) {
-        if (passwand_entry_do(master, &entries[i], print, NULL) != PW_OK) {
-            passwand_secure_free(master, size);
+        if (passwand_entry_do(master.master, &entries[i], print, NULL) != PW_OK) {
+            passwand_secure_free(master.master, master.master_len);
             DIE("failed to handle entry %u", i);
         }
     }
-    passwand_secure_free(master, size);
+    passwand_secure_free(master.master, master.master_len);
 
     return EXIT_SUCCESS;
 }
 
 static int change_master(const options_t *options, passwand_entry_t *entries, unsigned entry_len) {
+    IGNORED(space);
+    IGNORED(key);
+    IGNORED(value);
+
     return EXIT_FAILURE;
 }
 
