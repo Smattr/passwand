@@ -14,7 +14,7 @@
         exit(EXIT_FAILURE); \
     } while (0)
 
-static int getpassword(char **master, size_t *len) {
+static int getpassword(const char *prompt, char **master, size_t *len) {
     static const size_t CHUNK = 128;
 
     char *m;
@@ -22,7 +22,7 @@ static int getpassword(char **master, size_t *len) {
         return -1;
     size_t size = CHUNK;
 
-    printf("master password: ");
+    printf("%s", prompt == NULL ? "master password: " : prompt);
     fflush(stdout);
 
     struct termios old;
@@ -99,7 +99,7 @@ static int get(const options_t *options, passwand_entry_t *entries, unsigned ent
 
     char *master;
     size_t size;
-    if (getpassword(&master, &size) != 0)
+    if (getpassword(NULL, &master, &size) != 0)
         DIE("failed to read master password");
 
     find_state_t st = {
