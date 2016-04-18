@@ -89,13 +89,6 @@ static void find(void *state, const char *space, const char *key,
     }
 }
 
-
-    passwand_entry_t *entries;
-    unsigned entry_len;
-    if (passwand_import(options->data, &entries, &entry_len) != PW_OK) {
-        fprintf(stderr, "failed to import database\n");
-        return EXIT_FAILURE;
-    }
 static int get(const options_t *options, passwand_entry_t *entries, unsigned entry_len) {
     if (options->space == NULL)
         DIE("missing required argument --space");
@@ -128,7 +121,7 @@ static int get(const options_t *options, passwand_entry_t *entries, unsigned ent
 }
 
 int main(int argc, char **argv) {
-    int (*action)(const options_t *options);
+    int (*action)(const options_t *options, passwand_entry_t *entries, unsigned entry_len);
 
     if (argc < 2 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-?") == 0) {
         printf("usage: %s action options...\n", argv[0]);
@@ -146,7 +139,6 @@ int main(int argc, char **argv) {
     if (parse(argc - 1, argv + 1, &options) != 0)
         return EXIT_FAILURE;
 
-    return action(&options);
     if (options.data == NULL) {
         /* Setup default path. */
         char *home = secure_getenv("HOME");
@@ -160,4 +152,10 @@ int main(int argc, char **argv) {
         options.data = path;
     }
 
+    passwand_entry_t *entries;
+    unsigned entry_len;
+    if (passwand_import(options.data, &entries, &entry_len) != PW_OK)
+        DIE("failed to load database");
+
+    return action(&options, entries, entry_len);
 }
