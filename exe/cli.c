@@ -8,6 +8,12 @@
 #include <termios.h>
 #include <unistd.h>
 
+#define DIE(format, args...) \
+    do { \
+        fprintf(stderr, format "\n", ## args); \
+        exit(EXIT_FAILURE); \
+    } while (0)
+
 static int getpassword(char **master, size_t *len) {
     static const size_t CHUNK = 128;
 
@@ -83,17 +89,6 @@ static void find(void *state, const char *space, const char *key,
     }
 }
 
-static int get(const options_t *options) {
-    if (options->space == NULL) {
-        fprintf(stderr, "missing required argument --space\n");
-        return EXIT_FAILURE;
-    } else if (options->key == NULL) {
-        fprintf(stderr, "missing required argument --key\n");
-        return EXIT_FAILURE;
-    } else if (options->value != NULL) {
-        fprintf(stderr, "irrelevant argument --value provided\n");
-        return EXIT_FAILURE;
-    }
 
     passwand_entry_t *entries;
     unsigned entry_len;
@@ -101,13 +96,18 @@ static int get(const options_t *options) {
         fprintf(stderr, "failed to import database\n");
         return EXIT_FAILURE;
     }
+static int get(const options_t *options, passwand_entry_t *entries, unsigned entry_len) {
+    if (options->space == NULL)
+        DIE("missing required argument --space");
+    if (options->key == NULL)
+        DIE("missing required argument --key");
+    if (options->value != NULL)
+        DIE("irrelevant argument --value provided");
 
     char *master;
     size_t size;
-    if (getpassword(&master, &size) != 0) {
-        fprintf(stderr, "failed to read master password\n");
-        return EXIT_FAILURE;
-    }
+    if (getpassword(&master, &size) != 0)
+        DIE("failed to read master password");
 
     find_state_t st = {
         .options = options,
@@ -115,14 +115,16 @@ static int get(const options_t *options) {
     };
     for (unsigned i = 0; !st.found && i < entry_len; i++) {
         if (passwand_entry_do(master, &entries[i], find, &st) != PW_OK) {
-            fprintf(stderr, "failed to handle entry %u\n", i);
             passwand_secure_free(master, size);
-            return EXIT_FAILURE;
+            DIE("failed to handle entry %u", i);
         }
     }
     passwand_secure_free(master, size);
 
-    return st.found ? EXIT_SUCCESS : EXIT_FAILURE;
+    if (!st.found)
+        DIE("not found");
+
+    return EXIT_SUCCESS;
 }
 
 int main(int argc, char **argv) {
