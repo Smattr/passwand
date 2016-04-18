@@ -120,6 +120,18 @@ static int get(const options_t *options, passwand_entry_t *entries, unsigned ent
     return EXIT_SUCCESS;
 }
 
+static int set(const options_t *options, passwand_entry_t *entries, unsigned entry_len) {
+    return EXIT_FAILURE;
+}
+
+static int list(const options_t *options, passwand_entry_t *entries, unsigned entry_len) {
+    return EXIT_FAILURE;
+}
+
+static int change_master(const options_t *options, passwand_entry_t *entries, unsigned entry_len) {
+    return EXIT_FAILURE;
+}
+
 int main(int argc, char **argv) {
     int (*action)(const options_t *options, passwand_entry_t *entries, unsigned entry_len);
 
@@ -128,12 +140,16 @@ int main(int argc, char **argv) {
         return EXIT_SUCCESS;
     }
 
-    if (strcmp(argv[1], "get") == 0) {
+    if (strcmp(argv[1], "get") == 0)
         action = get;
-    } else {
-        fprintf(stderr, "invalid action\n");
-        return EXIT_FAILURE;
-    }
+    else if (strcmp(argv[1], "set") == 0)
+        action = set;
+    else if (strcmp(argv[1], "list") == 0)
+        action = list;
+    else if (strcmp(argv[1], "change-master") == 0)
+        action = change_master;
+    else
+        DIE("invalid action");
 
     options_t options;
     if (parse(argc - 1, argv + 1, &options) != 0)
