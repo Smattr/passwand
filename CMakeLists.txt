@@ -51,7 +51,7 @@ endif (GTK3_FOUND OR GTK2_FOUND)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_library (passwand src/encoding.c src/erase.c src/encryption.c src/endian.c
-    src/entry.c src/export.c src/import.c src/random.c)
+    src/entry.c src/export.c src/import.c src/malloc.c src/random.c)
 target_link_libraries (passwand ${OPENSSL_LIBRARIES} ${JSON_LIBRARIES} ${SCRYPT})
 
 add_executable (passwand-tests src/encoding.c src/encryption.c tests/main.c

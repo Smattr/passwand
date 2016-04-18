@@ -124,3 +124,24 @@ passwand_error_t passwand_export(const char *path, passwand_entry_t *entries, un
  * @return PW_OK on success
  */
 passwand_error_t passwand_import(const char *path, passwand_entry_t **entries, unsigned *entry_len);
+
+/** Allocate some secure memory.
+ *
+ * This function works similarly to malloc, but the backing memory is in a
+ * secure region.
+ *
+ * @param[out] p Address of allocated memory
+ * @param size Number of bytes to allocate
+ * @return 0 on success
+ */
+int passwand_secure_malloc(void **p, size_t size);
+
+/** Free some secure memory.
+ *
+ * If you pass a pointer or size to this function that was not previously
+ * obtained from passwand_secure_malloc, results are undefined.
+ *
+ * @param p Address of memory to free
+ * @param size Number of bytes to free
+ */
+void passwand_secure_free(void *p, size_t size);
