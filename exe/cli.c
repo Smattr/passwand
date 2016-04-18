@@ -89,13 +89,23 @@ static void find(void *state, const char *space, const char *key,
     }
 }
 
+#define REQUIRED(field) \
+    do { \
+        if (options->field == NULL) { \
+            DIE("missing required argument --" #field); \
+        } \
+    } while (0)
+#define IGNORED(field) \
+    do { \
+        if (options->field != NULL) { \
+            DIE("irrelevant argument --" #field); \
+        } \
+    } while (0)
+
 static int get(const options_t *options, passwand_entry_t *entries, unsigned entry_len) {
-    if (options->space == NULL)
-        DIE("missing required argument --space");
-    if (options->key == NULL)
-        DIE("missing required argument --key");
-    if (options->value != NULL)
-        DIE("irrelevant argument --value provided");
+    REQUIRED(space);
+    REQUIRED(key);
+    IGNORED(value);
 
     char *master;
     size_t size;
@@ -125,7 +135,34 @@ static int set(const options_t *options, passwand_entry_t *entries, unsigned ent
 }
 
 static int list(const options_t *options, passwand_entry_t *entries, unsigned entry_len) {
-    return EXIT_FAILURE;
+    IGNORED(space);
+    IGNORED(key);
+    IGNORED(value);
+
+    char *master;
+    size_t size;
+    if (getpassword(NULL, &master, &size) != 0)
+        DIE("failed to read master password");
+
+    /* Note that this nested function does not induce a trampoline because it does not modify local
+     * state.
+     */
+    void print(void *state __attribute__((unused)), const char *space, const char *key,
+            const char *value __attribute__((unused))) {
+        assert(space != NULL);
+        assert(key != NULL);
+        printf("%s/%s\n", space, key);
+    }
+
+    for (unsigned i = 0; i < entry_len; i++) {
+        if (passwand_entry_do(master, &entries[i], print, NULL) != PW_OK) {
+            passwand_secure_free(master, size);
+            DIE("failed to handle entry %u", i);
+        }
+    }
+    passwand_secure_free(master, size);
+
+    return EXIT_SUCCESS;
 }
 
 static int change_master(const options_t *options, passwand_entry_t *entries, unsigned entry_len) {
