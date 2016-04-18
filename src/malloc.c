@@ -17,8 +17,6 @@
  *    bytes). You can allocate more than this, but performance and availability
  *    will degrade. In an unprivileged environment, a process' total secure
  *    allocation will be limited to RLIMIT_MEMLOCK.
- *  - Thread safety. The allocator is entirely unsafe for use by different
- *    concurrent threads. Coming from malloc, this should be no surprise.
  *  - Resource balancing. The backing memory for this allocator can only ever
  *    grow. This can effectively DoS other process activities (mprotect, mlock)
  *    if the caller does not pay attention to the high watermark of their
@@ -27,10 +25,33 @@
 
 #include <assert.h>
 #include <passwand/passwand.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/mman.h>
 #include <unistd.h>
+
+/* Basic no-init-required spinlock implementation. */
+static long l;
+static void lock(void) {
+    long expected;
+    do {
+        expected = 0;
+    } while (!__atomic_compare_exchange_n(&l, &expected, 1, true, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE));
+}
+static void unlock(void) {
+    long expected;
+    do {
+        expected = 1;
+    } while (!__atomic_compare_exchange_n(&l, &expected, 0, true, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE));
+}
+
+static void lock_release(void *p __attribute__((unused))) {
+    unlock();
+}
+#define LOCK_UNTIL_RET() \
+    lock(); \
+    int _lock __attribute__((unused, cleanup(lock_release)));
 
 typedef struct node_ {
     size_t size;
@@ -96,6 +117,8 @@ int passwand_secure_malloc(void **p, size_t size) {
 
     size = round_size(size);
 
+    LOCK_UNTIL_RET();
+
     size_t page = pagesize();
     if (page == 0)
         return -1;
@@ -142,6 +165,8 @@ void passwand_secure_free(void *p, size_t size) {
     size = round_size(size);
 
     passwand_erase(p, size);
+
+    LOCK_UNTIL_RET();
 
     /* Look for a chunk this is a adjacent to in order to just concatenate it
      * if possible.
