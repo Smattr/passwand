@@ -1,4 +1,4 @@
-#include "../src/encoding.h"
+#include "../src/internal.h"
 #include <CUnit/CUnit.h>
 #include <passwand/passwand.h>
 #include <stdlib.h>

@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "encoding.h"
+#include "internal.h"
 #include <fcntl.h>
 #include <json.h>
 #include <passwand/passwand.h>

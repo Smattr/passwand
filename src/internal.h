@@ -92,3 +92,9 @@ passwand_error_t unpack_data(const ppt_t *pp, const iv_t *iv, pt_t *p)
  */
 passwand_error_t random_bytes(uint8_t *buffer, size_t buffer_len)
     __attribute__((visibility("internal")));
+
+passwand_error_t encode(const uint8_t *s, size_t len, char **e)
+    __attribute__((visibility("internal")));
+
+passwand_error_t decode(const char *s, uint8_t **d, size_t *len)
+    __attribute__((visibility("internal")));

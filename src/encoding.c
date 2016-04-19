@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "encoding.h"
+#include "internal.h"
 #include <limits.h>
 #include <openssl/bio.h>
 #include <openssl/buffer.h>
