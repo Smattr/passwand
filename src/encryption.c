@@ -164,8 +164,10 @@ passwand_error_t make_key(const m_t *master, const salt_t *salt, int work_factor
 passwand_error_t hmac(const m_t *master, const data_t *data, const salt_t *salt, mac_t *mac,
         int work_factor) {
 
-    AUTO_K_T(key);
-    passwand_error_t err = make_key(master, salt, work_factor, &key);
+    AUTO_K_T(k);
+    if (k == NULL)
+        return PW_NO_MEM;
+    passwand_error_t err = make_key(master, salt, work_factor, k);
     if (err != PW_OK)
         return err;
 
@@ -176,7 +178,7 @@ passwand_error_t hmac(const m_t *master, const data_t *data, const salt_t *salt,
     if (mac->data == NULL)
         return PW_NO_MEM;
     unsigned md_len;
-    unsigned char *r = HMAC(sha512, key.data, key.length, data->data, data->length, mac->data,
+    unsigned char *r = HMAC(sha512, k->data, k->length, data->data, data->length, mac->data,
         &md_len);
     if (r == NULL) {
         free(mac->data);

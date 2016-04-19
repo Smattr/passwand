@@ -54,7 +54,9 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
     if (m == NULL)
         return PW_NO_MEM;
     AUTO_K_T(k);
-    err = make_key(m, &salt, work_factor, &k);
+    if (k == NULL)
+        return PW_NO_MEM;
+    err = make_key(m, &salt, work_factor, k);
     if (err != PW_OK)
         return err;
 
@@ -111,7 +113,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
             return err; \
         } \
         ct_t c; \
-        err = aes_encrypt(&k, &iv, pp, &c); \
+        err = aes_encrypt(k, &iv, pp, &c); \
         passwand_secure_free(pp->data, pp->length); \
         passwand_secure_free(pp, sizeof *pp); \
         if (err != PW_OK) { \
@@ -291,7 +293,9 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
         .length = e->salt_len,
     };
     AUTO_K_T(k);
-    err = make_key(m, &salt, e->work_factor, &k);
+    if (k == NULL)
+        return PW_NO_MEM;
+    err = make_key(m, &salt, e->work_factor, k);
     if (err != PW_OK)
         return err;
 
@@ -320,7 +324,7 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
         if (passwand_secure_malloc((void**)&pp, sizeof *pp) != 0) { \
             return PW_NO_MEM; \
         } \
-        err = aes_decrypt(&k, &iv, &c, pp); \
+        err = aes_decrypt(k, &iv, &c, pp); \
         if (err != PW_OK) { \
             passwand_secure_free(pp, sizeof *pp); \
             return err; \
