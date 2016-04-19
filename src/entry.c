@@ -140,8 +140,6 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
     memcpy(e->iv, &_iv_le, sizeof _iv_le);
     e->iv_len = sizeof _iv_le;
 
-    e->encrypted = true;
-
     /* Figure out what work factor make_key would have used. */
     if (work_factor == -1)
         work_factor = 14;
@@ -156,9 +154,6 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
 }
 
 static passwand_error_t get_mac(const char *master, passwand_entry_t *e, mac_t *mac) {
-
-    if (!e->encrypted)
-        return PW_NOT_ENCRYPTED;
 
     static const unsigned HMAC_SALT_LEN = 8; // bytes
 

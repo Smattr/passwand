@@ -28,8 +28,6 @@ const char *passwand_error(passwand_error_t err) {
             return "data was too short";
         case PW_BAD_PADDING:
             return "data was incorrectly padded";
-        case PW_NOT_ENCRYPTED:
-            return "exfiltration attempted with unencrypted data";
         case PW_BAD_JSON:
             return "imported data did not conform to expected schema";
         case PW_BAD_HMAC:

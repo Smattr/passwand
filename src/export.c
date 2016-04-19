@@ -50,10 +50,6 @@ passwand_error_t passwand_export(const char *path, passwand_entry_t *entries, un
 
     for (unsigned i = 0; i < entry_len; i++) {
 
-        /* We should only be exporting encrypted entries. */
-        if (!entries[i].encrypted)
-            return PW_NOT_ENCRYPTED;
-
         /* Encapsulate each entry in a JSON dictionary. */
         json_object *d = json_object_new_object();
         if (d == NULL)

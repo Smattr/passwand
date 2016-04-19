@@ -21,7 +21,6 @@ typedef struct {
     uint8_t *iv;        size_t iv_len;
 
     /* fields that don't get exported */
-    bool encrypted;
     unsigned work_factor;
 
 } passwand_entry_t;
@@ -40,7 +39,6 @@ typedef enum {
     PW_IV_MISMATCH,     /* mismatched initialisation vector */
     PW_TRUNCATED,       /* data was too short */
     PW_BAD_PADDING,     /* data was incorrectly padded */
-    PW_NOT_ENCRYPTED,   /* exfiltration attempted with unencrypted data */
     PW_BAD_JSON,        /* imported data did not conform to expected schema */
     PW_BAD_HMAC,        /* message failed authentication */
 } passwand_error_t;

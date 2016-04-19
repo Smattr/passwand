@@ -144,11 +144,6 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
 
 #undef GET
 
-        /* Mark all imported entries as encrypted as anything persistent on
-         * disk should have been encrypted during export.
-         */
-        (*entries)[i].encrypted = true;
-
 #undef FREE_PRECEDING
 
     }

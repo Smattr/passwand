@@ -152,7 +152,6 @@ TEST("import: import(export(x)) == x") {
             .salt_len = strlen("hello world"),
             .iv = (uint8_t*)"hello world",
             .iv_len = strlen("hello world"),
-            .encrypted = true,
             .work_factor = 14,
         }, {
             .space = (uint8_t*)"foo bar",
@@ -169,7 +168,6 @@ TEST("import: import(export(x)) == x") {
             .salt_len = strlen("foo bar"),
             .iv = (uint8_t*)"foo bar",
             .iv_len = strlen("foo bar"),
-            .encrypted = true,
             .work_factor = 15,
         },
     };

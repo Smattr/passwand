@@ -62,7 +62,6 @@ TEST("export: basic functionality") {
             .salt_len = strlen("hello world"),
             .iv = (uint8_t*)"hello world",
             .iv_len = strlen("hello world"),
-            .encrypted = true,
             .work_factor = 0,
         },
     };
@@ -71,41 +70,4 @@ TEST("export: basic functionality") {
     int r = passwand_export(tmp, entries, sizeof(entries) / sizeof(entries[0]));
     unlink(tmp);
     CU_ASSERT_EQUAL_FATAL(r, 0);
-}
-
-TEST("export: with an unencrypted entry") {
-
-    /* Create a temporary path. */
-    char tmp[sizeof("/tmp/tmp.XXXXXX")];
-    strcpy(tmp, "/tmp/tmp.XXXXXX");
-    int fd = mkstemp(tmp);
-    CU_ASSERT_NOT_EQUAL_FATAL(fd, -1);
-    close(fd);
-
-    /* Create an entry to export. */
-    passwand_entry_t entries[] = {
-        {
-            .space = (uint8_t*)"hello world",
-            .space_len = strlen("hello world"),
-            .key = (uint8_t*)"hello world",
-            .key_len = strlen("hello world"),
-            .value = (uint8_t*)"hello world",
-            .value_len = strlen("hello world"),
-            .hmac = (uint8_t*)"hello world",
-            .hmac_len = strlen("hello world"),
-            .hmac_salt = (uint8_t*)"hello world",
-            .hmac_salt_len = strlen("hello world"),
-            .salt = (uint8_t*)"hello world",
-            .salt_len = strlen("hello world"),
-            .iv = (uint8_t*)"hello world",
-            .iv_len = strlen("hello world"),
-            .encrypted = false, /* <-- note, not encrypted */
-            .work_factor = 0,
-        },
-    };
-
-    /* Export to this path. */
-    int r = passwand_export(tmp, entries, sizeof(entries) / sizeof(entries[0]));
-    unlink(tmp);
-    CU_ASSERT_NOT_EQUAL_FATAL(r, 0);
 }
