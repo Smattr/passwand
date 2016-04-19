@@ -1,6 +1,5 @@
 #include <passwand/passwand.h>
 #include <stddef.h>
-#include <stdint.h>
 #include <string.h>
 
 /* Ideally, we would use memset_s for this task. However, it seems most C standard libraries do not

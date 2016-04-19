@@ -81,6 +81,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
         }; \
         ppt_t pp; \
         err = pack_data(&p, &iv, &pp); \
+        passwand_erase(&p, sizeof p); \
         if (err != PW_OK) { \
             CLEANUP(); \
             return err; \
