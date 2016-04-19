@@ -50,22 +50,21 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
     if (err != PW_OK)
         return err;
 
-#define CLEAN(field) \
+#define FREE(field) \
     do { \
         if (e->field != NULL) { \
-            passwand_erase(e->field, e->field##_len); \
             free(e->field); \
         } \
     } while (0)
 #define CLEANUP() \
     do { \
-        CLEAN(iv); \
-        CLEAN(salt); \
-        CLEAN(hmac_salt); \
-        CLEAN(hmac); \
-        CLEAN(value); \
-        CLEAN(key); \
-        CLEAN(space); \
+        FREE(iv); \
+        FREE(salt); \
+        FREE(hmac_salt); \
+        FREE(hmac); \
+        FREE(value); \
+        FREE(key); \
+        FREE(space); \
     } while (0)
 
     /* Now pack and encrypt each field. */
@@ -152,7 +151,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
     return PW_OK;
 
 #undef CLEANUP
-#undef CLEAN
+#undef FREE
 
 }
 
