@@ -29,6 +29,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/mman.h>
+#include <sys/prctl.h>
 #include <unistd.h>
 
 /* Basic no-init-required spinlock implementation. */
@@ -99,6 +100,19 @@ static int morecore(void **p) {
     return 0;
 }
 
+/* The following logic prevents other processes attaching to us with PTRACE_ATTACH. This goes
+ * someway towards preventing an attack whereby a colocated process peeks at the secure heap while
+ * we're running. Note that this is not a fool proof method and leaves other avenues (e.g. /proc)
+ * open by which this can be accomplished.
+ */
+static bool ptrace_disabled;
+static int disable_ptrace(void) {
+    int r = prctl(PR_SET_DUMPABLE, 0, 0, 0, 0);
+    if (r == 0)
+        ptrace_disabled = true;
+    return r;
+}
+
 static size_t round_size(size_t size) {
     if (size < sizeof (node_t))
         size = sizeof(node_t);
@@ -119,6 +133,10 @@ int passwand_secure_malloc(void **p, size_t size) {
     size = round_size(size);
 
     LOCK_UNTIL_RET();
+
+    if (!ptrace_disabled)
+        if (disable_ptrace() != 0)
+            return -1;
 
     size_t page = pagesize();
     if (page == 0)
