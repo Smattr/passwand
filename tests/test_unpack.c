@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include "test.h"
 
-TEST("test unpacking something we packed") {
+TEST("unpack: unpack(pack(x)) == x") {
 
     /* First pack something. */
 
@@ -16,8 +16,7 @@ TEST("test unpacking something we packed") {
         .data = (uint8_t*)_pt,
         .length = sizeof _pt,
     };
-    uint8_t _iv[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-        16 };
+    uint8_t _iv[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
     iv_t iv = {
         .data = _iv,
         .length = sizeof _iv,
