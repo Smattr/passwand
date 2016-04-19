@@ -311,16 +311,22 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
             .data = e->field, \
             .length = e->field##_len, \
         }; \
-        AUTO_PPT_T(pp); \
-        err = aes_decrypt(&k, &iv, &c, &pp); \
+        ppt_t *pp; \
+        if (passwand_secure_malloc((void**)&pp, sizeof *pp) != 0) { \
+            return PW_NO_MEM; \
+        } \
+        err = aes_decrypt(&k, &iv, &c, pp); \
         if (err != PW_OK) { \
+            passwand_secure_free(pp, sizeof *pp); \
             return err; \
         } \
         pt_t *p; \
         if (passwand_secure_malloc((void**)&p, sizeof *p) != 0) { \
+            passwand_secure_free(pp, sizeof *pp); \
             return PW_NO_MEM; \
         } \
-        err = unpack_data(&pp, &iv, p); \
+        err = unpack_data(pp, &iv, p); \
+        passwand_secure_free(pp, sizeof *pp); \
         if (err != PW_OK) { \
             passwand_secure_free(p, sizeof *p); \
             return err; \
