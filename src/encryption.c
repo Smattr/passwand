@@ -153,7 +153,6 @@ passwand_error_t make_key(const m_t *master, const salt_t *salt, int work_factor
     assert(salt != NULL);
     assert(key != NULL);
     assert(key->data != NULL);
-    assert(key->length == make_key_length(master, salt, work_factor));
 
     if (work_factor == -1)
         work_factor = 14; // default value
