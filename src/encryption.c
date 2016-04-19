@@ -197,19 +197,27 @@ passwand_error_t pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp) {
      * AEAD-AES-CBC-HMAC-SHA as a more suitable replacement, but I'm not sure why. It involves
      * deterministic bytes that seems inherently less secure.
      */
-    uint8_t padding[AES_BLOCK_SIZE];
+    uint8_t *padding;
+    if (passwand_secure_malloc((void**)&padding, padding_len) != 0)
+        return PW_NO_MEM;
     passwand_error_t r = random_bytes(padding, padding_len);
-    if (r != PW_OK)
+    if (r != PW_OK) {
+        passwand_secure_free(padding, padding_len);
         return r;
+    }
 
     /* We're now ready to write the packed data. */
 
-    if (SIZE_MAX - length < padding_len)
+    if (SIZE_MAX - length < padding_len) {
+        passwand_secure_free(padding, padding_len);
         return PW_OVERFLOW;
+    }
     pp->length = length + padding_len;
     assert(pp->length % AES_BLOCK_SIZE == 0);
-    if (passwand_secure_malloc((void**)&pp->data, pp->length) != 0)
+    if (passwand_secure_malloc((void**)&pp->data, pp->length) != 0) {
+        passwand_secure_free(padding, padding_len);
         return PW_NO_MEM;
+    }
 
     size_t offset = 0;
 
@@ -228,6 +236,7 @@ passwand_error_t pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp) {
     /* Pack the padding, *prepending* the plain text. */
     memcpy(pp->data + offset, padding, padding_len);
     offset += padding_len;
+    passwand_secure_free(padding, padding_len);
 
     /* Pack the plain text itself. */
     memcpy(pp->data + offset, p->data, p->length);
