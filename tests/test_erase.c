@@ -5,12 +5,12 @@
 #include <string.h>
 #include "test.h"
 
-TEST("test erasing NULL") {
+TEST("erase: erase(NULL)") {
     int r = passwand_erase(NULL, 10);
     CU_ASSERT_EQUAL(r, 0);
 }
 
-TEST("test basic funtionality of erase") {
+TEST("erase: basic funtionality") {
     char basic[20];
     strcpy(basic, "hello world");
     int r = passwand_erase((uint8_t*)basic, strlen(basic));
@@ -18,7 +18,7 @@ TEST("test basic funtionality of erase") {
     CU_ASSERT_STRING_NOT_EQUAL(basic, "hello world");
 }
 
-TEST("test erasing the empty string") {
+TEST("erase: erase(\"\")") {
     char empty[1];
     strcpy(empty, "");
     int r = passwand_erase((uint8_t*)empty, strlen(empty));

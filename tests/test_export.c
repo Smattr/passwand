@@ -6,7 +6,7 @@
 #include "test.h"
 #include <unistd.h>
 
-TEST("test exporting 0 entries") {
+TEST("export: 0 entries") {
 
     /* Create a temporary path. */
     char tmp[sizeof("/tmp/tmp.XXXXXX")];
@@ -36,7 +36,7 @@ TEST("test exporting 0 entries") {
     CU_ASSERT_STRING_EQUAL(buffer, "[]");
 }
 
-TEST("basic export functionality") {
+TEST("export: basic functionality") {
 
     /* Create a temporary path. */
     char tmp[sizeof("/tmp/tmp.XXXXXX")];
@@ -66,7 +66,7 @@ TEST("basic export functionality") {
     CU_ASSERT_EQUAL_FATAL(r, 0);
 }
 
-TEST("test that exporting an unencrypted entry fails") {
+TEST("export: with an unencrypted entry") {
 
     /* Create a temporary path. */
     char tmp[sizeof("/tmp/tmp.XXXXXX")];

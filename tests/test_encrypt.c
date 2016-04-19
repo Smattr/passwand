@@ -35,23 +35,21 @@ static int deregister_handler(void) {
     return sigaction(SIGSEGV, &sa, NULL);
 }
 
-TEST("test AES128 reads only 128 bits of a supplied key") {
+TEST("AES128 reads at most 128 bits of a supplied key") {
 
-    /* This test is not probing the behaviour of Passwand's encryption
-     * functionality, but rather AES128. A previous version of Passwand used a
-     * 256-bit key with this algorithm, which I believe is excessive. AES128
-     * should only need a 128-bit key. This test validates that AES128
+    /* This test is not probing the behaviour of Passwand's encryption functionality, but rather
+     * AES128. A previous version of Passwand used a 256-bit key with this algorithm, which I
+     * believe is excessive. AES128 should only need a 128-bit key. This test validates that AES128
      * encryption only reads the first 128 bits of a key given to it.
      */
 
-    /* Use a dummy initialisation vector because we don't care about the
-     * strength of this test encryption.
+    /* Use a dummy initialisation vector because we don't care about the strength of this test
+     * encryption.
      */
     unsigned char iv[16] = { 0 };
 
-    /* Create a 128-bit key where accessing memory immediately following the
-     * key will cause a trap. The purpose of this is to detect if the AES
-     * algorithm reads more than 128 bits.
+    /* Create a 128-bit key where accessing memory immediately following the key will cause a trap.
+     * The purpose of this is to detect if the AES algorithm reads more than 128 bits.
      */
     int pagesize = sysconf(_SC_PAGESIZE);
     assert(pagesize >= 16 && "AES key does not fit in a page");
@@ -69,8 +67,8 @@ TEST("test AES128 reads only 128 bits of a supplied key") {
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
 
-    /* Operations from here on may cause a SIGSEGV if we've got AES wrong, so
-     * setup a signal handler so we can recover.
+    /* Operations from here on may cause a SIGSEGV if we've got AES wrong, so setup a signal handler
+     * so we can recover.
      */
     r = register_handler();
     CU_ASSERT_EQUAL_FATAL(r, 0);
@@ -105,8 +103,8 @@ TEST("test AES128 reads only 128 bits of a supplied key") {
 
     EVP_CIPHER_CTX_free(ctx);
 
-    /* We need to unprotect the page we previously protected because we're
-     * about to give it back to the heap.
+    /* We need to unprotect the page we previously protected because we're about to give it back to
+     * the heap.
      */
     r = mprotect(p + pagesize, pagesize, PROT_READ|PROT_WRITE);
     CU_ASSERT_EQUAL_FATAL(r, 0);
@@ -114,18 +112,16 @@ TEST("test AES128 reads only 128 bits of a supplied key") {
     free(p);
 }
 
-TEST("test AES128 reads 128 bits of a supplied key") {
+TEST("AES128 reads at least 128 bits of a supplied key") {
 
-    /* This test is the companion to aes_key_size1, and tests that AES128 does
-     * read 128 bits of the key, not less. Where code is similar, see the
-     * comments in aes_key_size1.
+    /* This test is the companion to the previous, and tests that AES128 does read 128 bits of the
+     * key, not less. Where code is similar, see the comments in the previous function.
      */
 
     unsigned char iv[16] = { 0 };
 
-    /* Create a 128-bit key where accessing its last byte will cause a trap.
-     * This should allow us to detect if AES128 does not read to the end of the
-     * key.
+    /* Create a 128-bit key where accessing its last byte will cause a trap. This should allow us to
+     * detect if AES128 does not read to the end of the key.
      */
     int pagesize = sysconf(_SC_PAGESIZE);
     assert(pagesize >= 16 && "AES key does not fit in a page");
@@ -143,8 +139,8 @@ TEST("test AES128 reads 128 bits of a supplied key") {
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
 
-    /* Operations from here on should cause a SIGSEGV if we understand AES, so
-     * setup a signal handler so we can recover.
+    /* Operations from here on should cause a SIGSEGV if we understand AES, so setup a signal
+     * handler so we can recover.
      */
     r = register_handler();
     CU_ASSERT_EQUAL_FATAL(r, 0);
@@ -187,20 +183,18 @@ TEST("test AES128 reads 128 bits of a supplied key") {
     free(p);
 }
 
-TEST("test AES128 reads only 16 bytes of a supplied initialisation vector") {
+TEST("AES128 reads at most 16 bytes of a supplied initialisation vector") {
 
-    /* Similar to the previous cases, a previous version of Passwand
-     * incorrectly created a short initialisation vector of only 8 bytes. This
-     * test case and aes_iv_size2 ensure that we have the initialisation vector
-     * size correct at 16 bytes.
+    /* Similar to the previous cases, a previous version of Passwand incorrectly created a short
+     * initialisation vector of only 8 bytes. This test case and the next ensure that we have the
+     * initialisation vector size correct at 16 bytes.
      */
 
     /* Create a dummy key. */
     unsigned char key[16] = { 0 };
 
-    /* Create a 16 byte IV where accessing memory immediately following the IV
-     * will cause a trap. The purpose of this is to detect if the AES algorithm
-     * reads more than 16 bytes.
+    /* Create a 16 byte IV where accessing memory immediately following the IV will cause a trap.
+     * The purpose of this is to detect if the AES algorithm reads more than 16 bytes.
      */
     int pagesize = sysconf(_SC_PAGESIZE);
     assert(pagesize >= 16 && "AES IV does not fit in a page");
@@ -218,8 +212,8 @@ TEST("test AES128 reads only 16 bytes of a supplied initialisation vector") {
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
 
-    /* Operations from here on may cause a SIGSEGV if we've got AES wrong, so
-     * setup a signal handler so we can recover.
+    /* Operations from here on may cause a SIGSEGV if we've got AES wrong, so setup a signal handler
+     * so we can recover.
      */
     r = register_handler();
     CU_ASSERT_EQUAL_FATAL(r, 0);
@@ -254,8 +248,8 @@ TEST("test AES128 reads only 16 bytes of a supplied initialisation vector") {
 
     EVP_CIPHER_CTX_free(ctx);
 
-    /* We need to unprotect the page we previously protected because we're
-     * about to give it back to the heap.
+    /* We need to unprotect the page we previously protected because we're about to give it back to
+     * the heap.
      */
     r = mprotect(p + pagesize, pagesize, PROT_READ|PROT_WRITE);
     CU_ASSERT_EQUAL_FATAL(r, 0);
@@ -263,14 +257,13 @@ TEST("test AES128 reads only 16 bytes of a supplied initialisation vector") {
     free(p);
 }
 
-TEST("test AES128 reads 16 bytes of a supplied initialisation vector") {
+TEST("AES128 reads at least 16 bytes of a supplied initialisation vector") {
 
     /* Create a dummy key. */
     unsigned char key[16] = { 0 };
 
-    /* Create a 16 byte IV where accessing the last byte will cause a trap. The
-     * purpose of this is to detect if the AES algorithm reads less than 16
-     * bytes.
+    /* Create a 16 byte IV where accessing the last byte will cause a trap. The purpose of this is
+     * to detect if the AES algorithm reads less than 16 bytes.
      */
     int pagesize = sysconf(_SC_PAGESIZE);
     assert(pagesize >= 16 && "AES IV does not fit in a page");
@@ -288,8 +281,8 @@ TEST("test AES128 reads 16 bytes of a supplied initialisation vector") {
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
 
-    /* Operations from here on should cause a SIGSEGV if we understand AES, so
-     * setup a signal handler so we can recover.
+    /* Operations from here on should cause a SIGSEGV if we understand AES, so setup a signal
+     * handler so we can recover.
      */
     r = register_handler();
     CU_ASSERT_EQUAL_FATAL(r, 0);
@@ -323,8 +316,8 @@ TEST("test AES128 reads 16 bytes of a supplied initialisation vector") {
 
     EVP_CIPHER_CTX_free(ctx);
 
-    /* We need to unprotect the page we previously protected because we're
-     * about to give it back to the heap.
+    /* We need to unprotect the page we previously protected because we're about to give it back to
+     * the heap.
      */
     r = mprotect(p + pagesize, pagesize, PROT_READ|PROT_WRITE);
     CU_ASSERT_EQUAL_FATAL(r, 0);
@@ -332,7 +325,7 @@ TEST("test AES128 reads 16 bytes of a supplied initialisation vector") {
     free(p);
 }
 
-TEST("encrypting the empty string") {
+TEST("encrypt: encrypt(\"\")") {
     uint8_t _key[16] = { 0 };
     const k_t key = {
         .data = _key,
@@ -357,7 +350,7 @@ TEST("encrypting the empty string") {
     free(c.data);
 }
 
-TEST("basic encrypt functionality") {
+TEST("encrypt: basic functionality") {
     uint8_t _key[16] = { 0 };
     const k_t key = {
         .data = _key,
@@ -384,7 +377,7 @@ TEST("basic encrypt functionality") {
     free(c.data);
 }
 
-TEST("test that we fail to encrypt unaligned data") {
+TEST("encrypt: with unaligned data") {
     uint8_t _key[16] = { 0 };
     const k_t key = {
         .data = _key,

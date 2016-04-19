@@ -6,7 +6,7 @@
 #include "test.h"
 #include "util.h"
 
-TEST("encoding the empty string") {
+TEST("encode: encode(\"\")") {
     const char *empty = "";
     char *r;
     passwand_error_t err = encode((const uint8_t*)empty, strlen(empty), &r);
@@ -16,7 +16,7 @@ TEST("encoding the empty string") {
     free(r);
 }
 
-TEST("basic functionality of encode") {
+TEST("encode: basic functionality") {
     const char *basic = "hello world";
     char *r;
     passwand_error_t err = encode((const uint8_t*)basic, strlen(basic), &r);
@@ -26,7 +26,7 @@ TEST("basic functionality of encode") {
     free(r);
 }
 
-TEST("confirm that encoding does the same as the standard base64 utility") {
+TEST("encode: == base64") {
     char *output;
     int r = run("echo -n \"hello world\" | base64", &output);
     CU_ASSERT_EQUAL_FATAL(r, 0);

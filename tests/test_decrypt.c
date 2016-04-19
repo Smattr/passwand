@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include "test.h"
 
-TEST("decrypt undoes encrypt") {
+TEST("decrypt: decrypt(encrypt(x)) == x") {
 
     /* First let's encrypt something. */
 
@@ -51,7 +51,8 @@ TEST("decrypt undoes encrypt") {
     free(out.data);
 }
 
-TEST("decrypting with the wrong key") {
+TEST("decrypt: with bad key") {
+
     uint8_t _key[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
         16 };
     k_t key = {
@@ -100,7 +101,8 @@ TEST("decrypting with the wrong key") {
     free(c.data);
 }
 
-TEST("decrypting with the wrong initialisation vector") {
+TEST("decrypt: with bad initialisation vector") {
+
     uint8_t _key[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
         16 };
     const k_t key = {
