@@ -82,16 +82,23 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
             .data = (uint8_t*)&_iv, \
             .length = sizeof _iv, \
         }; \
-        ppt_t pp; \
-        err = pack_data(p, &iv, &pp); \
+        ppt_t *pp; \
+        if (passwand_secure_malloc((void**)&pp, sizeof *pp) != 0) { \
+            passwand_secure_free(p, sizeof *p); \
+            CLEANUP(); \
+            return PW_NO_MEM; \
+        } \
+        err = pack_data(p, &iv, pp); \
         passwand_secure_free(p, sizeof *p); \
         if (err != PW_OK) { \
+            passwand_secure_free(pp, sizeof *pp); \
             CLEANUP(); \
             return err; \
         } \
         ct_t c; \
-        err = aes_encrypt(&k, &iv, &pp, &c); \
-        free(pp.data); \
+        err = aes_encrypt(&k, &iv, pp, &c); \
+        free(pp->data); \
+        passwand_secure_free(pp, sizeof *pp); \
         if (err != PW_OK) { \
             CLEANUP(); \
             return err; \
