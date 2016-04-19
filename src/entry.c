@@ -20,6 +20,14 @@ static m_t *make_m_t(const char *master) {
     return m;
 }
 
+static void unmake_m_t(void *p) {
+    assert(p != NULL);
+    m_t *m = *(m_t**)p;
+    if (m != NULL)
+        passwand_secure_free(m, sizeof *m);
+}
+#define AUTO_M_T(name, master) m_t *m __attribute__((cleanup(unmake_m_t))) = make_m_t(master)
+
 passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, const char *space,
         const char *key, const char *value, int work_factor) {
 
@@ -42,12 +50,11 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
     };
 
     /* Make an encryption key. */
-    m_t *m = make_m_t(master);
+    AUTO_M_T(m, master);
     if (m == NULL)
         return PW_NO_MEM;
     AUTO_K_T(k);
     err = make_key(m, &salt, work_factor, &k);
-    passwand_secure_free(m, sizeof *m);
     if (err != PW_OK)
         return err;
 
@@ -203,13 +210,12 @@ static passwand_error_t get_mac(const char *master, passwand_entry_t *e, mac_t *
     };
 
     /* Now generate the MAC. */
-    m_t *m = make_m_t(master);
+    AUTO_M_T(m, master);
     if (m == NULL) {
         free(_data);
         return PW_NO_MEM;
     }
     passwand_error_t err = hmac(m, &data, &salt, mac, e->work_factor);
-    passwand_secure_free(m, sizeof *m);
     free(_data);
 
     return err;
@@ -275,7 +281,7 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
         return err;
 
     /* Generate the encryption key. */
-    m_t *m = make_m_t(master);
+    AUTO_M_T(m, master);
     if (m == NULL)
         return PW_NO_MEM;
     assert(e->salt != NULL);
@@ -286,7 +292,6 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
     };
     AUTO_K_T(k);
     err = make_key(m, &salt, e->work_factor, &k);
-    passwand_secure_free(m, sizeof *m);
     if (err != PW_OK)
         return err;
 
