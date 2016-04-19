@@ -64,7 +64,7 @@ static void prepend(void *p, size_t size) {
 
     assert(p != NULL);
     assert(size >= sizeof(node_t));
-    assert((uintptr_t)p % __alignof__(node_t));
+    assert((uintptr_t)p % __alignof__(node_t) == 0);
 
     node_t *n = p;
     n->size = size;
