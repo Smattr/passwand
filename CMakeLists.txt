@@ -53,12 +53,18 @@ target_link_libraries (pw-cli passwand)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_library (passwand src/encoding.c src/erase.c src/encryption.c src/endian.c src/entry.c
-    src/error.c src/export.c src/hmac.c src/import.c src/make_key.c src/malloc.c src/random.c)
+    src/error.c src/export.c src/hmac.c src/import.c src/make_key.c src/malloc.c src/pack.c
+    src/random.c)
 target_link_libraries (passwand ${OPENSSL_LIBRARIES} ${JSON_LIBRARIES} ${SCRYPT})
 
-add_executable (passwand-tests src/encoding.c src/encryption.c tests/main.c tests/test_decode.c
-    tests/test_decrypt.c tests/test_encode.c tests/test_encrypt.c tests/test_erase.c
-    tests/test_export.c tests/test_import.c tests/test_malloc.c tests/test_pack.c
+add_executable (passwand-tests
+
+    # Internal library files whose contents we need to expose.
+    src/encoding.c src/encryption.c src/pack.c src/random.c
+    
+    # Actual test sources.
+    tests/main.c tests/test_decode.c tests/test_decrypt.c tests/test_encode.c tests/test_encrypt.c
+    tests/test_erase.c tests/test_export.c tests/test_import.c tests/test_malloc.c tests/test_pack.c
     tests/test_random_bytes.c tests/test_unpack.c tests/util.c)
 target_link_libraries (passwand-tests passwand ${CUNIT})
 

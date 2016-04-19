@@ -4,7 +4,6 @@
 #include "internal.h"
 #include <limits.h>
 #include <passwand/passwand.h>
-#include "random.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>

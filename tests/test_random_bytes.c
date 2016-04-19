@@ -1,4 +1,4 @@
-#include "../src/random.h"
+#include "../src/internal.h"
 #include <CUnit/CUnit.h>
 #include "test.h"
 
