@@ -19,13 +19,13 @@ typedef struct {
     size_t master_len;
 } master_t;
 
-static int getpassword(const char *prompt, master_t *master) {
+static master_t *getpassword(const char *prompt) {
 
     static const size_t CHUNK = 128;
 
     char *m;
     if (passwand_secure_malloc((void**)&m, CHUNK) != 0)
-        return -1;
+        return NULL;
     size_t size = CHUNK;
 
     printf("%s", prompt == NULL ? "master password: " : prompt);
@@ -34,7 +34,7 @@ static int getpassword(const char *prompt, master_t *master) {
     struct termios old;
     if (tcgetattr(STDOUT_FILENO, &old) != 0) {
         passwand_secure_free(m, size);
-        return -1;
+        return NULL;
     }
     struct termios new = old;
     cfmakeraw(&new);
@@ -47,7 +47,7 @@ static int getpassword(const char *prompt, master_t *master) {
         if (c == EOF) {
             tcsetattr(STDOUT_FILENO, 0, &old);
             passwand_secure_free(m, size);
-            return -1;
+            return NULL;
         }
 
         if (c == '\r' || c == '\r' || c == '\f')
@@ -60,7 +60,7 @@ static int getpassword(const char *prompt, master_t *master) {
             if (passwand_secure_malloc((void**)&n, size + CHUNK) != 0) {
                 tcsetattr(STDOUT_FILENO, 0, &old);
                 passwand_secure_free(m, size);
-                return -1;
+                return NULL;
             }
             strncpy(n, m, size);
             passwand_secure_free(m, size);
@@ -70,9 +70,16 @@ static int getpassword(const char *prompt, master_t *master) {
     }
 
     m[index] = '\0';
+
+    master_t *master;
+    if (passwand_secure_malloc((void**)&master, sizeof *master) != 0) {
+        passwand_secure_free(m, size);
+        return NULL;
+    }
     master->master = m;
     master->master_len = size;
-    return 0;
+
+    return master;
 }
 
 typedef struct {
@@ -280,10 +287,8 @@ int main(int argc, char **argv) {
     if (passwand_import(options.data, &entries, &entry_len) != PW_OK)
         DIE("failed to load database");
 
-    master_t *master;
-    if (passwand_secure_malloc((void**)&master, sizeof *master) != 0)
-        DIE("out of memory");
-    if (getpassword(NULL, master) != 0)
+    master_t *master = getpassword(NULL);
+    if (master == NULL)
         DIE("failed to read master password");
 
     return action(&options, master, entries, entry_len);
