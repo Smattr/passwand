@@ -35,7 +35,7 @@ static int deregister_handler(void) {
     return sigaction(SIGSEGV, &sa, NULL);
 }
 
-TEST(aes_key_size1, "test AES128 reads only 128 bits of a supplied key") {
+TEST("test AES128 reads only 128 bits of a supplied key") {
 
     /* This test is not probing the behaviour of Passwand's encryption
      * functionality, but rather AES128. A previous version of Passwand used a
@@ -114,7 +114,7 @@ TEST(aes_key_size1, "test AES128 reads only 128 bits of a supplied key") {
     free(p);
 }
 
-TEST(aes_key_size2, "test AES128 reads 128 bits of a supplied key") {
+TEST("test AES128 reads 128 bits of a supplied key") {
 
     /* This test is the companion to aes_key_size1, and tests that AES128 does
      * read 128 bits of the key, not less. Where code is similar, see the
@@ -187,7 +187,7 @@ TEST(aes_key_size2, "test AES128 reads 128 bits of a supplied key") {
     free(p);
 }
 
-TEST(aes_iv_size1, "test AES128 reads only 16 bytes of a supplied initialisation vector") {
+TEST("test AES128 reads only 16 bytes of a supplied initialisation vector") {
 
     /* Similar to the previous cases, a previous version of Passwand
      * incorrectly created a short initialisation vector of only 8 bytes. This
@@ -263,7 +263,7 @@ TEST(aes_iv_size1, "test AES128 reads only 16 bytes of a supplied initialisation
     free(p);
 }
 
-TEST(aes_iv_size2, "test AES128 reads 16 bytes of a supplied initialisation vector") {
+TEST("test AES128 reads 16 bytes of a supplied initialisation vector") {
 
     /* Create a dummy key. */
     unsigned char key[16] = { 0 };
@@ -332,7 +332,7 @@ TEST(aes_iv_size2, "test AES128 reads 16 bytes of a supplied initialisation vect
     free(p);
 }
 
-TEST(encrypt_empty, "encrypting the empty string") {
+TEST("encrypting the empty string") {
     uint8_t _key[16] = { 0 };
     const k_t key = {
         .data = _key,
@@ -357,7 +357,7 @@ TEST(encrypt_empty, "encrypting the empty string") {
     free(c.data);
 }
 
-TEST(encrypt_basic, "basic encrypt functionality") {
+TEST("basic encrypt functionality") {
     uint8_t _key[16] = { 0 };
     const k_t key = {
         .data = _key,
@@ -384,7 +384,7 @@ TEST(encrypt_basic, "basic encrypt functionality") {
     free(c.data);
 }
 
-TEST(encrypt_unaligned, "test that we fail to encrypt unaligned data") {
+TEST("test that we fail to encrypt unaligned data") {
     uint8_t _key[16] = { 0 };
     const k_t key = {
         .data = _key,

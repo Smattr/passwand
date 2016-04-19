@@ -6,7 +6,7 @@
 #include "test.h"
 #include <unistd.h>
 
-TEST(import_empty_list, "importing the empty list") {
+TEST("importing the empty list") {
 
     /* Create a temporary file. */
     char tmp[sizeof("/tmp/tmp.XXXXXX")];
@@ -29,7 +29,7 @@ TEST(import_empty_list, "importing the empty list") {
     CU_ASSERT_EQUAL_FATAL(entry_len, 0);
 }
 
-TEST(import_missing_field, "importing an entry with a missing field") {
+TEST("importing an entry with a missing field") {
     const char *data = "[{\"space\":\"aGVsbG8gd29ybGQ=\", \"key\":\"aGVsbG8gd29ybGQ=\", "
         "\"value\":\"aGVsbG8gd29ybGQ=\", \"hmac\":\"aGVsbG8gd29ybGQ=\", \"hmac_salt\":"
         "\"aGVsbG8gd29ybGQ=\", \"salt\":\"aGVsbG8gd29ybGQ=\"}]";
@@ -52,7 +52,7 @@ TEST(import_missing_field, "importing an entry with a missing field") {
     CU_ASSERT_NOT_EQUAL_FATAL(r, 0);
 }
 
-TEST(import_basic, "basic import functionality") {
+TEST("basic import functionality") {
     const char *data = "[{\"space\":\"aGVsbG8gd29ybGQ=\", \"key\":\"aGVsbG8gd29ybGQ=\", "
         "\"value\":\"aGVsbG8gd29ybGQ=\", \"hmac\":\"aGVsbG8gd29ybGQ=\", \"hmac_salt\":"
         "\"aGVsbG8gd29ybGQ=\", \"salt\":\"aGVsbG8gd29ybGQ=\", \"iv\":\"aGVsbG8gd29ybGQ=\"}]";
@@ -92,7 +92,7 @@ TEST(import_basic, "basic import functionality") {
     CU_ASSERT_EQUAL_FATAL(strncmp((const char*)entries[0].iv, "hello world", entries[0].iv_len), 0);
 }
 
-TEST(import_extra_field, "test having a superfluous field is fine") {
+TEST("test having a superfluous field is fine") {
     const char *data = "[{\"space\":\"aGVsbG8gd29ybGQ=\", \"key\":\"aGVsbG8gd29ybGQ=\", "
         "\"value\":\"aGVsbG8gd29ybGQ=\", \"hmac\":\"aGVsbG8gd29ybGQ=\", \"hmac_salt\":"
         "\"aGVsbG8gd29ybGQ=\", \"salt\":\"aGVsbG8gd29ybGQ=\", \"iv\":\"aGVsbG8gd29ybGQ=\","

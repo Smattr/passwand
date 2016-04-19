@@ -7,7 +7,7 @@
 #include "test.h"
 #include "util.h"
 
-TEST(decode_empty, "decoding the empty string") {
+TEST("decoding the empty string") {
     const char *empty = "";
     uint8_t *r;
     size_t r_len;
@@ -18,7 +18,7 @@ TEST(decode_empty, "decoding the empty string") {
     free(r);
 }
 
-TEST(decode_basic, "basic functionality of decode") {
+TEST("basic functionality of decode") {
     const char *basic = "aGVsbG8gd29ybGQ=";
     uint8_t *r;
     size_t r_len;
@@ -30,7 +30,7 @@ TEST(decode_basic, "basic functionality of decode") {
     free(r);
 }
 
-TEST(decode_is_base64, "confirm that decoding does the same as the standard base64 utility") {
+TEST("confirm that decoding does the same as the standard base64 utility") {
     char *output;
     int r = run("echo -n \"aGVsbG8gd29ybGQ=\" | base64 --decode", &output);
     CU_ASSERT_EQUAL_FATAL(r, 0);

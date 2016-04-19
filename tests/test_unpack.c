@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include "test.h"
 
-TEST(unpack_basic, "test unpacking something we packed") {
+TEST("test unpacking something we packed") {
 
     /* First pack something. */
 

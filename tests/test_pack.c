@@ -8,7 +8,7 @@
 #include <string.h>
 #include "test.h"
 
-TEST(pack_basic, "basic packing functionality") {
+TEST("basic packing functionality") {
 
     char _pt[] = "hello world";
     const pt_t p = {

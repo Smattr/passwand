@@ -27,10 +27,10 @@ int main(int argc, char **argv) {
 
     unsigned total = 0;
     for (test_case_t *p = test_cases; p != NULL; p = p->next) {
-        if (argc == 1 || strcmp(argv[1], p->name) == 0) {
+        if (argc == 1 || strcmp(argv[1], p->description) == 0) {
             if (CU_add_test(suite, p->description, p->function) == NULL) {
                 CU_ErrorCode err = CU_get_error();
-                fprintf(stderr, "failed to add test %s\n", p->name);
+                fprintf(stderr, "failed to add test \"%s\"\n", p->description);
                 CU_cleanup_registry();
                 return err;
             }
