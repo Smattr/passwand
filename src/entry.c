@@ -203,11 +203,13 @@ static passwand_error_t get_mac(const char *master, passwand_entry_t *e, mac_t *
     };
 
     /* Now generate the MAC. */
-    m_t m = {
-        .data = (uint8_t*)master,
-        .length = strlen(master),
-    };
-    passwand_error_t err = hmac(&m, &data, &salt, mac, e->work_factor);
+    m_t *m = make_m_t(master);
+    if (m == NULL) {
+        free(_data);
+        return PW_NO_MEM;
+    }
+    passwand_error_t err = hmac(m, &data, &salt, mac, e->work_factor);
+    passwand_secure_free(m, sizeof *m);
     free(_data);
 
     return err;
