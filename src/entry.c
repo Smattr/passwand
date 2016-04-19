@@ -306,9 +306,15 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
     memcpy(&_iv_le, e->iv, e->iv_len);
     unsigned __int128 _iv = le128toh(_iv_le);
 
-    AUTO_SECURE_STRING(space);
-    AUTO_SECURE_STRING(key);
-    AUTO_SECURE_STRING(value);
+    void auto_secure_free(void *p) {
+        assert(p != NULL);
+        char *s = *(char**)p;
+        if (s != NULL)
+            passwand_secure_free(s, strlen(s) + 1);
+    }
+    char *space __attribute__((cleanup(auto_secure_free))) = NULL;
+    char *key __attribute__((cleanup(auto_secure_free))) = NULL;
+    char *value __attribute__((cleanup(auto_secure_free))) = NULL;
 
 #define DEC(field) \
     do { \
@@ -347,11 +353,10 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
             passwand_secure_free(p, sizeof *p); \
             return PW_OVERFLOW; \
         } \
-        field = malloc(p->length + 1); \
-        if (field == NULL) { \
+        if (passwand_secure_malloc((void**)&field, p->length + 1) != 0) { \
             passwand_secure_free(p->data, p->length); \
             passwand_secure_free(p, sizeof *p); \
-            return  PW_NO_MEM; \
+            return PW_NO_MEM; \
         } \
         memcpy(field, p->data, p->length); \
         field[p->length] = '\0'; \

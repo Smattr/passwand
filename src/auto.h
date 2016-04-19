@@ -32,13 +32,3 @@ static inline void unmake_k_t(void *p) {
     }
 }
 #define AUTO_K_T(name) k_t *k __attribute__((cleanup(unmake_k_t))) = make_k_t()
-
-static inline void autoerase(void *p) {
-    assert(p != NULL);
-    char **s = p;
-    if (*s != NULL) {
-        passwand_erase(*s, strlen(*s));
-        free(*s);
-    }
-}
-#define AUTO_SECURE_STRING(name) __attribute__((cleanup(autoerase))) char *name = NULL
