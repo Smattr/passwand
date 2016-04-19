@@ -291,8 +291,7 @@ passwand_error_t unpack_data(const ppt_t *pp, const iv_t *iv, pt_t *p) {
         return PW_BAD_PADDING;
 
     /* Now we're ready to unpack it. */
-    p->data = malloc(p->length);
-    if (p->data == NULL)
+    if (passwand_secure_malloc((void**)&p->data, p->length) != 0)
         return PW_NO_MEM;
     memcpy(p->data, d.data + d.length - p->length, p->length);
 

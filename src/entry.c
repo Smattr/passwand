@@ -305,20 +305,23 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
         if (err != PW_OK) { \
             return err; \
         } \
-        AUTO_PT_T(p); \
+        pt_t p; \
         err = unpack_data(&pp, &iv, &p); \
         if (err != PW_OK) { \
             return err; \
         } \
         if (SIZE_MAX - p.length < 1) { \
+            passwand_secure_free(p.data, p.length); \
             return PW_OVERFLOW; \
         } \
         field = malloc(p.length + 1); \
         if (field == NULL) { \
+            passwand_secure_free(p.data, p.length); \
             return  PW_NO_MEM; \
         } \
         memcpy(field, p.data, p.length); \
         field[p.length] = '\0'; \
+        passwand_secure_free(p.data, p.length); \
     } while (0)
 
     DEC(space);
