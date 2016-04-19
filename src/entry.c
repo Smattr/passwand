@@ -157,7 +157,7 @@ static passwand_error_t get_mac(const char *master, passwand_entry_t *e, mac_t *
 
     static const unsigned HMAC_SALT_LEN = 8; // bytes
 
-    if (e->hmac == NULL) {
+    if (e->hmac_salt == NULL) {
         /* No existing salt; generate one now. */
         uint8_t *s = malloc(HMAC_SALT_LEN);
         if (s == NULL)
