@@ -3,7 +3,7 @@
 #pragma once
 
 #include <assert.h>
-#include "encryption.h"
+#include "internal.h"
 #include <passwand/passwand.h>
 #include <stdint.h>
 #include <stdlib.h>

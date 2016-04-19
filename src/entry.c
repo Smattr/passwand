@@ -1,7 +1,7 @@
 #include <assert.h>
 #include "auto.h"
-#include "encryption.h"
 #include "endian.h"
+#include "internal.h"
 #include <limits.h>
 #include <passwand/passwand.h>
 #include "random.h"

@@ -1,14 +1,9 @@
-/* XXX: libscrypt.h is busted and doesn't include the necessary headers for uint8_t and size_t. */
-#include <stddef.h>
-#include <stdint.h>
-
 #include <assert.h>
 #include "auto.h"
-#include "encryption.h"
 #include <endian.h>
 #include <fcntl.h>
+#include "internal.h"
 #include <limits.h>
-#include <libscrypt.h>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
 #include <passwand/passwand.h>
@@ -145,29 +140,6 @@ int aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_t *pp) {
     memcpy(pp->data, buffer->data, pp->length);
 
     return 0;
-}
-
-passwand_error_t make_key(const m_t *master, const salt_t *salt, int work_factor, k_t *key) {
-
-    assert(master != NULL);
-    assert(salt != NULL);
-    assert(key != NULL);
-    assert(key->data != NULL);
-
-    if (work_factor == -1)
-        work_factor = 14; // default value
-
-    if (work_factor < 10 || work_factor > 31)
-        return PW_BAD_WF;
-
-    static const uint32_t r = 8;
-    static const uint32_t p = 1;
-
-    if (libscrypt_scrypt(master->data, master->length, salt->data, salt->length,
-            ((uint64_t)1) << work_factor, r, p, key->data, key->length) != 0)
-        return PW_CRYPTO;
-
-    return PW_OK;
 }
 
 passwand_error_t hmac(const m_t *master, const data_t *data, const salt_t *salt, mac_t *mac,

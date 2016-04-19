@@ -1,4 +1,4 @@
-#include "../src/encryption.h"
+#include "../src/internal.h"
 #include "../src/types.h"
 #include <CUnit/CUnit.h>
 #include <passwand/passwand.h>
