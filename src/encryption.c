@@ -123,7 +123,6 @@ int aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_t *pp) {
     }
     pp->length += len;
     assert(pp->length < c->length + AES_BLOCK_SIZE + 1);
-    pp->data[pp->length] = '\0';
 
     return 0;
 }
