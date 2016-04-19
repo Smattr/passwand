@@ -87,6 +87,21 @@ int aes_encrypt(const k_t *key, const iv_t *iv, const ppt_t *pp, ct_t *c) {
 
 int aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_t *pp) {
 
+    /* Support for an RAII-erased secure buffer. */
+    typedef struct {
+        uint8_t *data;
+        size_t length;
+    } buffer_t;
+    void auto_erase_buffer(void *p) {
+        assert(p != NULL);
+        buffer_t *b = *(buffer_t**)p;
+        if (b != NULL) {
+            if (b->data != NULL)
+                passwand_secure_free(b->data, b->length);
+            passwand_secure_free(b, sizeof *b);
+        }
+    }
+
     /* See comment in aes_encrypt. */
     if (key->length != AES_KEY_SIZE || iv->length != AES_BLOCK_SIZE)
         return -1;
@@ -101,25 +116,23 @@ int aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_t *pp) {
     /* EVP_DecryptUpdate is documented as writing at most `inl + cipher_block_size`. */
     if (SIZE_MAX - AES_BLOCK_SIZE < c->length)
         return -1;
-    uint8_t *buffer;
-    size_t buffer_len = c->length + AES_BLOCK_SIZE;
-    if (passwand_secure_malloc((void**)&buffer, buffer_len) != 0)
+    buffer_t *buffer __attribute__((cleanup(auto_erase_buffer))) = NULL;
+    if (passwand_secure_malloc((void**)&buffer, sizeof *buffer) != 0)
         return -1;
+    if (passwand_secure_malloc((void**)&buffer->data, c->length + AES_BLOCK_SIZE) != 0)
+        return -1;
+    buffer->length = c->length + AES_BLOCK_SIZE;
 
     int len;
-    if (EVP_DecryptUpdate(ctx, buffer, &len, c->data, c->length) != 1) {
-        passwand_secure_free(buffer, buffer_len);
+    if (EVP_DecryptUpdate(ctx, buffer->data, &len, c->data, c->length) != 1)
         return -1;
-    }
     assert(len >= 0);
     assert((unsigned)len <= c->length + AES_BLOCK_SIZE);
     pp->length = len;
 
     /* It's OK to write more plain text bytes in this step. */
-    if (EVP_DecryptFinal_ex(ctx, buffer + len, &len) != 1) {
-        passwand_secure_free(buffer, buffer_len);
+    if (EVP_DecryptFinal_ex(ctx, buffer->data + len, &len) != 1)
         return -1;
-    }
     pp->length += len;
     assert(pp->length <= c->length + AES_BLOCK_SIZE);
 
@@ -127,12 +140,9 @@ int aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_t *pp) {
      * this to ensure the caller's idea of the "length" of the decrypted data
      * is suitable to pass to passwand_secure_free.
      */
-    if (passwand_secure_malloc((void**)&pp->data, pp->length) != 0) {
-        passwand_secure_free(buffer, buffer_len);
+    if (passwand_secure_malloc((void**)&pp->data, pp->length) != 0)
         return -1;
-    }
-    memcpy(pp->data, buffer, pp->length);
-    passwand_secure_free(buffer, buffer_len);
+    memcpy(pp->data, buffer->data, pp->length);
 
     return 0;
 }
