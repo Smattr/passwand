@@ -322,10 +322,12 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
         } \
         pt_t *p; \
         if (passwand_secure_malloc((void**)&p, sizeof *p) != 0) { \
+            free(pp->data); \
             passwand_secure_free(pp, sizeof *pp); \
             return PW_NO_MEM; \
         } \
         err = unpack_data(pp, &iv, p); \
+        free(pp->data); \
         passwand_secure_free(pp, sizeof *pp); \
         if (err != PW_OK) { \
             passwand_secure_free(p, sizeof *p); \
