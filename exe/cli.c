@@ -107,27 +107,24 @@ static void get_body(void *state, const char *space, const char *key, const char
         } \
     } while (0)
 
-static int get(const options_t *options, passwand_entry_t *entries, unsigned entry_len) {
+static int get(const options_t *options, master_t *master, passwand_entry_t *entries,
+        unsigned entry_len) {
 
     REQUIRED(space);
     REQUIRED(key);
     IGNORED(value);
-
-    master_t master;
-    if (getpassword(NULL, &master) != 0)
-        DIE("failed to read master password");
 
     find_state_t st = {
         .options = options,
         .found = false,
     };
     for (unsigned i = 0; !st.found && i < entry_len; i++) {
-        if (passwand_entry_do(master.master, &entries[i], get_body, &st) != PW_OK) {
-            passwand_secure_free(master.master, master.master_len);
+        if (passwand_entry_do(master->master, &entries[i], get_body, &st) != PW_OK) {
+            passwand_secure_free(master->master, master->master_len);
             DIE("failed to handle entry %u", i);
         }
     }
-    passwand_secure_free(master.master, master.master_len);
+    passwand_secure_free(master->master, master->master_len);
 
     if (!st.found)
         DIE("not found");
@@ -158,18 +155,15 @@ static void set_body(void *state, const char *space, const char *key, const char
     }
 }
 
-static int set(const options_t *options, passwand_entry_t *entries, unsigned entry_len) {
+static int set(const options_t *options, master_t *master, passwand_entry_t *entries,
+        unsigned entry_len) {
 
     REQUIRED(space);
     REQUIRED(key);
     REQUIRED(value);
 
-    master_t master;
-    if (getpassword(NULL, &master) != 0)
-        DIE("failed to read master password");
-
     passwand_entry_t e;
-    if (passwand_entry_new(&e, master.master, options->space, options->key, options->value,
+    if (passwand_entry_new(&e, master->master, options->space, options->key, options->value,
             options->work_factor) != PW_OK)
         DIE("failed to create new entry");
 
@@ -182,12 +176,12 @@ static int set(const options_t *options, passwand_entry_t *entries, unsigned ent
         .key = options->key,
     };
     for (unsigned i = 0; !st.found && i < entry_len; i++) {
-        if (passwand_entry_do(master.master, &entries[i], set_body, &st) != PW_OK) {
-            passwand_secure_free(master.master, master.master_len);
+        if (passwand_entry_do(master->master, &entries[i], set_body, &st) != PW_OK) {
+            passwand_secure_free(master->master, master->master_len);
             DIE("failed to handle entry %u", i);
         }
     }
-    passwand_secure_free(master.master, master.master_len);
+    passwand_secure_free(master->master, master->master_len);
 
     passwand_entry_t *new_entries = calloc(entry_len + (st.found ? 0 : 1), sizeof(passwand_entry_t));
     if (new_entries == NULL)
@@ -205,15 +199,12 @@ static int set(const options_t *options, passwand_entry_t *entries, unsigned ent
     return EXIT_SUCCESS;
 }
 
-static int list(const options_t *options, passwand_entry_t *entries, unsigned entry_len) {
+static int list(const options_t *options, master_t *master, passwand_entry_t *entries,
+        unsigned entry_len) {
 
     IGNORED(space);
     IGNORED(key);
     IGNORED(value);
-
-    master_t master;
-    if (getpassword(NULL, &master) != 0)
-        DIE("failed to read master password");
 
     /* Note that this nested function does not induce a trampoline because it does not modify local
      * state.
@@ -226,17 +217,18 @@ static int list(const options_t *options, passwand_entry_t *entries, unsigned en
     }
 
     for (unsigned i = 0; i < entry_len; i++) {
-        if (passwand_entry_do(master.master, &entries[i], print, NULL) != PW_OK) {
-            passwand_secure_free(master.master, master.master_len);
+        if (passwand_entry_do(master->master, &entries[i], print, NULL) != PW_OK) {
+            passwand_secure_free(master->master, master->master_len);
             DIE("failed to handle entry %u", i);
         }
     }
-    passwand_secure_free(master.master, master.master_len);
+    passwand_secure_free(master->master, master->master_len);
 
     return EXIT_SUCCESS;
 }
 
-static int change_master(const options_t *options, passwand_entry_t *entries, unsigned entry_len) {
+static int change_master(const options_t *options, master_t *master, passwand_entry_t *entries,
+        unsigned entry_len) {
 
     IGNORED(space);
     IGNORED(key);
@@ -247,7 +239,8 @@ static int change_master(const options_t *options, passwand_entry_t *entries, un
 
 int main(int argc, char **argv) {
 
-    int (*action)(const options_t *options, passwand_entry_t *entries, unsigned entry_len);
+    int (*action)(const options_t *options, master_t *master, passwand_entry_t *entries,
+        unsigned entry_len);
 
     if (argc < 2 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-?") == 0) {
         printf("usage: %s action options...\n", argv[0]);
@@ -287,5 +280,11 @@ int main(int argc, char **argv) {
     if (passwand_import(options.data, &entries, &entry_len) != PW_OK)
         DIE("failed to load database");
 
-    return action(&options, entries, entry_len);
+    master_t *master;
+    if (passwand_secure_malloc((void**)&master, sizeof *master) != 0)
+        DIE("out of memory");
+    if (getpassword(NULL, master) != 0)
+        DIE("failed to read master password");
+
+    return action(&options, master, entries, entry_len);
 }
