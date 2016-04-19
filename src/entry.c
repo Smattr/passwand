@@ -71,17 +71,20 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
     /* Now pack and encrypt each field. */
 #define ENC(field) \
     do { \
-        pt_t p = { \
-            .data = (uint8_t*)field, \
-            .length = strlen(field), \
-        }; \
+        pt_t *p; \
+        if (passwand_secure_malloc((void**)&p, sizeof *p) != 0) { \
+            CLEANUP(); \
+            return PW_NO_MEM; \
+        } \
+        p->data = (uint8_t*)field; \
+        p->length = strlen(field); \
         iv_t iv = { \
             .data = (uint8_t*)&_iv, \
             .length = sizeof _iv, \
         }; \
         ppt_t pp; \
-        err = pack_data(&p, &iv, &pp); \
-        passwand_erase(&p, sizeof p); \
+        err = pack_data(p, &iv, &pp); \
+        passwand_secure_free(p, sizeof *p); \
         if (err != PW_OK) { \
             CLEANUP(); \
             return err; \
