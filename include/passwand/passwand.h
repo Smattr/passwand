@@ -110,7 +110,7 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
  * @param len Length of data
  * @return PW_OK on success
  */
-passwand_error_t passwand_erase(uint8_t *s, size_t len);
+passwand_error_t passwand_erase(void *s, size_t len);
 
 /** Export a list of password entries to a file.
  *

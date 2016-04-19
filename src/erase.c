@@ -16,7 +16,7 @@
  */
 void *(*volatile memset_explicit)(void*, int, size_t) = memset;
 
-passwand_error_t passwand_erase(uint8_t *s, size_t len) {
+passwand_error_t passwand_erase(void *s, size_t len) {
 
     if (s == NULL)
         return PW_OK;
