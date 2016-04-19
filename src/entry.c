@@ -305,23 +305,30 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
         if (err != PW_OK) { \
             return err; \
         } \
-        pt_t p; \
-        err = unpack_data(&pp, &iv, &p); \
+        pt_t *p; \
+        if (passwand_secure_malloc((void**)&p, sizeof *p) != 0) { \
+            return PW_NO_MEM; \
+        } \
+        err = unpack_data(&pp, &iv, p); \
         if (err != PW_OK) { \
+            passwand_secure_free(p, sizeof *p); \
             return err; \
         } \
-        if (SIZE_MAX - p.length < 1) { \
-            passwand_secure_free(p.data, p.length); \
+        if (SIZE_MAX - p->length < 1) { \
+            passwand_secure_free(p->data, p->length); \
+            passwand_secure_free(p, sizeof *p); \
             return PW_OVERFLOW; \
         } \
-        field = malloc(p.length + 1); \
+        field = malloc(p->length + 1); \
         if (field == NULL) { \
-            passwand_secure_free(p.data, p.length); \
+            passwand_secure_free(p->data, p->length); \
+            passwand_secure_free(p, sizeof *p); \
             return  PW_NO_MEM; \
         } \
-        memcpy(field, p.data, p.length); \
-        field[p.length] = '\0'; \
-        passwand_secure_free(p.data, p.length); \
+        memcpy(field, p->data, p->length); \
+        field[p->length] = '\0'; \
+        passwand_secure_free(p->data, p->length); \
+        passwand_secure_free(p, sizeof *p); \
     } while (0)
 
     DEC(space);
