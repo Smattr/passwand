@@ -98,18 +98,17 @@ int aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_t *pp) {
     if (EVP_DecryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key->data, iv->data) != 1)
         return -1;
 
-    /* EVP_DecryptUpdate is documented as writing at most `inl + cipher_block_size`. We leave extra
-     * space for a NUL byte.
-     */
-    if (SIZE_MAX - AES_BLOCK_SIZE - 1 < c->length)
+    /* EVP_DecryptUpdate is documented as writing at most `inl + cipher_block_size`. */
+    if (SIZE_MAX - AES_BLOCK_SIZE < c->length)
         return -1;
-    pp->data = malloc(c->length + AES_BLOCK_SIZE + 1);
-    if (pp->data == NULL)
+    uint8_t *buffer;
+    size_t buffer_len = c->length + AES_BLOCK_SIZE;
+    if (passwand_secure_malloc((void**)&buffer, buffer_len) != 0)
         return -1;
 
     int len;
-    if (EVP_DecryptUpdate(ctx, pp->data, &len, c->data, c->length) != 1) {
-        free(pp->data);
+    if (EVP_DecryptUpdate(ctx, buffer, &len, c->data, c->length) != 1) {
+        passwand_secure_free(buffer, buffer_len);
         return -1;
     }
     assert(len >= 0);
@@ -117,12 +116,23 @@ int aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_t *pp) {
     pp->length = len;
 
     /* It's OK to write more plain text bytes in this step. */
-    if (EVP_DecryptFinal_ex(ctx, pp->data + len, &len) != 1) {
-        free(pp->data);
+    if (EVP_DecryptFinal_ex(ctx, buffer + len, &len) != 1) {
+        passwand_secure_free(buffer, buffer_len);
         return -1;
     }
     pp->length += len;
-    assert(pp->length < c->length + AES_BLOCK_SIZE + 1);
+    assert(pp->length <= c->length + AES_BLOCK_SIZE);
+
+    /* Copy the internal buffer to the caller's packed plain text struct. We do
+     * this to ensure the caller's idea of the "length" of the decrypted data
+     * is suitable to pass to passwand_secure_free.
+     */
+    if (passwand_secure_malloc((void**)&pp->data, pp->length) != 0) {
+        passwand_secure_free(buffer, buffer_len);
+        return -1;
+    }
+    memcpy(pp->data, buffer, pp->length);
+    passwand_secure_free(buffer, buffer_len);
 
     return 0;
 }

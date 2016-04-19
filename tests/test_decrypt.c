@@ -1,6 +1,7 @@
 #include "../src/encryption.h"
 #include "../src/types.h"
 #include <CUnit/CUnit.h>
+#include <passwand/passwand.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -45,7 +46,7 @@ TEST("decrypt: decrypt(encrypt(x)) == x") {
     CU_ASSERT_EQUAL_FATAL(memcmp(pp.data, out.data, out.length), 0);
 
     free(c.data);
-    free(out.data);
+    passwand_secure_free(out.data, out.length);
 }
 
 TEST("decrypt: with bad key") {
@@ -87,7 +88,7 @@ TEST("decrypt: with bad key") {
     if (r == 0) {
         CU_ASSERT_NOT_EQUAL_FATAL(memcmp(out.data, pp.data, out.length), 0);
 
-        free(out.data);
+        passwand_secure_free(out.data, out.length);
     }
 
     free(c.data);
@@ -132,7 +133,7 @@ TEST("decrypt: with bad initialisation vector") {
     if (r == 0) {
         CU_ASSERT_NOT_EQUAL_FATAL(memcmp(out.data, pp.data, out.length), 0);
 
-        free(out.data);
+        passwand_secure_free(out.data, out.length);
     }
 
     free(c.data);
