@@ -49,6 +49,7 @@ static void autojsonput(void *p) {
 
 passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
         unsigned *entry_len) {
+
     assert(path != NULL);
     assert(entries != NULL);
     assert(entry_len != NULL);
@@ -71,8 +72,7 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
     };
 
     /* Read the outer list. This should be the only item in the file. */
-    json_tokener *tok __attribute__((cleanup(autojsonfree)))
-        = json_tokener_new();
+    json_tokener *tok __attribute__((cleanup(autojsonfree))) = json_tokener_new();
     if (tok == NULL)
         return PW_NO_MEM;
 

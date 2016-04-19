@@ -68,8 +68,8 @@ enum {
  * @param work_factor The Scrypt work factor
  * @return            PW_OK on success
  */
-passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master,
-    const char *space, const char *key, const char *value, int work_factor);
+passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, const char *space,
+    const char *key, const char *value, int work_factor);
 
 /** Set the authentication code on an entry
  *
@@ -77,8 +77,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master,
  * @param e      The entry whose authentication code to set
  * @return       PW_OK on success
  */
-passwand_error_t passwand_entry_set_mac(const char *master,
-        passwand_entry_t *e);
+passwand_error_t passwand_entry_set_mac(const char *master, passwand_entry_t *e);
 
 /** Authenticate an entry
  *
@@ -86,13 +85,12 @@ passwand_error_t passwand_entry_set_mac(const char *master,
  * @param e      Entry to authenticate
  * @return       PW_OK on success
  */
-passwand_error_t passwand_entry_check_mac(const char *master,
-        passwand_entry_t *e);
+passwand_error_t passwand_entry_check_mac(const char *master, passwand_entry_t *e);
 
 /** Perform an action with a decrypted entry
  *
- * This function does the work of decrypting the entry before calling the user
- * action and then securely cleaning up afterwards.
+ * This function does the work of decrypting the entry before calling the user action and then
+ * securely cleaning up afterwards.
  *
  * @param master The master passphrase
  * @param e      The entry to decrypt
@@ -101,8 +99,8 @@ passwand_error_t passwand_entry_check_mac(const char *master,
  * @return       PW_OK on success
  */
 passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
-        void (*action)(void *state, const char *space, const char *key, const char *value),
-        void *state);
+    void (*action)(void *state, const char *space, const char *key, const char *value),
+    void *state);
 
 /** Securely erase the memory backing a password.
  *
@@ -134,8 +132,7 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries, u
 
 /** Allocate some secure memory.
  *
- * This function works similarly to malloc, but the backing memory is in a
- * secure region.
+ * This function works similarly to malloc, but the backing memory is in a secure region.
  *
  * @param[out] p Address of allocated memory
  * @param size Number of bytes to allocate
@@ -145,8 +142,8 @@ int passwand_secure_malloc(void **p, size_t size);
 
 /** Free some secure memory.
  *
- * If you pass a pointer or size to this function that was not previously
- * obtained from passwand_secure_malloc, results are undefined.
+ * If you pass a pointer or size to this function that was not previously obtained from
+ * passwand_secure_malloc, results are undefined.
  *
  * @param p Address of memory to free
  * @param size Number of bytes to free

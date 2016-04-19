@@ -20,6 +20,7 @@ typedef struct {
 } master_t;
 
 static int getpassword(const char *prompt, master_t *master) {
+
     static const size_t CHUNK = 128;
 
     char *m;
@@ -79,16 +80,15 @@ typedef struct {
     bool found;
 } find_state_t;
 
-static void get_body(void *state, const char *space, const char *key,
-        const char *value) {
+static void get_body(void *state, const char *space, const char *key, const char *value) {
+
     assert(state != NULL);
     assert(space != NULL);
     assert(key != NULL);
     assert(value != NULL);
 
     find_state_t *st = state;
-    if (strcmp(st->options->space, space) == 0 &&
-            strcmp(st->options->key, key) == 0) {
+    if (strcmp(st->options->space, space) == 0 && strcmp(st->options->key, key) == 0) {
         puts(value);
         st->found = true;
     }
@@ -108,6 +108,7 @@ static void get_body(void *state, const char *space, const char *key,
     } while (0)
 
 static int get(const options_t *options, passwand_entry_t *entries, unsigned entry_len) {
+
     REQUIRED(space);
     REQUIRED(key);
     IGNORED(value);
@@ -142,6 +143,7 @@ typedef struct {
 } set_state_t;
 
 static void set_body(void *state, const char *space, const char *key, const char *value) {
+
     assert(state != NULL);
     assert(space != NULL);
     assert(key != NULL);
@@ -157,6 +159,7 @@ static void set_body(void *state, const char *space, const char *key, const char
 }
 
 static int set(const options_t *options, passwand_entry_t *entries, unsigned entry_len) {
+
     REQUIRED(space);
     REQUIRED(key);
     REQUIRED(value);
@@ -192,7 +195,8 @@ static int set(const options_t *options, passwand_entry_t *entries, unsigned ent
 
     memcpy(new_entries, entries, sizeof(passwand_entry_t) * st.index);
     if (st.found)
-        memcpy(new_entries + st.index, entries + st.index + 1, sizeof(passwand_entry_t) * (entry_len - st.index - 1));
+        memcpy(new_entries + st.index, entries + st.index + 1,
+            sizeof(passwand_entry_t) * (entry_len - st.index - 1));
     size_t new_entry_len = st.found ? entry_len : entry_len + 1;
 
     if (passwand_export(options->data, new_entries, new_entry_len) != PW_OK)
@@ -202,6 +206,7 @@ static int set(const options_t *options, passwand_entry_t *entries, unsigned ent
 }
 
 static int list(const options_t *options, passwand_entry_t *entries, unsigned entry_len) {
+
     IGNORED(space);
     IGNORED(key);
     IGNORED(value);
@@ -232,6 +237,7 @@ static int list(const options_t *options, passwand_entry_t *entries, unsigned en
 }
 
 static int change_master(const options_t *options, passwand_entry_t *entries, unsigned entry_len) {
+
     IGNORED(space);
     IGNORED(key);
     IGNORED(value);
@@ -240,6 +246,7 @@ static int change_master(const options_t *options, passwand_entry_t *entries, un
 }
 
 int main(int argc, char **argv) {
+
     int (*action)(const options_t *options, passwand_entry_t *entries, unsigned entry_len);
 
     if (argc < 2 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-?") == 0) {

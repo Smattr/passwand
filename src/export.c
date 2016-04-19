@@ -17,8 +17,8 @@ static void disown(void *p) {
 }
 
 /* Add a given key and value to a JSON dictionary. Returns 0 on success. */
-static passwand_error_t add_to_dict(json_object *d, const char *key,
-        const uint8_t *value, size_t value_len) {
+static passwand_error_t add_to_dict(json_object *d, const char *key, const uint8_t *value,
+        size_t value_len) {
 
     /* First encode the value which may contain arbitrary data. */
     char *encoded;
@@ -39,6 +39,7 @@ static passwand_error_t add_to_dict(json_object *d, const char *key,
 }
 
 passwand_error_t passwand_export(const char *path, passwand_entry_t *entries, unsigned entry_len) {
+
     assert(path != NULL);
     assert(entries != NULL || entry_len == 0);
 

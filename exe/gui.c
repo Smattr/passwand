@@ -6,12 +6,13 @@
 #include <string.h>
 
 char *get_text(const char *title, const char *message) {
+
     assert(title != NULL);
     assert(message != NULL);
 
     /* Create dialog box. */
-    GtkWidget *dialog = gtk_dialog_new_with_buttons(title, NULL, 0, "OK",
-        GTK_RESPONSE_OK, "Cancel", GTK_RESPONSE_CANCEL, NULL);
+    GtkWidget *dialog = gtk_dialog_new_with_buttons(title, NULL, 0, "OK", GTK_RESPONSE_OK, "Cancel",
+        GTK_RESPONSE_CANCEL, NULL);
     gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
 
     /* Add the text prompt. */

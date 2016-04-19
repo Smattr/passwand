@@ -1,6 +1,4 @@
-/* XXX: libscrypt.h is busted and doesn't include the necessary headers for
- * uint8_t and size_t.
- */
+/* XXX: libscrypt.h is busted and doesn't include the necessary headers for uint8_t and size_t. */
 #include <stddef.h>
 #include <stdint.h>
 
@@ -32,15 +30,13 @@ static void ctxfree(void *p) {
 
 int aes_encrypt(const k_t *key, const iv_t *iv, const ppt_t *pp, ct_t *c) {
 
-    /* We expect the key and IV to match the parameters of the algorithm we're
-     * going to use them in.
+    /* We expect the key and IV to match the parameters of the algorithm we're going to use them in.
      */
     if (key->length != AES_KEY_SIZE || iv->length != AES_BLOCK_SIZE)
         return -1;
 
-    /* We require the plain text to be aligned to the block size because this
-     * permits a single encrypting step with no implementation-introduced
-     * padding.
+    /* We require the plain text to be aligned to the block size because this permits a single
+     * encrypting step with no implementation-introduced padding.
      */
     if (pp->length % AES_BLOCK_SIZE != 0)
         return -1;
@@ -57,8 +53,7 @@ int aes_encrypt(const k_t *key, const iv_t *iv, const ppt_t *pp, ct_t *c) {
             != 1)
         return -1;
 
-    /* EVP_EncryptUpdate is documented as being able to write at most
-     * `inl + cipher_block_size - 1`.
+    /* EVP_EncryptUpdate is documented as being able to write at most `inl + cipher_block_size - 1`.
      */
     if (SIZE_MAX - (AES_BLOCK_SIZE - 1) < pp->length)
         return -1;
@@ -76,8 +71,8 @@ int aes_encrypt(const k_t *key, const iv_t *iv, const ppt_t *pp, ct_t *c) {
     c->length = len;
     assert(c->length <= pp->length + (AES_BLOCK_SIZE - 1));
 
-    /* If we've got everything right, this finalisation should return no further
-     * data. XXX: don't stack-allocate this here.
+    /* If we've got everything right, this finalisation should return no further data. XXX: don't
+     * stack-allocate this here.
      */
     unsigned char temp[pp->length + AES_BLOCK_SIZE - 1];
     int excess;
@@ -102,8 +97,8 @@ int aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_t *pp) {
     if (EVP_DecryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key->data, iv->data) != 1)
         return -1;
 
-    /* EVP_DecryptUpdate is documented as writing at most
-     * `inl + cipher_block_size`. We leave extra space for a NUL byte.
+    /* EVP_DecryptUpdate is documented as writing at most `inl + cipher_block_size`. We leave extra
+     * space for a NUL byte.
      */
     if (SIZE_MAX - AES_BLOCK_SIZE - 1 < c->length)
         return -1;
@@ -133,6 +128,7 @@ int aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_t *pp) {
 }
 
 passwand_error_t make_key(const m_t *master, const salt_t *salt, int work_factor, k_t *key) {
+
     assert(master != NULL);
     assert(salt != NULL);
     assert(key != NULL);
@@ -170,8 +166,8 @@ passwand_error_t hmac(const m_t *master, const data_t *data, const salt_t *salt,
     if (mac->data == NULL)
         return PW_NO_MEM;
     unsigned md_len;
-    unsigned char *r = HMAC(sha512, key.data, key.length, data->data,
-        data->length, mac->data, &md_len);
+    unsigned char *r = HMAC(sha512, key.data, key.length, data->data, data->length, mac->data,
+        &md_len);
     if (r == NULL) {
         free(mac->data);
         return PW_CRYPTO;
@@ -183,6 +179,7 @@ passwand_error_t hmac(const m_t *master, const data_t *data, const salt_t *salt,
 }
 
 passwand_error_t pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp) {
+
     assert(pp != NULL);
 
     /* Calculate the final length of the unpadded data. */
@@ -195,10 +192,9 @@ passwand_error_t pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp) {
     /* The padding needs to align the final data to a 16-byte boundary. */
     size_t padding_len = AES_BLOCK_SIZE - length % AES_BLOCK_SIZE;
 
-    /* Generate the padding. Agile Bits considers the padding scheme from IETF
-     * draft AEAD-AES-CBC-HMAC-SHA as a more suitable replacement, but I'm not
-     * sure why. It involves deterministic bytes that seems inherently less
-     * secure.
+    /* Generate the padding. Agile Bits considers the padding scheme from IETF draft
+     * AEAD-AES-CBC-HMAC-SHA as a more suitable replacement, but I'm not sure why. It involves
+     * deterministic bytes that seems inherently less secure.
      */
     uint8_t padding[AES_BLOCK_SIZE];
     passwand_error_t r = random_bytes(padding, padding_len);
@@ -241,6 +237,7 @@ passwand_error_t pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp) {
 }
 
 passwand_error_t unpack_data(const ppt_t *pp, const iv_t *iv, pt_t *p) {
+
     assert(pp != NULL);
     assert(pp->data != NULL);
     assert(iv != NULL);

@@ -8,6 +8,7 @@
 #include <string.h>
 
 int parse(int argc, char **argv, options_t *options) {
+
     assert(options != NULL);
 
     memset(options, 0, sizeof *options);

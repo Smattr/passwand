@@ -61,6 +61,7 @@ typedef struct node_ {
 static node_t *freelist;
 
 static void prepend(void *p, size_t size) {
+
     assert(p != NULL);
     assert(size >= sizeof(node_t));
     assert((uintptr_t)p % __alignof__(node_t));
@@ -91,8 +92,7 @@ static int morecore(void **p) {
     assert(page % __alignof__(node_t) == 0);
 
     /* Allocate a new mlocked page. */
-    *p = mmap(NULL, page, PROT_READ|PROT_WRITE,
-        MAP_PRIVATE|MAP_ANONYMOUS|MAP_LOCKED, -1, 0);
+    *p = mmap(NULL, page, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_LOCKED, -1, 0);
     if (*p == MAP_FAILED)
         return -1;
 
@@ -108,6 +108,7 @@ static size_t round_size(size_t size) {
 }
 
 int passwand_secure_malloc(void **p, size_t size) {
+
     assert(p != NULL);
 
     if (size == 0) {
@@ -139,15 +140,13 @@ int passwand_secure_malloc(void **p, size_t size) {
         }
     }
 
-    /* Didn't find anything useful in the freelist. Acquire some more secure
-     * memory.
-     */
+    /* Didn't find anything useful in the freelist. Acquire some more secure memory. */
     void *q;
     if (morecore(&q) != 0)
         return -1;
 
-    /* Fill this allocation using the end of the memory just acquired, the
-     * prepend the remainder to the freelist.
+    /* Fill this allocation using the end of the memory just acquired, the prepend the remainder to
+     * the freelist.
      */
     assert(size + sizeof(node_t) <= page);
     *p = q + page - size;
@@ -157,6 +156,7 @@ int passwand_secure_malloc(void **p, size_t size) {
 }
 
 void passwand_secure_free(void *p, size_t size) {
+
     assert((uintptr_t)p % __alignof__(node_t) == 0);
 
     if (size == 0)
@@ -168,9 +168,7 @@ void passwand_secure_free(void *p, size_t size) {
 
     LOCK_UNTIL_RET();
 
-    /* Look for a chunk this is a adjacent to in order to just concatenate it
-     * if possible.
-     */
+    /* Look for a chunk this is a adjacent to in order to just concatenate it if possible. */
     for (node_t **n = &freelist; *n != NULL; n = &(*n)->next) {
         if ((uintptr_t)(*n) + (*n)->size == (uintptr_t)p) {
             /* Returned memory lies after this chunk. */

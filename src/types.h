@@ -5,9 +5,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/* It is not a typo that the following definitions are identical. The
- * idea is to let the compiler's type checking flag incorrect uses of, e.g.,
- * plain text in a function that is expecting cipher text.
+/* It is not a typo that the following definitions are identical. The idea is to let the compiler's
+ * type checking flag incorrect uses of, e.g., plain text in a function that is expecting cipher
+ * text.
  */
 
 /* Master passphrase */

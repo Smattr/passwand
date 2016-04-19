@@ -11,9 +11,9 @@
 #include <string.h>
 #include "types.h"
 
-passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master,
-        const char *space, const char *key, const char *value,
-        int work_factor) {
+passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, const char *space,
+        const char *key, const char *value, int work_factor) {
+
     assert(e != NULL);
     assert(master != NULL);
     assert(space != NULL);
@@ -42,9 +42,8 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master,
     if (err != PW_OK)
         return err;
 
-    /* Generate a random 16-byte initialisation vector. Note that we track this
-     * as an integer because we're going to increment it while using AES in CTR
-     * mode.
+    /* Generate a random 16-byte initialisation vector. Note that we track this as an integer
+     * because we're going to increment it while using AES in CTR mode.
      */
     unsigned __int128 _iv;
     err = random_bytes((uint8_t*)&_iv, sizeof _iv);
@@ -140,6 +139,10 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master,
     e->work_factor = work_factor;
 
     return PW_OK;
+
+#undef CLEANUP
+#undef CLEAN
+
 }
 
 static passwand_error_t get_mac(const char *master, passwand_entry_t *e, mac_t *mac) {
@@ -196,8 +199,8 @@ static passwand_error_t get_mac(const char *master, passwand_entry_t *e, mac_t *
     return err;
 }
 
-passwand_error_t passwand_entry_set_mac(const char *master,
-        passwand_entry_t *e) {
+passwand_error_t passwand_entry_set_mac(const char *master, passwand_entry_t *e) {
+
     assert(master != NULL);
     assert(e != NULL);
 
@@ -221,8 +224,8 @@ passwand_error_t passwand_entry_set_mac(const char *master,
     return PW_OK;
 }
 
-passwand_error_t passwand_entry_check_mac(const char *master,
-        passwand_entry_t *e) {
+passwand_error_t passwand_entry_check_mac(const char *master, passwand_entry_t *e) {
+
     assert(master != NULL);
     assert(e != NULL);
 
@@ -245,6 +248,7 @@ passwand_error_t passwand_entry_check_mac(const char *master,
 passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
         void (*action)(void *state, const char *space, const char *key, const char *value),
         void *state) {
+
     assert(master != NULL);
     assert(e != NULL);
     assert(action != NULL);

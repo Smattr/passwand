@@ -77,12 +77,11 @@ static inline size_t aes_decrypt_length(const k_t *key __attribute__((unused)),
  * @param work_factor   Scrypt work factor (see above)
  * @return              PW_OK on success
  */
-passwand_error_t hmac(const m_t *master, const data_t *data, const salt_t *salt,
-    mac_t *mac, int work_factor) __attribute__((visibility("internal")));
+passwand_error_t hmac(const m_t *master, const data_t *data, const salt_t *salt, mac_t *mac,
+    int work_factor) __attribute__((visibility("internal")));
 
 static inline size_t hmac_length(const m_t *master __attribute__((unused)),
-        const data_t *data __attribute__((unused)),
-        const salt_t *salt __attribute__((unused)),
+        const data_t *data __attribute__((unused)), const salt_t *salt __attribute__((unused)),
         int work_factor __attribute__((unused))) {
     return EVP_MAX_MD_SIZE;
 }

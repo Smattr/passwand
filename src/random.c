@@ -67,6 +67,7 @@ retry:;
  * @return Number of bytes read
  */
 static ssize_t read_bytes(int fd, void *buf, size_t count) {
+
     assert(fd >= 0);
     assert(buf != NULL);
     assert(count <= SSIZE_MAX);
@@ -89,6 +90,7 @@ static ssize_t read_bytes(int fd, void *buf, size_t count) {
 }
 
 passwand_error_t random_bytes(uint8_t *buffer, size_t buffer_len) {
+
     assert(buffer != NULL);
     assert(buffer_len <= 512 && "exceeding blocking read limits of /dev/random");
 
