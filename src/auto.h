@@ -33,16 +33,6 @@ static inline void autowipeppt_t(void *p) {
 }
 #define AUTO_PPT_T(name) __attribute__((cleanup(autowipeppt_t))) ppt_t name = { .data = NULL }
 
-static inline void autowipept_t(void *p) {
-    assert(p != NULL);
-    pt_t *pt = p;
-    if (pt->data != NULL) {
-        passwand_erase(pt->data, pt->length);
-        free(pt->data);
-    }
-}
-#define AUTO_PT_T(name) __attribute__((cleanup(autowipept_t))) pt_t name = { .data = NULL }
-
 static inline void autoerase(void *p) {
     assert(p != NULL);
     char **s = p;
