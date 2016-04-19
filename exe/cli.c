@@ -10,6 +10,7 @@
 
 #define DIE(format, args...) \
     do { \
+        discard_master(master); \
         fprintf(stderr, format "\n", ## args); \
         exit(EXIT_FAILURE); \
     } while (0)
@@ -82,6 +83,13 @@ static master_t *getpassword(const char *prompt) {
     return master;
 }
 
+static void discard_master(master_t *m) {
+    if (m == NULL)
+        return;
+    passwand_secure_free(m->master, m->master_len);
+    passwand_secure_free(m, sizeof *m);
+}
+
 typedef struct {
     const options_t *options;
     bool found;
@@ -126,16 +134,14 @@ static int get(const options_t *options, master_t *master, passwand_entry_t *ent
         .found = false,
     };
     for (unsigned i = 0; !st.found && i < entry_len; i++) {
-        if (passwand_entry_do(master->master, &entries[i], get_body, &st) != PW_OK) {
-            passwand_secure_free(master->master, master->master_len);
+        if (passwand_entry_do(master->master, &entries[i], get_body, &st) != PW_OK)
             DIE("failed to handle entry %u", i);
-        }
     }
-    passwand_secure_free(master->master, master->master_len);
 
     if (!st.found)
         DIE("not found");
 
+    discard_master(master);
     return EXIT_SUCCESS;
 }
 
@@ -183,12 +189,9 @@ static int set(const options_t *options, master_t *master, passwand_entry_t *ent
         .key = options->key,
     };
     for (unsigned i = 0; !st.found && i < entry_len; i++) {
-        if (passwand_entry_do(master->master, &entries[i], set_body, &st) != PW_OK) {
-            passwand_secure_free(master->master, master->master_len);
+        if (passwand_entry_do(master->master, &entries[i], set_body, &st) != PW_OK)
             DIE("failed to handle entry %u", i);
-        }
     }
-    passwand_secure_free(master->master, master->master_len);
 
     passwand_entry_t *new_entries = calloc(entry_len + (st.found ? 0 : 1), sizeof(passwand_entry_t));
     if (new_entries == NULL)
@@ -203,6 +206,7 @@ static int set(const options_t *options, master_t *master, passwand_entry_t *ent
     if (passwand_export(options->data, new_entries, new_entry_len) != PW_OK)
         DIE("failed to export entries");
 
+    discard_master(master);
     return EXIT_SUCCESS;
 }
 
@@ -224,13 +228,11 @@ static int list(const options_t *options, master_t *master, passwand_entry_t *en
     }
 
     for (unsigned i = 0; i < entry_len; i++) {
-        if (passwand_entry_do(master->master, &entries[i], print, NULL) != PW_OK) {
-            passwand_secure_free(master->master, master->master_len);
+        if (passwand_entry_do(master->master, &entries[i], print, NULL) != PW_OK)
             DIE("failed to handle entry %u", i);
-        }
     }
-    passwand_secure_free(master->master, master->master_len);
 
+    discard_master(master);
     return EXIT_SUCCESS;
 }
 
@@ -253,6 +255,8 @@ int main(int argc, char **argv) {
         printf("usage: %s action options...\n", argv[0]);
         return EXIT_SUCCESS;
     }
+
+    master_t *master = NULL;
 
     if (strcmp(argv[1], "get") == 0)
         action = get;
@@ -287,7 +291,7 @@ int main(int argc, char **argv) {
     if (passwand_import(options.data, &entries, &entry_len) != PW_OK)
         DIE("failed to load database");
 
-    master_t *master = getpassword(NULL);
+    master = getpassword(NULL);
     if (master == NULL)
         DIE("failed to read master password");
 
