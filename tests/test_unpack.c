@@ -38,5 +38,5 @@ TEST("unpack: unpack(pack(x)) == x") {
     CU_ASSERT_EQUAL_FATAL(memcmp(p.data, out.data, out.length), 0);
 
     free(out.data);
-    free(pp.data);
+    passwand_secure_free(pp.data, pp.length);
 }

@@ -28,7 +28,7 @@ TEST("pack: basic functionality") {
     CU_ASSERT_EQUAL_FATAL(r, PW_OK);
     CU_ASSERT_EQUAL_FATAL(pp.length > 0, true);
 
-    free(pp.data);
+    passwand_secure_free(pp.data, pp.length);
 }
 
 TEST("pack: is aligned") {
@@ -52,5 +52,5 @@ TEST("pack: is aligned") {
     CU_ASSERT_EQUAL_FATAL(pp.length > 0, true);
     CU_ASSERT_EQUAL_FATAL(pp.length % 16, 0);
 
-    free(pp.data);
+    passwand_secure_free(pp.data, pp.length);
 }

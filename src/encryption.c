@@ -11,6 +11,7 @@
 #include <libscrypt.h>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
+#include <passwand/passwand.h>
 #include "random.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -207,8 +208,7 @@ passwand_error_t pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp) {
         return PW_OVERFLOW;
     pp->length = length + padding_len;
     assert(pp->length % AES_BLOCK_SIZE == 0);
-    pp->data = malloc(pp->length);
-    if (pp->data == NULL)
+    if (passwand_secure_malloc((void**)&pp->data, pp->length) != 0)
         return PW_NO_MEM;
 
     size_t offset = 0;

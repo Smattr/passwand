@@ -97,7 +97,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
         } \
         ct_t c; \
         err = aes_encrypt(&k, &iv, pp, &c); \
-        free(pp->data); \
+        passwand_secure_free(pp->data, pp->length); \
         passwand_secure_free(pp, sizeof *pp); \
         if (err != PW_OK) { \
             CLEANUP(); \
