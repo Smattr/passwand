@@ -11,6 +11,15 @@
 #include <string.h>
 #include "types.h"
 
+static m_t *make_m_t(const char *master) {
+    m_t *m;
+    if (passwand_secure_malloc((void**)&m, sizeof *m) != 0)
+        return NULL;
+    m->data = (uint8_t*)master;
+    m->length = strlen(master);
+    return m;
+}
+
 passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, const char *space,
         const char *key, const char *value, int work_factor) {
 
@@ -33,12 +42,12 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
     };
 
     /* Make an encryption key. */
-    const m_t m = {
-        .data = (uint8_t*)master,
-        .length = strlen(master),
-    };
+    m_t *m = make_m_t(master);
+    if (m == NULL)
+        return PW_NO_MEM;
     AUTO_K_T(k);
-    err = make_key(&m, &salt, work_factor, &k);
+    err = make_key(m, &salt, work_factor, &k);
+    passwand_secure_free(m, sizeof *m);
     if (err != PW_OK)
         return err;
 
@@ -264,11 +273,9 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
         return err;
 
     /* Generate the encryption key. */
-    m_t *m;
-    if (passwand_secure_malloc((void**)&m, sizeof *m) != 0)
+    m_t *m = make_m_t(master);
+    if (m == NULL)
         return PW_NO_MEM;
-    m->data = (uint8_t*)master;
-    m->length = strlen(master);
     assert(e->salt != NULL);
     assert(e->salt_len > 0);
     salt_t salt = {
