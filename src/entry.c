@@ -264,10 +264,11 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
         return err;
 
     /* Generate the encryption key. */
-    m_t m = {
-        .data = (uint8_t*)master,
-        .length = strlen(master),
-    };
+    m_t *m;
+    if (passwand_secure_malloc((void**)&m, sizeof *m) != 0)
+        return PW_NO_MEM;
+    m->data = (uint8_t*)master;
+    m->length = strlen(master);
     assert(e->salt != NULL);
     assert(e->salt_len > 0);
     salt_t salt = {
@@ -275,7 +276,8 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
         .length = e->salt_len,
     };
     AUTO_K_T(k);
-    err = make_key(&m, &salt, e->work_factor, &k);
+    err = make_key(m, &salt, e->work_factor, &k);
+    passwand_secure_free(m, sizeof *m);
     if (err != PW_OK)
         return err;
 
