@@ -45,6 +45,13 @@ typedef enum {
     PW_BAD_HMAC,        /* message failed authentication */
 } passwand_error_t;
 
+/** Translate an error code into a string
+ *
+ * @param err Error code
+ * @return String representation of the code.
+ */
+const char *passwand_error(passwand_error_t err);
+
 /* Various other ungrouped constants */
 enum {
     PW_SALT_LEN = 8,    /* Length of salt added to the master passphrase */
