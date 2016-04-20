@@ -31,3 +31,48 @@ TEST("malloc: basic functionality") {
 
     passwand_secure_free(p, 10);
 }
+
+TEST("malloc: forever { malloc(x); free(x); }") {
+    for (unsigned i = 0; i < 10000; i++) {
+        void *p;
+        int err = passwand_secure_malloc(&p, 128);
+        CU_ASSERT_EQUAL_FATAL(err, 0);
+        passwand_secure_free(p, 128);
+    }
+}
+
+TEST("malloc: limit") {
+
+    typedef struct node_ {
+        union {
+            unsigned char unused[128];
+            struct node_ *next;
+        };
+    } node_t;
+
+    /* Malloc until we run out of space. */
+    node_t *n = NULL;
+    for (;;) {
+        node_t *m;
+        int err = passwand_secure_malloc((void**)&m, sizeof *m);
+        if (err != 0)
+            break;
+        m->next = n;
+        n = m;
+    }
+
+    /* We should have got at least one allocation done. */
+    CU_ASSERT_PTR_NOT_NULL_FATAL(n);
+
+    /* Now free everything we just malloced. */
+    while (n != NULL) {
+        node_t *m = n->next;
+        passwand_secure_free(n, sizeof *n);
+        n = m;
+    }
+
+    /* Now we should be able to do at least one allocation. */
+    int err = passwand_secure_malloc((void**)&n, sizeof *n);
+    CU_ASSERT_EQUAL_FATAL(err, 0);
+    passwand_secure_free(n, sizeof *n);
+}
