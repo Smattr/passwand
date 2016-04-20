@@ -3,15 +3,13 @@
  *  - Confidentiality and integrity of the backing memory. Currently this means
  *    the backing memory is not pageable. It is trivial to snoop the contents
  *    of the swap file, meaning any memory paged to disk is no longer
- *    confidential.
+ *    confidential. We also make some cursory attempts to suppress ptrace
+ *    peeking.
  *
  * The following are explicit non-goals:
  *
  *  - Low latency. It is assumed that the caller is never performing secure
  *    allocation on a critical path.
- *  - Availability. A non-trivial allocation pattern can easily cause
- *    irreversible internal fragmentation in the allocator's freelist. It is
- *    assumed that a small, linear number of allocations are performed.
  *  - Large allocations. The allocator cannot provide memory greater than a
  *    page. An implicit assumption is that all your allocations are small (<256
  *    bytes). You can allocate more than this, but performance and availability
@@ -54,30 +52,42 @@ static void lock_release(void *p __attribute__((unused))) {
     lock(); \
     int _lock __attribute__((unused, cleanup(lock_release)));
 
+/* Expected hardware page size. This is checked at runtime. */
+#define EXPECTED_PAGE_SIZE 4096
+
+/* We store the allocator's backing memory as a linked-list of "chunks," each of
+ * `EXPECTED_PAGE_SIZE` bytes. The status of the bytes within each chunk is tracked per "block,"
+ * where blocks are `sizeof(long long)`. Each chunk contains a bitmap of its blocks with 0
+ * indicating a free block and 1 indicating an allocated block. A side-effect of this scheme is
+ * that we can detect when a caller returns memory to us that we never allocated.
+ *
+ * The `last_index` member tracks the last index of the bitmap we examined. It is purely an
+ * optimisation (to resume searches for new allocations where the last left off) and could be
+ * removed to simplify the implementation.
+ */
 typedef struct chunk_ {
     void *base;
-    size_t size;
+    uint8_t free[EXPECTED_PAGE_SIZE / sizeof(long long) / 8];
+    unsigned last_index;
     struct chunk_ *next;
 } chunk_t;
 
-static chunk_t *freelist;
-
-static int prepend(void *p, size_t size) {
-
-    /* Allocate heap memory to store the chunk. Note that it is fine to store the free list metadata
-     * in insecure memory as this information can be learned from insecure pointers already.
-     */
-    chunk_t *c = malloc(sizeof *c);
-    if (c == NULL)
-        return -1;
-
-    c->base = p;
-    c->size = size;
-    c->next = freelist;
-    freelist = c;
-
-    return 0;
+static bool read_bitmap(chunk_t *c, unsigned index) {
+    assert(c != NULL);
+    assert(index < sizeof(c->free) * 8);
+    return c->free[index / 8] & (1 << (index % 8));
 }
+
+static void write_bitmap(chunk_t *c, unsigned index, bool value) {
+    assert(c != NULL);
+    assert(index < sizeof(c->free) * 8);
+    if (value)
+        c->free[index / 8] |= 1 << (index % 8);
+    else
+        c->free[index / 8] &= ~(1 << (index % 8));
+}
+
+static chunk_t *freelist;
 
 static size_t pagesize(void) {
     static long size;
@@ -93,7 +103,7 @@ static int morecore(void **p) {
     assert(p != NULL);
 
     size_t page = pagesize();
-    if (page == 0)
+    if (page == 0 || page != EXPECTED_PAGE_SIZE)
         return -1;
 
     assert(page % sizeof(long long) == 0);
@@ -145,26 +155,53 @@ int passwand_secure_malloc(void **p, size_t size) {
         if (disable_ptrace() != 0)
             return -1;
 
-    size_t page = pagesize();
-    if (page == 0)
-        return -1;
-    if (size > page)
+    /* Don't allow allocations greater than a page. This avoids having to cope with allocations
+     * that would span multiple chunks.
+     */
+    if (size > EXPECTED_PAGE_SIZE)
         return -1;
 
-    for (chunk_t **n = &freelist; *n != NULL; n = &(*n)->next) {
-        if ((*n)->size == size) {
-            /* Found a node we can remove to fill this allocation. */
-            *p = (*n)->base;
-            chunk_t *m = *n;
-            *n = (*n)->next;
-            free(m);
-            return 0;
-        } else if ((*n)->size > size) {
-            /* Found a node we can truncate to fill this allocation. */
-            (*n)->size -= size;
-            *p = (*n)->base + (*n)->size;
-            return 0;
+    for (chunk_t *n = freelist; n != NULL; n = n->next) {
+
+retry:;
+        unsigned first_index = n->last_index;
+
+        while (n->last_index < sizeof(n->free) * 8) {
+
+            /* Look for an unset bit. */
+            while (n->last_index < sizeof(n->free) * 8 && read_bitmap(n, n->last_index))
+                n->last_index++;
+
+            /* Scan for `size` unset bits. */
+            unsigned offset;
+            for (offset = 0; offset * sizeof(long long) < size &&
+                             n->last_index + offset < sizeof(n->free) * 8; offset++) {
+                if (read_bitmap(n, n->last_index + offset))
+                    break;
+            }
+
+            if (offset * sizeof(long long) == size) {
+                /* We found enough contiguous free bits! */
+                for (unsigned i = 0; i * sizeof(long long) < size; i++)
+                    write_bitmap(n, n->last_index + i, true);
+                *p = n->base + n->last_index * sizeof(long long);
+                n->last_index += size / sizeof(long long);
+                return 0;
+            }
+
+            /* Jump past the region we just scanned. */
+            n->last_index += offset;
         }
+
+        /* Reset the index for any future scans. */
+        n->last_index = 0;
+
+        if (first_index * sizeof(long long) >= size)
+            /* There's entries at the front of the bitmap we haven't scanned that cover enough
+             * memory to possibly fill this request.
+             */
+            goto retry;
+
     }
 
     /* Didn't find anything useful in the freelist. Acquire some more secure memory. */
@@ -172,18 +209,19 @@ int passwand_secure_malloc(void **p, size_t size) {
     if (morecore(&q) != 0)
         return -1;
 
-    /* Fill this allocation using the end of the memory just acquired, the prepend the remainder to
-     * the freelist.
-     */
-    if (size == page) {
-        *p = q;
-    } else {
-        if (prepend(q, page - size) != 0) {
-            munmap(q, page);
-            return -1;
-        }
-        *p = q + page - size;
+    /* Fill this allocation using the end of the memory just acquired. */
+    chunk_t *c = calloc(1, sizeof *c);
+    if (c == NULL) {
+        munmap(q, EXPECTED_PAGE_SIZE);
+        return -1;
     }
+    c->base = q;
+    c->next = freelist;
+    freelist = c;
+    for (unsigned index = (EXPECTED_PAGE_SIZE - size) / sizeof(long long);
+            index < EXPECTED_PAGE_SIZE / sizeof(long long); index++)
+        write_bitmap(c, index, true);
+    *p = c->base + EXPECTED_PAGE_SIZE - size;
 
     return 0;
 }
@@ -205,20 +243,18 @@ void passwand_secure_free(void *p, size_t size) {
 
     LOCK_UNTIL_RET();
 
-    /* Look for a chunk this is a adjacent to in order to just concatenate it if possible. */
-    for (chunk_t **n = &freelist; *n != NULL; n = &(*n)->next) {
-        if ((uintptr_t)(*n)->base + (*n)->size == (uintptr_t)p) {
-            /* Returned memory lies after this chunk. */
-            (*n)->size += size;
-            return;
-        } else if ((uintptr_t)p + size == (uintptr_t)(*n)->base) {
-            /* Returned memory lies before this chunk. */
-            (*n)->base = p;
-            (*n)->size += size;
+    /* Find the chunk this allocation came from. */
+    for (chunk_t *c = freelist; c != NULL; c = c->next) {
+        if (p >= c->base && p + size <= c->base + EXPECTED_PAGE_SIZE) {
+            /* It came from this chunk. */
+            for (unsigned index = (p - c->base) / sizeof(long long);
+                    index * sizeof(long long) < size; index++) {
+                assert(read_bitmap(c, index));
+                write_bitmap(c, index, false);
+            }
             return;
         }
     }
 
-    /* Failed to find an adjacent chunk. Just prepend it to the freelist. */
-    prepend(p, size);
+    assert(!"unreachable");
 }
