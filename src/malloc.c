@@ -26,8 +26,8 @@
 #include <assert.h>
 #include <passwand/passwand.h>
 #include <stdbool.h>
-#include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <sys/mman.h>
 #include <sys/prctl.h>
 #include <unistd.h>
@@ -54,23 +54,29 @@ static void lock_release(void *p __attribute__((unused))) {
     lock(); \
     int _lock __attribute__((unused, cleanup(lock_release)));
 
-typedef struct node_ {
+typedef struct chunk_ {
+    void *base;
     size_t size;
-    struct node_ *next;
-} node_t __attribute__((aligned(__alignof__(long long))));
+    struct chunk_ *next;
+} chunk_t;
 
-static node_t *freelist;
+static chunk_t *freelist;
 
-static void prepend(void *p, size_t size) {
+static int prepend(void *p, size_t size) {
 
-    assert(p != NULL);
-    assert(size >= sizeof(node_t));
-    assert((uintptr_t)p % __alignof__(node_t) == 0);
+    /* Allocate heap memory to store the chunk. Note that it is fine to store the free list metadata
+     * in insecure memory as this information can be learned from insecure pointers already.
+     */
+    chunk_t *c = malloc(sizeof *c);
+    if (c == NULL)
+        return -1;
 
-    node_t *n = p;
-    n->size = size;
-    n->next = freelist;
-    freelist = n;
+    c->base = p;
+    c->size = size;
+    c->next = freelist;
+    freelist = c;
+
+    return 0;
 }
 
 static size_t pagesize(void) {
@@ -90,7 +96,7 @@ static int morecore(void **p) {
     if (page == 0)
         return -1;
 
-    assert(page % __alignof__(node_t) == 0);
+    assert(page % sizeof(long long) == 0);
 
     /* Allocate a new mlocked page. */
     *p = mmap(NULL, page, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_LOCKED, -1, 0);
@@ -114,11 +120,9 @@ static int disable_ptrace(void) {
 }
 
 static size_t round_size(size_t size) {
-    if (size < sizeof (node_t))
-        size = sizeof(node_t);
-    if (size % __alignof__(node_t) == 0)
+    if (size % sizeof(long long) == 0)
         return size;
-    return size + (__alignof__(node_t) - size % __alignof__(node_t));
+    return size + (sizeof(long long) - size % sizeof(long long));
 }
 
 int passwand_secure_malloc(void **p, size_t size) {
@@ -129,6 +133,9 @@ int passwand_secure_malloc(void **p, size_t size) {
         *p = NULL;
         return 0;
     }
+
+    if (SIZE_MAX - size < sizeof(long long))
+        return -1;
 
     size = round_size(size);
 
@@ -141,19 +148,21 @@ int passwand_secure_malloc(void **p, size_t size) {
     size_t page = pagesize();
     if (page == 0)
         return -1;
-    if (size >= page)
+    if (size > page)
         return -1;
 
-    for (node_t **n = &freelist; *n != NULL; n = &(*n)->next) {
-        if ((*n)->size >= size + sizeof(node_t)) {
+    for (chunk_t **n = &freelist; *n != NULL; n = &(*n)->next) {
+        if ((*n)->size == size) {
+            /* Found a node we can remove to fill this allocation. */
+            *p = (*n)->base;
+            chunk_t *m = *n;
+            *n = (*n)->next;
+            free(m);
+            return 0;
+        } else if ((*n)->size > size) {
             /* Found a node we can truncate to fill this allocation. */
             (*n)->size -= size;
-            *p = (void*)(*n) + (*n)->size;
-            return 0;
-        } else if ((*n)->size == size) {
-            /* Found a node we can remove to fill this allocation. */
-            *p = *n;
-            *n = (*n)->next;
+            *p = (*n)->base + (*n)->size;
             return 0;
         }
     }
@@ -166,18 +175,28 @@ int passwand_secure_malloc(void **p, size_t size) {
     /* Fill this allocation using the end of the memory just acquired, the prepend the remainder to
      * the freelist.
      */
-    assert(size + sizeof(node_t) <= page);
-    *p = q + page - size;
-    prepend(q, page - size);
+    if (size == page) {
+        *p = q;
+    } else {
+        if (prepend(q, page - size) != 0) {
+            munmap(q, page);
+            return -1;
+        }
+        *p = q + page - size;
+    }
 
     return 0;
 }
 
 void passwand_secure_free(void *p, size_t size) {
 
-    assert((uintptr_t)p % __alignof__(node_t) == 0);
+    assert((uintptr_t)p % sizeof(long long) == 0);
 
     if (size == 0)
+        return;
+
+    assert(SIZE_MAX - size >= sizeof(long long));
+    if (SIZE_MAX - size < sizeof(long long))
         return;
 
     size = round_size(size);
@@ -187,18 +206,15 @@ void passwand_secure_free(void *p, size_t size) {
     LOCK_UNTIL_RET();
 
     /* Look for a chunk this is a adjacent to in order to just concatenate it if possible. */
-    for (node_t **n = &freelist; *n != NULL; n = &(*n)->next) {
-        if ((uintptr_t)(*n) + (*n)->size == (uintptr_t)p) {
+    for (chunk_t **n = &freelist; *n != NULL; n = &(*n)->next) {
+        if ((uintptr_t)(*n)->base + (*n)->size == (uintptr_t)p) {
             /* Returned memory lies after this chunk. */
             (*n)->size += size;
             return;
-        } else if ((uintptr_t)p + size == (uintptr_t)(*n)) {
+        } else if ((uintptr_t)p + size == (uintptr_t)(*n)->base) {
             /* Returned memory lies before this chunk. */
-            node_t *m = p;
-            assert(size >= sizeof(node_t) && "accidental overlapping reads and writes");
-            m->size = (*n)->size + size;
-            m->next = (*n)->next;
-            *n = m;
+            (*n)->base = p;
+            (*n)->size += size;
             return;
         }
     }
