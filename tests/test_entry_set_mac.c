@@ -18,6 +18,8 @@ TEST("entry_set_mac: basic functionality") {
 
     passwand_error_t err = passwand_entry_set_mac("foo bar", &e);
     CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(e.hmac);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(e.hmac_salt);
     free(e.hmac);
     free(e.hmac_salt);
 }
