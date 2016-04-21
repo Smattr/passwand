@@ -130,6 +130,12 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
 
 #undef ENC
 
+    /* Figure out what work factor make_key would have used. */
+    if (work_factor == -1)
+        work_factor = 14;
+    assert(work_factor >= 10 && work_factor <= 31);
+    e->work_factor = work_factor;
+
     /* Set the HMAC. */
     err = passwand_entry_set_mac(master, e);
     if (err != PW_OK) {
@@ -156,12 +162,6 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
     }
     memcpy(e->iv, &_iv_le, sizeof _iv_le);
     e->iv_len = sizeof _iv_le;
-
-    /* Figure out what work factor make_key would have used. */
-    if (work_factor == -1)
-        work_factor = 14;
-    assert(work_factor >= 10 && work_factor <= 31);
-    e->work_factor = work_factor;
 
     return PW_OK;
 
