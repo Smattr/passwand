@@ -358,6 +358,7 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
         field[p->length] = '\0'; \
         passwand_secure_free(p->data, p->length); \
         passwand_secure_free(p, sizeof *p); \
+        _iv++; \
     } while (0)
 
     DEC(space);
