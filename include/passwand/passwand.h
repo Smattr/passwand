@@ -83,7 +83,7 @@ passwand_error_t passwand_entry_set_mac(const char *master, passwand_entry_t *e)
  * @param e      Entry to authenticate
  * @return       PW_OK on success
  */
-passwand_error_t passwand_entry_check_mac(const char *master, passwand_entry_t *e);
+passwand_error_t passwand_entry_check_mac(const char *master, const passwand_entry_t *e);
 
 /** Perform an action with a decrypted entry
  *

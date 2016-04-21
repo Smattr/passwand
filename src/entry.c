@@ -244,7 +244,7 @@ passwand_error_t passwand_entry_set_mac(const char *master, passwand_entry_t *e)
     return PW_OK;
 }
 
-passwand_error_t passwand_entry_check_mac(const char *master, passwand_entry_t *e) {
+passwand_error_t passwand_entry_check_mac(const char *master, const passwand_entry_t *e) {
 
     assert(master != NULL);
     assert(e != NULL);
