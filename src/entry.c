@@ -257,8 +257,7 @@ passwand_error_t passwand_entry_check_mac(const char *master, const passwand_ent
     if (err != PW_OK)
         return err;
 
-    bool r = mac.length == e->hmac_len &&
-        memcmp(mac.data, e->hmac, mac.length) == 0;
+    bool r = mac.length == e->hmac_len && memcmp(mac.data, e->hmac, mac.length) == 0;
 
     free(mac.data);
 
