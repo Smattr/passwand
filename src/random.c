@@ -89,7 +89,7 @@ static ssize_t read_bytes(int fd, void *buf, size_t count) {
     return r;
 }
 
-passwand_error_t random_bytes(uint8_t *buffer, size_t buffer_len) {
+passwand_error_t random_bytes(void *buffer, size_t buffer_len) {
 
     assert(buffer != NULL);
     assert(buffer_len <= 512 && "exceeding blocking read limits of /dev/random");

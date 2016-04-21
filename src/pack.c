@@ -25,8 +25,8 @@ passwand_error_t pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp) {
      * AEAD-AES-CBC-HMAC-SHA as a more suitable replacement, but I'm not sure why. It involves
      * deterministic bytes that seems inherently less secure.
      */
-    uint8_t *padding;
-    if (passwand_secure_malloc((void**)&padding, padding_len) != 0)
+    void *padding;
+    if (passwand_secure_malloc(&padding, padding_len) != 0)
         return PW_NO_MEM;
     passwand_error_t r = random_bytes(padding, padding_len);
     if (r != PW_OK) {

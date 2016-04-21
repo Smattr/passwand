@@ -63,7 +63,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
      * because we're going to increment it while using AES in CTR mode.
      */
     unsigned __int128 _iv;
-    err = random_bytes((uint8_t*)&_iv, sizeof _iv);
+    err = random_bytes(&_iv, sizeof _iv);
     if (err != PW_OK)
         return err;
 
