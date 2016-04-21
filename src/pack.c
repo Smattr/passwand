@@ -9,9 +9,13 @@
 
 passwand_error_t pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp) {
 
+    assert(p != NULL);
+    assert(iv != NULL);
     assert(pp != NULL);
 
     /* Calculate the final length of the unpadded data. */
+    if (SIZE_MAX - strlen(HEADER) < sizeof(uint64_t))
+        return PW_OVERFLOW;
     if (SIZE_MAX - strlen(HEADER) - sizeof(uint64_t) < iv->length)
         return PW_OVERFLOW;
     if (SIZE_MAX - strlen(HEADER) - sizeof(uint64_t) - iv->length < p->length)
