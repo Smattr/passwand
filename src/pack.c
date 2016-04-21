@@ -25,31 +25,16 @@ passwand_error_t pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp) {
     /* The padding needs to align the final data to a 16-byte boundary. */
     size_t padding_len = AES_BLOCK_SIZE - length % AES_BLOCK_SIZE;
 
-    /* Generate the padding. Agile Bits considers the padding scheme from IETF draft
-     * AEAD-AES-CBC-HMAC-SHA as a more suitable replacement, but I'm not sure why. It involves
-     * deterministic bytes that seems inherently less secure.
-     */
-    void *padding;
-    if (passwand_secure_malloc(&padding, padding_len) != 0)
-        return PW_NO_MEM;
-    passwand_error_t r = random_bytes(padding, padding_len);
-    if (r != PW_OK) {
-        passwand_secure_free(padding, padding_len);
-        return r;
-    }
+    /* Allocate enough space for the packed data. */
 
-    /* We're now ready to write the packed data. */
-
-    if (SIZE_MAX - length < padding_len) {
-        passwand_secure_free(padding, padding_len);
+    if (SIZE_MAX - length < padding_len)
         return PW_OVERFLOW;
-    }
     pp->length = length + padding_len;
     assert(pp->length % AES_BLOCK_SIZE == 0);
-    if (passwand_secure_malloc((void**)&pp->data, pp->length) != 0) {
-        passwand_secure_free(padding, padding_len);
+    if (passwand_secure_malloc((void**)&pp->data, pp->length) != 0)
         return PW_NO_MEM;
-    }
+
+    /* We're now ready to write the packed data. */
 
     size_t offset = 0;
 
@@ -65,10 +50,16 @@ passwand_error_t pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp) {
     memcpy(pp->data + offset, iv->data, iv->length);
     offset += iv->length;
 
-    /* Pack the padding, *prepending* the plain text. */
-    memcpy(pp->data + offset, padding, padding_len);
+    /* Generate the padding. Agile Bits considers the padding scheme from IETF draft
+     * AEAD-AES-CBC-HMAC-SHA as a more suitable replacement, but I'm not sure why. It involves
+     * deterministic bytes that seems inherently less secure.
+     */
+    passwand_error_t r = random_bytes(pp->data + offset, padding_len);
+    if (r != PW_OK) {
+        passwand_secure_free(pp->data, pp->length);
+        return r;
+    }
     offset += padding_len;
-    passwand_secure_free(padding, padding_len);
 
     /* Pack the plain text itself. */
     memcpy(pp->data + offset, p->data, p->length);
