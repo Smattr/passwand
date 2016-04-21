@@ -170,23 +170,9 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
 
 }
 
-static passwand_error_t get_mac(const char *master, passwand_entry_t *e, mac_t *mac) {
+static passwand_error_t get_mac(const char *master, const passwand_entry_t *e, mac_t *mac) {
 
-    static const unsigned HMAC_SALT_LEN = 8; // bytes
-
-    if (e->hmac_salt == NULL) {
-        /* No existing salt; generate one now. */
-        uint8_t *s = malloc(HMAC_SALT_LEN);
-        if (s == NULL)
-            return PW_NO_MEM;
-        passwand_error_t err = random_bytes(s, HMAC_SALT_LEN);
-        if (err != PW_OK) {
-            free(s);
-            return err;
-        }
-        e->hmac_salt = s;
-        e->hmac_salt_len = HMAC_SALT_LEN;
-    }
+    assert(e->hmac_salt != NULL);
 
     salt_t salt = {
         .data = e->hmac_salt,
@@ -227,13 +213,24 @@ passwand_error_t passwand_entry_set_mac(const char *master, passwand_entry_t *e)
     assert(master != NULL);
     assert(e != NULL);
 
+    static const unsigned HMAC_SALT_LEN = 8; // bytes
+
     if (e->hmac != NULL) {
         free(e->hmac);
         e->hmac = NULL;
     }
-    if (e->hmac_salt != NULL) {
-        free(e->hmac_salt);
-        e->hmac_salt = NULL;
+    if (e->hmac_salt == NULL) {
+        /* No existing salt; generate one now. */
+        uint8_t *s = malloc(HMAC_SALT_LEN);
+        if (s == NULL)
+            return PW_NO_MEM;
+        passwand_error_t err = random_bytes(s, HMAC_SALT_LEN);
+        if (err != PW_OK) {
+            free(s);
+            return err;
+        }
+        e->hmac_salt = s;
+        e->hmac_salt_len = HMAC_SALT_LEN;
     }
 
     mac_t mac;
