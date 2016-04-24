@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "auto.h"
 #include "internal.h"
 #include <openssl/evp.h>
@@ -8,6 +9,11 @@
 
 passwand_error_t hmac(const m_t *master, const data_t *data, const salt_t *salt, mac_t *mac,
         int work_factor) {
+
+    assert(master != NULL);
+    assert(data != NULL);
+    assert(salt != NULL);
+    assert(mac != NULL);
 
     AUTO_K_T(k);
     if (k == NULL)
