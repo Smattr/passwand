@@ -43,8 +43,7 @@ int aes_encrypt(const k_t *key, const iv_t *iv, const ppt_t *pp, ct_t *c) {
      * We use AES128 here because it has a more well designed key schedule than
      * AES256. CTR mode is recommended by Agile Bits over CBC mode.
      */
-    if (EVP_EncryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key->data, iv->data)
-            != 1)
+    if (EVP_EncryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key->data, iv->data) != 1)
         return -1;
 
     /* EVP_EncryptUpdate is documented as being able to write at most `inl + cipher_block_size - 1`.

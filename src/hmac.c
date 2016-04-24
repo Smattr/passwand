@@ -24,7 +24,6 @@ passwand_error_t hmac(const m_t *master, const data_t *data, const salt_t *salt,
 
     const EVP_MD *sha512 = EVP_sha512();
 
-    //unsigned char md[EVP_MAX_MD_SIZE];
     mac->data = malloc(EVP_MAX_MD_SIZE);
     if (mac->data == NULL)
         return PW_NO_MEM;
