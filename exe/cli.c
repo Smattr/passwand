@@ -39,12 +39,17 @@ static master_t *getpassword(const char *prompt) {
     }
     struct termios new = old;
     cfmakeraw(&new);
+    if (tcsetattr(STDOUT_FILENO, 0, &new) != 0) {
+        passwand_secure_free(m, size);
+        return NULL;
+    }
 
     unsigned index = 0;
     for (;;) {
         int c = getchar();
 
         if (c == EOF) {
+            fflush(stdout);
             tcsetattr(STDOUT_FILENO, 0, &old);
             passwand_secure_free(m, size);
             return NULL;
@@ -58,6 +63,7 @@ static master_t *getpassword(const char *prompt) {
         if (index >= size) {
             char *n;
             if (passwand_secure_malloc((void**)&n, size + CHUNK) != 0) {
+                fflush(stdout);
                 tcsetattr(STDOUT_FILENO, 0, &old);
                 passwand_secure_free(m, size);
                 return NULL;
@@ -68,6 +74,10 @@ static master_t *getpassword(const char *prompt) {
             size += CHUNK;
         }
     }
+
+    fflush(stdout);
+    tcsetattr(STDOUT_FILENO, 0, &old);
+    printf("\n");
 
     m[index] = '\0';
 
