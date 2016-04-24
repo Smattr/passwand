@@ -15,13 +15,6 @@
 #include "types.h"
 #include <unistd.h>
 
-static void ctxfree(void *p) {
-    assert(p != NULL);
-    EVP_CIPHER_CTX **ctx = p;
-    if (*ctx != NULL)
-        EVP_CIPHER_CTX_free(*ctx);
-}
-
 int aes_encrypt(const k_t *key, const iv_t *iv, const ppt_t *pp, ct_t *c) {
 
     /* We expect the key and IV to match the parameters of the algorithm we're going to use them in.
@@ -35,15 +28,12 @@ int aes_encrypt(const k_t *key, const iv_t *iv, const ppt_t *pp, ct_t *c) {
     if (pp->length % AES_BLOCK_SIZE != 0)
         return -1;
 
-    EVP_CIPHER_CTX *ctx __attribute__((cleanup(ctxfree))) = EVP_CIPHER_CTX_new();
-    if (ctx == NULL)
-        return -1;
-
     /* XXX: Move this comment to somewhere top-level.
      * We use AES128 here because it has a more well designed key schedule than
      * AES256. CTR mode is recommended by Agile Bits over CBC mode.
      */
-    if (EVP_EncryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key->data, iv->data) != 1)
+    EVP_CIPHER_CTX ctx;
+    if (EVP_EncryptInit(&ctx, EVP_aes_128_ctr(), key->data, iv->data) != 1)
         return -1;
 
     /* EVP_EncryptUpdate is documented as being able to write at most `inl + cipher_block_size - 1`.
@@ -57,7 +47,7 @@ int aes_encrypt(const k_t *key, const iv_t *iv, const ppt_t *pp, ct_t *c) {
     /* Argh, OpenSSL API. */
     int len;
 
-    if (EVP_EncryptUpdate(ctx, c->data, &len, pp->data, pp->length) != 1) {
+    if (EVP_EncryptUpdate(&ctx, c->data, &len, pp->data, pp->length) != 1) {
         free(c->data);
         return -1;
     }
@@ -71,7 +61,7 @@ int aes_encrypt(const k_t *key, const iv_t *iv, const ppt_t *pp, ct_t *c) {
         return -1;
     }
     int excess;
-    int r = EVP_EncryptFinal_ex(ctx, temp, &excess);
+    int r = EVP_EncryptFinal(&ctx, temp, &excess);
     free(temp);
     if (r != 1 || excess != 0) {
         free(c->data);
@@ -102,11 +92,8 @@ int aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_t *pp) {
     if (key->length != AES_KEY_SIZE || iv->length != AES_BLOCK_SIZE)
         return -1;
 
-    EVP_CIPHER_CTX *ctx __attribute__((cleanup(ctxfree))) = EVP_CIPHER_CTX_new();
-    if (ctx == NULL)
-        return -1;
-
-    if (EVP_DecryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key->data, iv->data) != 1)
+    EVP_CIPHER_CTX ctx;
+    if (EVP_DecryptInit(&ctx, EVP_aes_128_ctr(), key->data, iv->data) != 1)
         return -1;
 
     /* EVP_DecryptUpdate is documented as writing at most `inl + cipher_block_size`. */
@@ -120,14 +107,14 @@ int aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_t *pp) {
     buffer->length = c->length + AES_BLOCK_SIZE;
 
     int len;
-    if (EVP_DecryptUpdate(ctx, buffer->data, &len, c->data, c->length) != 1)
+    if (EVP_DecryptUpdate(&ctx, buffer->data, &len, c->data, c->length) != 1)
         return -1;
     assert(len >= 0);
     assert((unsigned)len <= c->length + AES_BLOCK_SIZE);
     pp->length = len;
 
     /* It's OK to write more plain text bytes in this step. */
-    if (EVP_DecryptFinal_ex(ctx, buffer->data + len, &len) != 1)
+    if (EVP_DecryptFinal(&ctx, buffer->data + len, &len) != 1)
         return -1;
     pp->length += len;
     assert(pp->length <= c->length + AES_BLOCK_SIZE);
