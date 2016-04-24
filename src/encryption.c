@@ -64,12 +64,16 @@ int aes_encrypt(const k_t *key, const iv_t *iv, const ppt_t *pp, ct_t *c) {
     c->length = len;
     assert(c->length <= pp->length + (AES_BLOCK_SIZE - 1));
 
-    /* If we've got everything right, this finalisation should return no further data. XXX: don't
-     * stack-allocate this here.
-     */
-    unsigned char temp[pp->length + AES_BLOCK_SIZE - 1];
+    /* If we've got everything right, this finalisation should return no further data. */
+    unsigned char *temp = malloc(pp->length + AES_BLOCK_SIZE - 1);
+    if (temp == NULL) {
+        free(c->data);
+        return -1;
+    }
     int excess;
-    if (EVP_EncryptFinal_ex(ctx, temp, &excess) != 1 || excess != 0) {
+    int r = EVP_EncryptFinal_ex(ctx, temp, &excess);
+    free(temp);
+    if (r != 1 || excess != 0) {
         free(c->data);
         return -1;
     }
