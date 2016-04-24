@@ -237,8 +237,9 @@ static int list(const options_t *options, master_t *master, passwand_entry_t *en
     }
 
     for (unsigned i = 0; i < entry_len; i++) {
-        if (passwand_entry_do(master->master, &entries[i], print, NULL) != PW_OK)
-            DIE("failed to handle entry %u", i);
+        passwand_error_t err = passwand_entry_do(master->master, &entries[i], print, NULL);
+        if (err != PW_OK)
+            DIE("failed to handle entry %u: %s", i, passwand_error(err));
     }
 
     discard_master(master);
