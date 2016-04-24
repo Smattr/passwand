@@ -363,8 +363,9 @@ int main(int argc, char **argv) {
 
     passwand_entry_t *entries;
     unsigned entry_len;
-    if (passwand_import(options.data, &entries, &entry_len) != PW_OK)
-        DIE("failed to load database");
+    passwand_error_t err = passwand_import(options.data, &entries, &entry_len);
+    if (err != PW_OK)
+        DIE("failed to load database: %s", passwand_error(err));
 
     master = getpassword(NULL);
     if (master == NULL)
