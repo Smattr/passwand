@@ -51,7 +51,7 @@ static master_t *getpassword(const char *prompt) {
             return NULL;
         }
 
-        if (c == '\r' || c == '\r' || c == '\f')
+        if (c == '\n' || c == '\r' || c == '\f')
             break;
 
         m[index] = c;
