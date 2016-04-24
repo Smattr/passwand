@@ -41,9 +41,8 @@ static master_t *getpassword(const char *prompt) {
     cfmakeraw(&new);
 
     unsigned index = 0;
-    int c;
     for (;;) {
-        c = getchar();
+        int c = getchar();
 
         if (c == EOF) {
             tcsetattr(STDOUT_FILENO, 0, &old);
