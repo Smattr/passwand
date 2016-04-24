@@ -368,6 +368,9 @@ int main(int argc, char **argv) {
     if (err != PW_OK)
         DIE("failed to load database: %s", passwand_error(err));
 
+    for (unsigned i = 0; i < entry_len; i++)
+        entries[i].work_factor = options.work_factor;
+
     master = getpassword(NULL);
     if (master == NULL)
         DIE("failed to read master password");
