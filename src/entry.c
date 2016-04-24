@@ -136,13 +136,6 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
     assert(work_factor >= 10 && work_factor <= 31);
     e->work_factor = work_factor;
 
-    /* Set the HMAC. */
-    err = passwand_entry_set_mac(master, e);
-    if (err != PW_OK) {
-        CLEANUP();
-        return PW_NO_MEM;
-    }
-
     /* Save the salt. */
     e->salt = malloc(sizeof _salt);
     if (e->salt == NULL) {
@@ -162,6 +155,13 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
     }
     memcpy(e->iv, &_iv_le, sizeof _iv_le);
     e->iv_len = sizeof _iv_le;
+
+    /* Set the HMAC. */
+    err = passwand_entry_set_mac(master, e);
+    if (err != PW_OK) {
+        CLEANUP();
+        return PW_NO_MEM;
+    }
 
     return PW_OK;
 
@@ -184,26 +184,37 @@ static passwand_error_t get_mac(const char *master, const passwand_entry_t *e, m
         return PW_OVERFLOW;
     if (SIZE_MAX - e->space_len - e->key_len < e->value_len)
         return PW_OVERFLOW;
-    size_t len = e->space_len + e->key_len + e->value_len;
+    if (SIZE_MAX - e->space_len - e->key_len - e->value_len < e->salt_len)
+        return PW_OVERFLOW;
+    if (SIZE_MAX - e->space_len - e->key_len - e->value_len - e->salt_len < e->iv_len)
+        return PW_OVERFLOW;
+    size_t len = e->space_len + e->key_len + e->value_len + e->salt_len + e->iv_len;
     uint8_t *_data = malloc(len);
     if (_data == NULL)
         return PW_NO_MEM;
-    memcpy(_data, e->space, e->space_len);
-    memcpy(_data + e->space_len, e->key, e->key_len);
-    memcpy(_data + e->space_len + e->key_len, e->value, e->value_len);
     data_t data = {
         .data = _data,
         .length = len,
     };
+    memcpy(_data, e->space, e->space_len);
+    _data += e->space_len;
+    memcpy(_data, e->key, e->key_len);
+    _data += e->key_len;
+    memcpy(_data, e->value, e->value_len);
+    _data += e->value_len;
+    memcpy(_data, e->salt, e->salt_len);
+    _data += e->salt_len;
+    memcpy(_data, e->iv, e->iv_len);
+    _data += e->iv_len;
 
     /* Now generate the MAC. */
     AUTO_M_T(m, master);
     if (m == NULL) {
-        free(_data);
+        free(data.data);
         return PW_NO_MEM;
     }
     passwand_error_t err = hmac(m, &data, &salt, mac, e->work_factor);
-    free(_data);
+    free(data.data);
 
     return err;
 }
