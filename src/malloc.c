@@ -25,6 +25,7 @@
 #include <passwand/passwand.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/mman.h>
 #include <sys/prctl.h>
@@ -257,4 +258,17 @@ void passwand_secure_free(void *p, size_t size) {
     }
 
     assert(!"unreachable");
+}
+
+void passwand_secure_heap_print(FILE *f) {
+    for (chunk_t *c = freelist; c != NULL; c = c->next) {
+        fprintf(f, "%p:\n", c->base);
+        for (unsigned i = 0; i < EXPECTED_PAGE_SIZE / sizeof(long long); i++) {
+            if (i % 64 == 0)
+                fprintf(f, " ");
+            fprintf(f, "%d", (int)read_bitmap(c, i));
+            if (i % 64 == 63)
+                fprintf(f, "\n");
+        }
+    }
 }

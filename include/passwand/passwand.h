@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 
 typedef struct {
 
@@ -147,3 +148,11 @@ int passwand_secure_malloc(void **p, size_t size);
  * @param size Number of bytes to free
  */
 void passwand_secure_free(void *p, size_t size);
+
+/** Print the current secure heap layout
+ *
+ * Only implemented for debugging purposes.
+ *
+ * @param f File to print to
+ */
+void passwand_secure_heap_print(FILE *f);
