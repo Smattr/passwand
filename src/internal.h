@@ -34,9 +34,9 @@ passwand_error_t make_key(const m_t *master, const salt_t *salt, int work_factor
  * @param iv     Initialisation vector
  * @param pp     Data to encrypt (must be 16-byte aligned)
  * @param[out] c Encrypted data
- * @return       0 on success
+ * @return       PW_OK on success
  */
-int aes_encrypt(const k_t *key, const iv_t *iv, const ppt_t *pp, ct_t *c)
+passwand_error_t aes_encrypt(const k_t *key, const iv_t *iv, const ppt_t *pp, ct_t *c)
     __attribute__((visibility("internal")));
 
 /** Decrypt data
@@ -47,9 +47,9 @@ int aes_encrypt(const k_t *key, const iv_t *iv, const ppt_t *pp, ct_t *c)
  * @param iv      Initialisation vector (must be 16 bytes)
  * @param c       Data to decrypt
  * @param[out] pp Decrypted data
- * @return        0 on success
+ * @return        PW_OK on success
  */
-int aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_t *pp)
+passwand_error_t aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_t *pp)
     __attribute__((visibility("internal")));
 
 /** Generate an authentication code
