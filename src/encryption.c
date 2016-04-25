@@ -121,6 +121,9 @@ passwand_error_t aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_
     /* It's OK to write more plain text bytes in this step. */
     if (EVP_DecryptFinal(&ctx, buffer->data + len, &len) != 1)
         return PW_CRYPTO;
+    assert(len >= 0);
+    if (SIZE_MAX - pp->length < (size_t)len)
+        return PW_OVERFLOW;
     pp->length += len;
     assert(pp->length <= c->length + AES_BLOCK_SIZE);
 
