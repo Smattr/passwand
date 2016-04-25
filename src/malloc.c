@@ -90,6 +90,10 @@ static void write_bitmap(chunk_t *c, unsigned index, bool value) {
 
 static chunk_t *freelist;
 
+/* This will only become set if the allocator detects inappropriate (potentially malicious) calls.
+ */
+static bool disabled;
+
 static size_t pagesize(void) {
     static long size;
     if (size == 0) {
@@ -151,6 +155,9 @@ int passwand_secure_malloc(void **p, size_t size) {
     size = round_size(size);
 
     LOCK_UNTIL_RET();
+
+    if (disabled)
+        return -1;
 
     if (!ptrace_disabled)
         if (disable_ptrace() != 0)
@@ -242,6 +249,8 @@ void passwand_secure_free(void *p, size_t size) {
 
     LOCK_UNTIL_RET();
 
+    if (disabled)
+        return;
 
     /* Find the chunk this allocation came from. */
     for (chunk_t *c = freelist; c != NULL; c = c->next) {
@@ -250,6 +259,11 @@ void passwand_secure_free(void *p, size_t size) {
             for (unsigned index = (p - c->base) / sizeof(long long);
                     index * sizeof(long long) < size; index++) {
                 assert(read_bitmap(c, index));
+                if (!read_bitmap(c, index)) {
+                    /* This memory was not in use. Double free? */
+                    disabled = true;
+                    return;
+                }
                 write_bitmap(c, index, false);
             }
             passwand_erase(p, size);
@@ -257,7 +271,9 @@ void passwand_secure_free(void *p, size_t size) {
         }
     }
 
-    assert(!"unreachable");
+    /* If we reached here, the given blocks do not lie in the secure heap. */
+    assert(!"free of non-heap memory");
+    disabled = true;
 }
 
 void passwand_secure_heap_print(FILE *f) {
