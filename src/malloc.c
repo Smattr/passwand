@@ -240,9 +240,8 @@ void passwand_secure_free(void *p, size_t size) {
 
     size = round_size(size);
 
-    passwand_erase(p, size);
-
     LOCK_UNTIL_RET();
+
 
     /* Find the chunk this allocation came from. */
     for (chunk_t *c = freelist; c != NULL; c = c->next) {
@@ -253,6 +252,7 @@ void passwand_secure_free(void *p, size_t size) {
                 assert(read_bitmap(c, index));
                 write_bitmap(c, index, false);
             }
+            passwand_erase(p, size);
             return;
         }
     }
