@@ -106,6 +106,7 @@ passwand_error_t aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_
     buffer_t *buffer __attribute__((cleanup(auto_erase_buffer))) = NULL;
     if (passwand_secure_malloc((void**)&buffer, sizeof *buffer) != 0)
         return PW_NO_MEM;
+    buffer->data = NULL;
     if (passwand_secure_malloc((void**)&buffer->data, c->length + AES_BLOCK_SIZE) != 0)
         return PW_NO_MEM;
     buffer->length = c->length + AES_BLOCK_SIZE;
