@@ -3,14 +3,27 @@
 #include <stdint.h>
 #include <string.h>
 
-unsigned __int128 htole128(unsigned __int128 host_128bits) {
-    unsigned __int128 low = htole64(host_128bits);
-    unsigned __int128 high = htole64(host_128bits >> 64);
-    return (low << 64) | high;
+typedef unsigned __int128 uint128_t;
+
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+
+uint128_t htole128(uint128_t host_128bits) {
+    return host_128bits;
 }
 
-unsigned __int128 le128toh(unsigned __int128 little_endian_128bits) {
-    unsigned __int128 low = le64toh(little_endian_128bits);
-    unsigned __int128 high = le64toh(little_endian_128bits >> 64);
-    return (low << 64) | high;
+uint128_t le128toh(uint128_t little_endian_128bits) {
+    return little_endian_128bits;
 }
+
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+
+uint128_t htole128(uint128_t host_128bits) {
+    return (((uint128_t)htole64(host_128bits)) << 64) |
+            ((uint128_t)htole64(host_128bits >> 64));
+}
+
+uint128_t le128toh(uint128_t little_endian_128bits) {
+    return (((uint128_t)le64toh(little_endian_128bits)) << 64) |
+            ((uint128_t)le64toh(little_endian_128bits >> 64));
+}
+#endif
