@@ -1,18 +1,12 @@
 #pragma once
 
+#include "constants.h"
 #include <openssl/evp.h>
 #include <passwand/passwand.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
 #include "types.h"
-
-#define HEADER "oprime01"
-
-enum {
-    AES_BLOCK_SIZE = 16, // bytes
-    AES_KEY_SIZE = 16, // bytes
-};
 
 /** Construct a key for use in AES encryption
  *
