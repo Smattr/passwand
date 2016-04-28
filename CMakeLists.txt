@@ -52,9 +52,8 @@ target_link_libraries (pw-cli passwand)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-add_library (passwand src/encoding.c src/erase.c src/encryption.c src/endian.c src/entry.c
-    src/error.c src/export.c src/hmac.c src/import.c src/make_key.c src/malloc.c src/pack.c
-    src/random.c)
+add_library (passwand src/encoding.c src/erase.c src/encryption.c src/entry.c src/error.c
+    src/export.c src/hmac.c src/import.c src/make_key.c src/malloc.c src/pack.c src/random.c)
 target_link_libraries (passwand ${OPENSSL_LIBRARIES} ${JSON_LIBRARIES} ${SCRYPT})
 
 add_executable (passwand-tests
