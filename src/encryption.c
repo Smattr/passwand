@@ -60,16 +60,10 @@ passwand_error_t aes_encrypt(const k_t *key, const iv_t *iv, const ppt_t *pp, ct
     c->length = len;
     assert(c->length <= pp->length + (AES_BLOCK_SIZE - 1));
 
-    /* If we've got everything right, this finalisation should return no further data. */
-    unsigned char *temp = malloc(pp->length + AES_BLOCK_SIZE - 1);
-    if (temp == NULL) {
-        free(c->data);
-        return PW_NO_MEM;
-    }
+    /* This finalisation should return no further data because we've disabled padding. */
+    unsigned char temp[AES_BLOCK_SIZE];
     int excess;
-    int r = EVP_EncryptFinal(&ctx, temp, &excess);
-    free(temp);
-    if (r != 1 || excess != 0) {
+    if (EVP_EncryptFinal(&ctx, temp, &excess) != 1 || excess != 0) {
         free(c->data);
         return PW_CRYPTO;
     }
@@ -126,14 +120,10 @@ passwand_error_t aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_
     assert((unsigned)len <= c->length + AES_BLOCK_SIZE);
     pp->length = len;
 
-    /* It's OK to write more plain text bytes in this step. */
-    if (EVP_DecryptFinal(&ctx, buffer->data + len, &len) != 1)
+    /* We should not receive any further data because padding is disabled. */
+    unsigned char temp[AES_BLOCK_SIZE];
+    if (EVP_DecryptFinal(&ctx, temp, &len) != 1 || len != 0)
         return PW_CRYPTO;
-    assert(len >= 0);
-    if (SIZE_MAX - pp->length < (size_t)len)
-        return PW_OVERFLOW;
-    pp->length += len;
-    assert(pp->length <= c->length + AES_BLOCK_SIZE);
 
     /* Copy the internal buffer to the caller's packed plain text struct. We do
      * this to ensure the caller's idea of the "length" of the decrypted data
