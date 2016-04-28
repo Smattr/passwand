@@ -59,15 +59,11 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
     if (err != PW_OK)
         return err;
 
-    /* Generate a random 16-byte initialisation vector. Note that we track this as an integer
-     * because we're going to increment it while using AES in CTR mode.
-     */
-    unsigned __int128 _iv;
-    err = random_bytes(&_iv, sizeof _iv);
+    /* Generate a random 16-byte initialisation vector. */
+    iv_t iv;
+    err = random_bytes(iv, sizeof iv);
     if (err != PW_OK)
         return err;
-    iv_t iv;
-    memcpy(iv, &_iv, sizeof _iv);
 
     /* Setup an encryption context. */
     EVP_CIPHER_CTX ctx;
@@ -173,14 +169,13 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
     e->salt_len = sizeof _salt;
 
     /* Save the IV. */
-    unsigned __int128 _iv_le = htole128(_iv);
-    e->iv = malloc(sizeof _iv_le);
+    e->iv = malloc(sizeof iv);
     if (e->iv == NULL) {
         CLEANUP();
         return PW_NO_MEM;
     }
-    memcpy(e->iv, &_iv_le, sizeof _iv_le);
-    e->iv_len = sizeof _iv_le;
+    memcpy(e->iv, iv, sizeof iv);
+    e->iv_len = sizeof iv;
 
     /* Set the HMAC. */
     err = passwand_entry_set_mac(master, e);
@@ -334,11 +329,8 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
     /* Extract the leading initialisation vector. */
     if (e->iv_len != PW_IV_LEN)
         return PW_IV_MISMATCH;
-    unsigned __int128 _iv_le;
-    memcpy(&_iv_le, e->iv, e->iv_len);
-    unsigned __int128 _iv = le128toh(_iv_le);
     iv_t iv;
-    memcpy(iv, &_iv, sizeof _iv);
+    memcpy(iv, e->iv, e->iv_len);
 
     /* Setup a decryption context. */
     EVP_CIPHER_CTX ctx;
