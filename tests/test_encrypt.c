@@ -344,8 +344,15 @@ TEST("encrypt: encrypt(\"\")") {
 
     ct_t c;
 
-    int r = aes_encrypt(&key, &iv, &pp, &c);
-    CU_ASSERT_EQUAL_FATAL(r, 0);
+    EVP_CIPHER_CTX ctx;
+    passwand_error_t err = aes_encrypt_init(&key, &iv, &ctx);
+    CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+
+    err = aes_encrypt(&ctx, &pp, &c);
+    CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+
+    err = aes_encrypt_deinit(&ctx);
+    CU_ASSERT_EQUAL_FATAL(err, PW_OK);
 
     free(c.data);
 }
@@ -370,9 +377,16 @@ TEST("encrypt: basic functionality") {
 
     ct_t c;
 
-    int r = aes_encrypt(&key, &iv, &pp, &c);
-    CU_ASSERT_EQUAL_FATAL(r, 0);
+    EVP_CIPHER_CTX ctx;
+    passwand_error_t err = aes_encrypt_init(&key, &iv, &ctx);
+    CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+
+    err = aes_encrypt(&ctx, &pp, &c);
+    CU_ASSERT_EQUAL_FATAL(err, PW_OK);
     CU_ASSERT_EQUAL_FATAL(c.length > 0, true);
+
+    err = aes_encrypt_deinit(&ctx);
+    CU_ASSERT_EQUAL_FATAL(err, PW_OK);
 
     free(c.data);
 }
@@ -397,6 +411,10 @@ TEST("encrypt: with unaligned data") {
 
     ct_t c;
 
-    int r = aes_encrypt(&key, &iv, &pp, &c);
-    CU_ASSERT_NOT_EQUAL_FATAL(r, 0);
+    EVP_CIPHER_CTX ctx;
+    passwand_error_t err = aes_encrypt_init(&key, &iv, &ctx);
+    CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+
+    err = aes_encrypt(&ctx, &pp, &c);
+    CU_ASSERT_NOT_EQUAL_FATAL(err, PW_OK);
 }

@@ -112,9 +112,22 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
             return err; \
         } \
         ct_t c; \
-        err = aes_encrypt(k, &iv, pp, &c); \
+        EVP_CIPHER_CTX ctx; \
+        err = aes_encrypt_init(k, &iv, &ctx); \
+        if (err != PW_OK) { \
+            passwand_secure_free(pp->data, pp->length); \
+            passwand_secure_free(pp, sizeof *pp); \
+            CLEANUP(); \
+            return err; \
+        } \
+        err = aes_encrypt(&ctx, pp, &c); \
         passwand_secure_free(pp->data, pp->length); \
         passwand_secure_free(pp, sizeof *pp); \
+        if (err != PW_OK) { \
+            CLEANUP(); \
+            return err; \
+        } \
+        err = aes_encrypt_deinit(&ctx); \
         if (err != PW_OK) { \
             CLEANUP(); \
             return err; \
@@ -336,8 +349,20 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
         if (passwand_secure_malloc((void**)&pp, sizeof *pp) != 0) { \
             return PW_NO_MEM; \
         } \
-        err = aes_decrypt(k, &iv, &c, pp); \
+        EVP_CIPHER_CTX ctx; \
+        err = aes_decrypt_init(k, &iv, &ctx); \
         if (err != PW_OK) { \
+            passwand_secure_free(pp, sizeof *pp); \
+            return err; \
+        } \
+        err = aes_decrypt(&ctx, &c, pp); \
+        if (err != PW_OK) { \
+            passwand_secure_free(pp, sizeof *pp); \
+            return err; \
+        } \
+        err = aes_decrypt_deinit(&ctx); \
+        if (err != PW_OK) { \
+            passwand_secure_free(pp->data, pp->length); \
             passwand_secure_free(pp, sizeof *pp); \
             return err; \
         } \

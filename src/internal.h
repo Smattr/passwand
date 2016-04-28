@@ -26,31 +26,63 @@ enum {
 passwand_error_t make_key(const m_t *master, const salt_t *salt, int work_factor, k_t *key)
     __attribute__((visibility("internal")));
 
+/** Initialise an AES encryption context
+ *
+ * @param key    Encryption key
+ * @param iv     Initialisation vector
+ * @param ctx    Encryption context to initialise
+ * @return       PW_OK on success
+ */
+passwand_error_t aes_encrypt_init(const k_t *key, const iv_t *iv, EVP_CIPHER_CTX *ctx)
+    __attribute__((visibility("internal")));
+
 /** Encrypt data
  *
  * This function uses AES128 in CTR mode.
  *
- * @param key    Encryption key
- * @param iv     Initialisation vector
+ * @param ctx    Encryption context
  * @param pp     Data to encrypt (must be 16-byte aligned)
  * @param[out] c Encrypted data
  * @return       PW_OK on success
  */
-passwand_error_t aes_encrypt(const k_t *key, const iv_t *iv, const ppt_t *pp, ct_t *c)
+passwand_error_t aes_encrypt(EVP_CIPHER_CTX *ctx, const ppt_t *pp, ct_t *c)
+    __attribute__((visibility("internal")));
+
+/** Deinitialise encryption context
+ *
+ * @param ctx    Encryption context
+ * @return       PW_OK on success
+ */
+passwand_error_t aes_encrypt_deinit(EVP_CIPHER_CTX *ctx) __attribute__((visibility("internal")));
+
+/** Initialise decryption context
+ *
+ * @param key    Encryption key
+ * @param iv     Initialisation vector
+ * @param ctx    Decryption context to initialise
+ * @return       PW_OK on success
+ */
+passwand_error_t aes_decrypt_init(const k_t *key, const iv_t *iv, EVP_CIPHER_CTX *ctx)
     __attribute__((visibility("internal")));
 
 /** Decrypt data
  *
  * This function uses AES128 in CTR mode.
  *
- * @param key     Encryption key (must be 16 bytes)
- * @param iv      Initialisation vector (must be 16 bytes)
+ * @param ctx     Decryption context to initialise
  * @param c       Data to decrypt
  * @param[out] pp Decrypted data
  * @return        PW_OK on success
  */
-passwand_error_t aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_t *pp)
+passwand_error_t aes_decrypt(EVP_CIPHER_CTX *ctx, const ct_t *c, ppt_t *pp)
     __attribute__((visibility("internal")));
+
+/** Deinitialise a decryption context
+ *
+ * @param ctx     Decryption context to initialise
+ * @return        PW_OK on success
+ */
+passwand_error_t aes_decrypt_deinit(EVP_CIPHER_CTX *ctx) __attribute__((visibility("internal")));
 
 /** Generate an authentication code
  *
