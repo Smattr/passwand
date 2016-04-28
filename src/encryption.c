@@ -38,6 +38,10 @@ passwand_error_t aes_encrypt(const k_t *key, const iv_t *iv, const ppt_t *pp, ct
     if (EVP_EncryptInit(&ctx, EVP_aes_128_ctr(), key->data, iv->data) != 1)
         return PW_CRYPTO;
 
+    /* Disable padding as we pre-pad the input. */
+    if (EVP_CIPHER_CTX_set_padding(&ctx, 0) != 1)
+        return PW_CRYPTO;
+
     /* EVP_EncryptUpdate is documented as being able to write at most `inl + cipher_block_size - 1`.
      */
     if (SIZE_MAX - (AES_BLOCK_SIZE - 1) < pp->length)
@@ -98,6 +102,10 @@ passwand_error_t aes_decrypt(const k_t *key, const iv_t *iv, const ct_t *c, ppt_
 
     EVP_CIPHER_CTX ctx;
     if (EVP_DecryptInit(&ctx, EVP_aes_128_ctr(), key->data, iv->data) != 1)
+        return PW_CRYPTO;
+
+    /* Disable padding. */
+    if (EVP_CIPHER_CTX_set_padding(&ctx, 0) != 1)
         return PW_CRYPTO;
 
     /* EVP_DecryptUpdate is documented as writing at most `inl + cipher_block_size`. */
