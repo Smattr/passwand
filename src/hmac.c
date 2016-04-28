@@ -28,8 +28,8 @@ passwand_error_t hmac(const m_t *master, const data_t *data, const salt_t *salt,
     if (mac->data == NULL)
         return PW_NO_MEM;
     unsigned md_len;
-    unsigned char *r = HMAC(sha512, k->data, k->length, data->data, data->length, mac->data,
-        &md_len);
+    unsigned char *r = HMAC(sha512, k->for_mac, sizeof(k->for_mac), data->data, data->length,
+        mac->data, &md_len);
     if (r == NULL) {
         free(mac->data);
         return PW_CRYPTO;
