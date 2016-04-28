@@ -94,17 +94,15 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
         } \
         p->data = (uint8_t*)field; \
         p->length = strlen(field); \
-        iv_t iv = { \
-            .data = (uint8_t*)&_iv, \
-            .length = sizeof _iv, \
-        }; \
+        iv_t iv; \
+        memcpy(iv, &_iv, sizeof _iv); \
         ppt_t *pp; \
         if (passwand_secure_malloc((void**)&pp, sizeof *pp) != 0) { \
             passwand_secure_free(p, sizeof *p); \
             CLEANUP(); \
             return PW_NO_MEM; \
         } \
-        err = pack_data(p, &iv, pp); \
+        err = pack_data(p, iv, pp); \
         passwand_secure_free(p, sizeof *p); \
         if (err != PW_OK) { \
             passwand_secure_free(pp, sizeof *pp); \
@@ -113,7 +111,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
         } \
         ct_t c; \
         EVP_CIPHER_CTX ctx; \
-        err = aes_encrypt_init(k, &iv, &ctx); \
+        err = aes_encrypt_init(k, iv, &ctx); \
         if (err != PW_OK) { \
             passwand_secure_free(pp->data, pp->length); \
             passwand_secure_free(pp, sizeof *pp); \
@@ -337,10 +335,8 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
 
 #define DEC(field) \
     do { \
-        iv_t iv = { \
-            .data = (uint8_t*)&_iv, \
-            .length = sizeof _iv, \
-        }; \
+        iv_t iv; \
+        memcpy(iv, &_iv, sizeof _iv); \
         ct_t c = { \
             .data = e->field, \
             .length = e->field##_len, \
@@ -350,7 +346,7 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
             return PW_NO_MEM; \
         } \
         EVP_CIPHER_CTX ctx; \
-        err = aes_decrypt_init(k, &iv, &ctx); \
+        err = aes_decrypt_init(k, iv, &ctx); \
         if (err != PW_OK) { \
             passwand_secure_free(pp, sizeof *pp); \
             return err; \
@@ -372,7 +368,7 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
             passwand_secure_free(pp, sizeof *pp); \
             return PW_NO_MEM; \
         } \
-        err = unpack_data(pp, &iv, p); \
+        err = unpack_data(pp, iv, p); \
         passwand_secure_free(pp->data, pp->length); \
         passwand_secure_free(pp, sizeof *pp); \
         if (err != PW_OK) { \

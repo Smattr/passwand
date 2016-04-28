@@ -33,7 +33,7 @@ passwand_error_t make_key(const m_t *master, const salt_t *salt, int work_factor
  * @param ctx    Encryption context to initialise
  * @return       PW_OK on success
  */
-passwand_error_t aes_encrypt_init(const k_t *key, const iv_t *iv, EVP_CIPHER_CTX *ctx)
+passwand_error_t aes_encrypt_init(const k_t *key, const iv_t iv, EVP_CIPHER_CTX *ctx)
     __attribute__((visibility("internal")));
 
 /** Encrypt data
@@ -62,7 +62,7 @@ passwand_error_t aes_encrypt_deinit(EVP_CIPHER_CTX *ctx) __attribute__((visibili
  * @param ctx    Decryption context to initialise
  * @return       PW_OK on success
  */
-passwand_error_t aes_decrypt_init(const k_t *key, const iv_t *iv, EVP_CIPHER_CTX *ctx)
+passwand_error_t aes_decrypt_init(const k_t *key, const iv_t iv, EVP_CIPHER_CTX *ctx)
     __attribute__((visibility("internal")));
 
 /** Decrypt data
@@ -103,7 +103,7 @@ passwand_error_t hmac(const m_t *master, const data_t *data, const salt_t *salt,
  * @param[out] pp Packed data
  * @return        PW_OK on success
  */
-passwand_error_t pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp)
+passwand_error_t pack_data(const pt_t *p, const iv_t iv, ppt_t *pp)
     __attribute__((visibility("internal")));
 
 /** Unpack data that was produced by pack_data
@@ -113,7 +113,7 @@ passwand_error_t pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp)
  * @param[out] p Data unpacked
  * @return       PW_OK on success
  */
-passwand_error_t unpack_data(const ppt_t *pp, const iv_t *iv, pt_t *p)
+passwand_error_t unpack_data(const ppt_t *pp, const iv_t iv, pt_t *p)
     __attribute__((visibility("internal")));
 
 /** Generate some random bytes

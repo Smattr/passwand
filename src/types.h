@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <passwand/passwand.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -23,10 +24,7 @@ typedef struct {
 } k_t;
 
 /* Initialisation vectors */
-typedef struct {
-    uint8_t *data;
-    size_t length;
-} iv_t;
+typedef uint8_t iv_t[PW_IV_LEN];
 
 /* Encryption salt */
 typedef struct {

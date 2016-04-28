@@ -331,11 +331,7 @@ TEST("encrypt: encrypt(\"\")") {
         .data = _key,
         .length = sizeof _key,
     };
-    uint8_t _iv[16] = { 0 };
-    const iv_t iv = {
-        .data = _iv,
-        .length = sizeof _iv,
-    };
+    const iv_t iv = { 0 };
     uint8_t _pp[1] = { 0 };
     const ppt_t pp = {
         .data = _pp,
@@ -345,7 +341,7 @@ TEST("encrypt: encrypt(\"\")") {
     ct_t c;
 
     EVP_CIPHER_CTX ctx;
-    passwand_error_t err = aes_encrypt_init(&key, &iv, &ctx);
+    passwand_error_t err = aes_encrypt_init(&key, iv, &ctx);
     CU_ASSERT_EQUAL_FATAL(err, PW_OK);
 
     err = aes_encrypt(&ctx, &pp, &c);
@@ -363,11 +359,7 @@ TEST("encrypt: basic functionality") {
         .data = _key,
         .length = sizeof _key,
     };
-    uint8_t _iv[16] = { 0 };
-    const iv_t iv = {
-        .data = _iv,
-        .length = sizeof _iv,
-    };
+    const iv_t iv = { 0 };
     uint8_t _pp[16] = { 0 };
     ppt_t pp = {
         .data = _pp,
@@ -378,7 +370,7 @@ TEST("encrypt: basic functionality") {
     ct_t c;
 
     EVP_CIPHER_CTX ctx;
-    passwand_error_t err = aes_encrypt_init(&key, &iv, &ctx);
+    passwand_error_t err = aes_encrypt_init(&key, iv, &ctx);
     CU_ASSERT_EQUAL_FATAL(err, PW_OK);
 
     err = aes_encrypt(&ctx, &pp, &c);
@@ -397,11 +389,7 @@ TEST("encrypt: with unaligned data") {
         .data = _key,
         .length = sizeof _key,
     };
-    uint8_t _iv[16] = { 0 };
-    const iv_t iv = {
-        .data = _iv,
-        .length = sizeof _iv,
-    };
+    const iv_t iv = { 0 };
     uint8_t _pp[16] = { 0 };
     ppt_t pp = {
         .data = _pp,
@@ -412,7 +400,7 @@ TEST("encrypt: with unaligned data") {
     ct_t c;
 
     EVP_CIPHER_CTX ctx;
-    passwand_error_t err = aes_encrypt_init(&key, &iv, &ctx);
+    passwand_error_t err = aes_encrypt_init(&key, iv, &ctx);
     CU_ASSERT_EQUAL_FATAL(err, PW_OK);
 
     err = aes_encrypt(&ctx, &pp, &c);

@@ -16,15 +16,11 @@ TEST("pack: basic functionality") {
         .data = (uint8_t*)_pt,
         .length = sizeof _pt,
     };
-    uint8_t _iv[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
-    const iv_t iv = {
-        .data = _iv,
-        .length = sizeof _iv,
-    };
+    const iv_t iv = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 
     ppt_t pp;
 
-    passwand_error_t r = pack_data(&p, &iv, &pp);
+    passwand_error_t r = pack_data(&p, iv, &pp);
     CU_ASSERT_EQUAL_FATAL(r, PW_OK);
     CU_ASSERT_EQUAL_FATAL(pp.length > 0, true);
 
@@ -39,15 +35,11 @@ TEST("pack: is aligned") {
         .data = (uint8_t*)_pt,
         .length = sizeof _pt,
     };
-    uint8_t _iv[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
-    iv_t iv = {
-        .data = _iv,
-        .length = sizeof _iv,
-    };
+    const iv_t iv = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 
     ppt_t pp;
 
-    passwand_error_t r = pack_data(&p, &iv, &pp);
+    passwand_error_t r = pack_data(&p, iv, &pp);
     CU_ASSERT_EQUAL_FATAL(r, PW_OK);
     CU_ASSERT_EQUAL_FATAL(pp.length > 0, true);
     CU_ASSERT_EQUAL_FATAL(pp.length % 16, 0);

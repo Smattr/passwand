@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include "types.h"
 
-passwand_error_t pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp) {
+passwand_error_t pack_data(const pt_t *p, const iv_t iv, ppt_t *pp) {
 
     assert(p != NULL);
     assert(iv != NULL);
@@ -16,11 +16,11 @@ passwand_error_t pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp) {
     /* Calculate the final length of the unpadded data. */
     if (SIZE_MAX - strlen(HEADER) < sizeof(uint64_t))
         return PW_OVERFLOW;
-    if (SIZE_MAX - strlen(HEADER) - sizeof(uint64_t) < iv->length)
+    if (SIZE_MAX - strlen(HEADER) - sizeof(uint64_t) < PW_IV_LEN)
         return PW_OVERFLOW;
-    if (SIZE_MAX - strlen(HEADER) - sizeof(uint64_t) - iv->length < p->length)
+    if (SIZE_MAX - strlen(HEADER) - sizeof(uint64_t) - PW_IV_LEN < p->length)
         return PW_OVERFLOW;
-    size_t length = strlen(HEADER) + sizeof(uint64_t) + iv->length + p->length;
+    size_t length = strlen(HEADER) + sizeof(uint64_t) + PW_IV_LEN + p->length;
 
     /* The padding needs to align the final data to a 16-byte boundary. */
     size_t padding_len = AES_BLOCK_SIZE - length % AES_BLOCK_SIZE;
@@ -47,8 +47,8 @@ passwand_error_t pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp) {
     offset += sizeof(encoded_pt_len);
 
     /* Pack the initialisation vector. */
-    memcpy(pp->data + offset, iv->data, iv->length);
-    offset += iv->length;
+    memcpy(pp->data + offset, iv, PW_IV_LEN);
+    offset += PW_IV_LEN;
 
     /* Generate the padding. Agile Bits considers the padding scheme from IETF draft
      * AEAD-AES-CBC-HMAC-SHA as a more suitable replacement, but I'm not sure why. It involves
@@ -68,12 +68,11 @@ passwand_error_t pack_data(const pt_t *p, const iv_t *iv, ppt_t *pp) {
     return PW_OK;
 }
 
-passwand_error_t unpack_data(const ppt_t *pp, const iv_t *iv, pt_t *p) {
+passwand_error_t unpack_data(const ppt_t *pp, const iv_t iv, pt_t *p) {
 
     assert(pp != NULL);
     assert(pp->data != NULL);
     assert(iv != NULL);
-    assert(iv->data != NULL);
     assert(p != NULL);
 
     if (pp->length % AES_BLOCK_SIZE != 0)
@@ -82,8 +81,7 @@ passwand_error_t unpack_data(const ppt_t *pp, const iv_t *iv, pt_t *p) {
     ppt_t d = *pp;
 
     /* Check we have the correct header. */
-    if (d.length < strlen(HEADER) ||
-            strncmp((const char*)d.data, HEADER, strlen(HEADER)) != 0)
+    if (d.length < strlen(HEADER) || strncmp((const char*)d.data, HEADER, strlen(HEADER)) != 0)
         return PW_HEADER_MISMATCH;
     d.data += strlen(HEADER);
     d.length -= strlen(HEADER);
@@ -98,12 +96,12 @@ passwand_error_t unpack_data(const ppt_t *pp, const iv_t *iv, pt_t *p) {
     d.length -= sizeof(encoded_pt_len);
 
     /* Check the initialisation vector matches. */
-    if (d.length < iv->length)
+    if (d.length < PW_IV_LEN)
         return PW_TRUNCATED;
-    if (memcmp(d.data, iv->data, iv->length) != 0)
+    if (memcmp(d.data, iv, PW_IV_LEN) != 0)
         return PW_IV_MISMATCH;
-    d.data += iv->length;
-    d.length -= iv->length;
+    d.data += PW_IV_LEN;
+    d.length -= PW_IV_LEN;
 
     /* Check we do indeed have enough space for the plain text left. */
     if (d.length < p->length)

@@ -16,15 +16,11 @@ TEST("unpack: unpack(pack(x)) == x") {
         .data = (uint8_t*)_pt,
         .length = sizeof _pt,
     };
-    uint8_t _iv[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
-    iv_t iv = {
-        .data = _iv,
-        .length = sizeof _iv,
-    };
+    const iv_t iv = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 
     ppt_t pp;
 
-    passwand_error_t r = pack_data(&p, &iv, &pp);
+    passwand_error_t r = pack_data(&p, iv, &pp);
     CU_ASSERT_EQUAL_FATAL(r, PW_OK);
     CU_ASSERT_EQUAL_FATAL(pp.length > 0, true);
 
@@ -32,7 +28,7 @@ TEST("unpack: unpack(pack(x)) == x") {
 
     pt_t out;
 
-    r = unpack_data(&pp, &iv, &out);
+    r = unpack_data(&pp, iv, &out);
     CU_ASSERT_EQUAL_FATAL(r, PW_OK);
     CU_ASSERT_EQUAL_FATAL(out.length, p.length);
     CU_ASSERT_EQUAL_FATAL(memcmp(p.data, out.data, out.length), 0);
