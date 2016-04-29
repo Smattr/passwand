@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <fcntl.h>
 #include "internal.h"
 #include <json.h>
 #include <passwand/passwand.h>
@@ -6,6 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 /* Free a JSON object. See usage of this below in cleanup attributes. */
@@ -14,6 +17,13 @@ static void disown(void *p) {
     json_object **j = p;
     if (*j != NULL)
         json_object_put(*j);
+}
+
+static void autofree(void *p) {
+    assert(p != NULL);
+    void *q = *(void**)p;
+    if (q != NULL)
+        free(q);
 }
 
 /* Add a given key and value to a JSON dictionary. Returns 0 on success. */
@@ -79,8 +89,11 @@ passwand_error_t passwand_export(const char *path, passwand_entry_t *entries, un
 
     /* Now write out the array to the given file. */
 
-    char tmp[] = "/tmp/tmp.XXXXXX";
-    int fd = mkstemp(tmp);
+    char *tmp __attribute__((cleanup(autofree))) = malloc(strlen(path) + 2);
+    if (tmp == NULL)
+        return PW_NO_MEM;
+    sprintf(tmp, "%s~", path);
+    int fd = creat(tmp, 0600);
     if (fd == -1)
         return PW_IO;
 
