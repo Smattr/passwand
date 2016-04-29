@@ -207,8 +207,9 @@ static int set(const options_t *options, master_t *master, passwand_entry_t *ent
         DIE("out of memory");
 
     memcpy(new_entries, entries, sizeof(passwand_entry_t) * st.index);
+    memcpy(new_entries + st.index, &e, sizeof(passwand_entry_t));
     if (st.found)
-        memcpy(new_entries + st.index, entries + st.index + 1,
+        memcpy(new_entries + st.index + 1, entries + st.index + 1,
             sizeof(passwand_entry_t) * (entry_len - st.index - 1));
     size_t new_entry_len = st.found ? entry_len : entry_len + 1;
 
