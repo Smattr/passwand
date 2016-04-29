@@ -57,7 +57,7 @@ int parse(int argc, char **argv, options_t *options) {
                 break;
 
             case 'v':
-                HANDLE_ARG(key);
+                HANDLE_ARG(value);
                 break;
 
 #undef HANDLE_ARG
