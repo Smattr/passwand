@@ -1,6 +1,7 @@
 #include "argparse.h"
 #include <assert.h>
 #include <gtk/gtk.h>
+#include <passwand/passwand.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,7 +37,16 @@ char *get_text(const char *title, const char *message, const char *initial, bool
 
     char *r;
     if (result == GTK_RESPONSE_OK) {
-        r = strdup(gtk_entry_get_text(GTK_ENTRY(textbox)));
+        const char *text = strdup(gtk_entry_get_text(GTK_ENTRY(textbox)));
+        if (hidden) {
+            if (passwand_secure_malloc((void**)&r, strlen(text) + 1) != PW_OK) {
+                r = NULL;
+            } else {
+                strcpy(r, text);
+            }
+        } else {
+            r = strdup(text);
+        }
     } else {
         /* Cancel or dialog was closed. */
         r = NULL;
