@@ -80,13 +80,15 @@ passwand_error_t aes_decrypt_deinit(EVP_CIPHER_CTX *ctx) __attribute__((visibili
 
 /** Generate an authentication code
  *
- * @param key           Generated key
+ * @param master        Master key
  * @param data          Data to authenticate
+ * @param salt          Salt
  * @param[out] mac      Authentication code
+ * @param work_factor   Scrypt work factor (see above)
  * @return              PW_OK on success
  */
-passwand_error_t hmac(const k_t *key, const data_t *data, mac_t *mac)
-    __attribute__((visibility("internal")));
+passwand_error_t hmac(const m_t *master, const data_t *data, const salt_t *salt, mac_t *mac,
+    int work_factor) __attribute__((visibility("internal")));
 
 /** Pack data with padding in preparation for encryption
  *
