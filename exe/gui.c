@@ -116,8 +116,10 @@ int main(int argc, char **argv) {
 
     void search(void *state, const char *space, const char *key, const char *value) {
         state_t *st = state;
-        if (strcmp(st->space, space) == 0 && strcmp(st->key, key) == 0)
-            st->value = strdup(value);
+        if (strcmp(st->space, space) == 0 && strcmp(st->key, key) == 0) {
+            if (passwand_secure_malloc((void**)&st->value, strlen(value) + 1) == PW_OK)
+                strcpy(st->value, value);
+        }
     }
 
     state_t st = {
@@ -135,6 +137,8 @@ int main(int argc, char **argv) {
 
     if (st.value == NULL)
         DIE("failed to find matching entry");
+
+    passwand_secure_free(st.value, strlen(st.value) + 1);
 
     return EXIT_SUCCESS;
 }
