@@ -351,19 +351,6 @@ int main(int argc, char **argv) {
     if (parse(argc - 1, argv + 1, &options) != 0)
         return EXIT_FAILURE;
 
-    if (options.data == NULL) {
-        /* Setup default path. */
-        char *home = secure_getenv("HOME");
-        if (home == NULL)
-            DIE("can't determine home directory");
-        char *path = malloc(strlen(home) + strlen("/.passwand.json") + 1);
-        if (path == NULL)
-            DIE("out of memory while constructing default path");
-        strcpy(path, home);
-        strcat(path, "/.passwand.json");
-        options.data = path;
-    }
-
     passwand_entry_t *entries;
     unsigned entry_len;
     passwand_error_t err = passwand_import(options.data, &entries, &entry_len);

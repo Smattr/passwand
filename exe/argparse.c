@@ -77,5 +77,18 @@ int parse(int argc, char **argv, options_t *options) {
         }
     }
 
+    if (options->data == NULL) {
+        /* Setup default path. */
+        char *home = secure_getenv("HOME");
+        if (home == NULL)
+            return -1;
+        char *path = malloc(strlen(home) + strlen("/.passwand.json") + 1);
+        if (path == NULL)
+            return -1;
+        strcpy(path, home);
+        strcat(path, "/.passwand.json");
+        options->data = path;
+    }
+
     return 0;
 }
