@@ -213,8 +213,9 @@ static int set(const options_t *options, master_t *master, passwand_entry_t *ent
             sizeof(passwand_entry_t) * (entry_len - st.index - 1));
     size_t new_entry_len = st.found ? entry_len : entry_len + 1;
 
-    if (passwand_export(options->data, new_entries, new_entry_len) != PW_OK)
-        DIE("failed to export entries");
+    passwand_error_t err = passwand_export(options->data, new_entries, new_entry_len);
+    if (err != PW_OK)
+        DIE("failed to export entries: %s", passwand_error(err));
 
     discard_master(master);
     return EXIT_SUCCESS;
