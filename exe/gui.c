@@ -7,6 +7,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define DIE(args...) \
+    do { \
+        GtkWidget *dialog = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, ## args); \
+        gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK); \
+        gtk_widget_show_all(dialog); \
+        gtk_dialog_run(GTK_DIALOG(dialog)); \
+        exit(EXIT_FAILURE); \
+    } while (0)
+
 char *get_text(const char *title, const char *message, const char *initial, bool hidden) {
 
     assert(title != NULL);
@@ -82,7 +91,14 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
 
     char *master = get_text("Passwand", "Master passphrase?", NULL, true);
-    printf("%s\n", master);
+    if (master == NULL)
+        return EXIT_FAILURE;
+
+    passwand_entry_t *entries;
+    unsigned entry_len;
+    passwand_error_t err = passwand_import(options.data, &entries, &entry_len);
+    if (err != PW_OK)
+        DIE("failed to import database: %s\n", passwand_error(err));
 
     return EXIT_SUCCESS;
 }
