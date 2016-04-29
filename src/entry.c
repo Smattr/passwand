@@ -54,7 +54,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
     AUTO_K_T(k);
     if (k == NULL)
         return PW_NO_MEM;
-    err = make_key(m, &salt, work_factor, k);
+    err = make_key(m, &salt, work_factor, *k);
     if (err != PW_OK)
         return err;
 
@@ -66,7 +66,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
 
     /* Setup an encryption context. */
     EVP_CIPHER_CTX ctx;
-    err = aes_encrypt_init(k, iv, &ctx);
+    err = aes_encrypt_init(*k, iv, &ctx);
     if (err != PW_OK)
         return err;
 
@@ -321,7 +321,7 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
     AUTO_K_T(k);
     if (k == NULL)
         return PW_NO_MEM;
-    err = make_key(m, &salt, e->work_factor, k);
+    err = make_key(m, &salt, e->work_factor, *k);
     if (err != PW_OK)
         return err;
 
@@ -333,7 +333,7 @@ passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
 
     /* Setup a decryption context. */
     EVP_CIPHER_CTX ctx;
-    err = aes_decrypt_init(k, iv, &ctx);
+    err = aes_decrypt_init(*k, iv, &ctx);
     if (err != PW_OK)
         return err;
 

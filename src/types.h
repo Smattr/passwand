@@ -18,10 +18,7 @@ typedef struct {
 } m_t;
 
 /* Encryption keys */
-typedef struct {
-    uint8_t *data;
-    size_t length;
-} k_t;
+typedef uint8_t k_t[AES_KEY_SIZE];
 
 /* Initialisation vectors */
 typedef uint8_t iv_t[PW_IV_LEN];

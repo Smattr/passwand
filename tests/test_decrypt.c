@@ -11,11 +11,7 @@ TEST("decrypt: decrypt(encrypt(x)) == x") {
 
     /* First let's encrypt something. */
 
-    uint8_t _key[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
-    const k_t key = {
-        .data = _key,
-        .length = sizeof _key,
-    };
+    const k_t key = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
     const iv_t iv = { 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32 };
 
     uint8_t _pp[] = { 'h', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 0, 0, 0, 0, 0 };
@@ -27,7 +23,7 @@ TEST("decrypt: decrypt(encrypt(x)) == x") {
     ct_t c;
 
     EVP_CIPHER_CTX ctx;
-    passwand_error_t err = aes_encrypt_init(&key, iv, &ctx);
+    passwand_error_t err = aes_encrypt_init(key, iv, &ctx);
     CU_ASSERT_EQUAL_FATAL(err, PW_OK);
 
     err = aes_encrypt(&ctx, &pp, &c);
@@ -42,7 +38,7 @@ TEST("decrypt: decrypt(encrypt(x)) == x") {
 
     ppt_t out;
 
-    err = aes_decrypt_init(&key, iv, &ctx);
+    err = aes_decrypt_init(key, iv, &ctx);
     CU_ASSERT_EQUAL_FATAL(err, PW_OK);
 
     err = aes_decrypt(&ctx, &c, &out);
@@ -60,11 +56,7 @@ TEST("decrypt: decrypt(encrypt(x)) == x") {
 
 TEST("decrypt: with bad key") {
 
-    uint8_t _key[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
-    k_t key = {
-        .data = _key,
-        .length = sizeof _key,
-    };
+    k_t key = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
     const iv_t iv = { 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32 };
 
     uint8_t _pp[] = { 'h', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 0, 0, 0, 0, 0 };
@@ -76,7 +68,7 @@ TEST("decrypt: with bad key") {
     ct_t c;
 
     EVP_CIPHER_CTX ctx;
-    passwand_error_t err = aes_encrypt_init(&key, iv, &ctx);
+    passwand_error_t err = aes_encrypt_init(key, iv, &ctx);
     CU_ASSERT_EQUAL_FATAL(err, PW_OK);
 
     err = aes_encrypt(&ctx, &pp, &c);
@@ -89,11 +81,11 @@ TEST("decrypt: with bad key") {
 
     /* Now modify the key and try to decrypt with it. */
 
-    key.data[10] = 42;
+    key[10] = 42;
 
     ppt_t out;
 
-    err = aes_decrypt_init(&key, iv, &ctx);
+    err = aes_decrypt_init(key, iv, &ctx);
     CU_ASSERT_EQUAL_FATAL(err, PW_OK);
 
     err = aes_decrypt(&ctx, &c, &out);
@@ -115,11 +107,7 @@ TEST("decrypt: with bad key") {
 
 TEST("decrypt: with bad initialisation vector") {
 
-    uint8_t _key[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
-    const k_t key = {
-        .data = _key,
-        .length = sizeof _key,
-    };
+    k_t key = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
     iv_t iv = { 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32 };
 
     uint8_t _pp[] = { 'h', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 0, 0, 0, 0, 0 };
@@ -131,7 +119,7 @@ TEST("decrypt: with bad initialisation vector") {
     ct_t c;
 
     EVP_CIPHER_CTX ctx;
-    passwand_error_t err = aes_encrypt_init(&key, iv, &ctx);
+    passwand_error_t err = aes_encrypt_init(key, iv, &ctx);
     CU_ASSERT_EQUAL_FATAL(err, PW_OK);
 
     err = aes_encrypt(&ctx, &pp, &c);
@@ -148,7 +136,7 @@ TEST("decrypt: with bad initialisation vector") {
 
     ppt_t out;
 
-    err = aes_decrypt_init(&key, iv, &ctx);
+    err = aes_decrypt_init(key, iv, &ctx);
     CU_ASSERT_EQUAL_FATAL(err, PW_OK);
 
     err = aes_decrypt(&ctx, &c, &out);
