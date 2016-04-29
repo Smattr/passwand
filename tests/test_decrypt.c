@@ -11,8 +11,10 @@ TEST("decrypt: decrypt(encrypt(x)) == x") {
 
     /* First let's encrypt something. */
 
+    uint8_t _key[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
     const k_t key = {
-        .for_encryption = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 },
+        .data = _key,
+        .length = sizeof _key,
     };
     const iv_t iv = { 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32 };
 
@@ -58,8 +60,10 @@ TEST("decrypt: decrypt(encrypt(x)) == x") {
 
 TEST("decrypt: with bad key") {
 
+    uint8_t _key[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
     k_t key = {
-        .for_encryption = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 },
+        .data = _key,
+        .length = sizeof _key,
     };
     const iv_t iv = { 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32 };
 
@@ -85,7 +89,7 @@ TEST("decrypt: with bad key") {
 
     /* Now modify the key and try to decrypt with it. */
 
-    key.for_encryption[10] = 42;
+    key.data[10] = 42;
 
     ppt_t out;
 
@@ -111,8 +115,10 @@ TEST("decrypt: with bad key") {
 
 TEST("decrypt: with bad initialisation vector") {
 
+    uint8_t _key[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
     const k_t key = {
-        .for_encryption = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 },
+        .data = _key,
+        .length = sizeof _key,
     };
     iv_t iv = { 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32 };
 

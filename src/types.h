@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "constants.h"
 #include <passwand/passwand.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -20,8 +19,8 @@ typedef struct {
 
 /* Encryption keys */
 typedef struct {
-    uint8_t for_encryption[AES_KEY_SIZE];
-    uint8_t for_mac[AES_KEY_SIZE];
+    uint8_t *data;
+    size_t length;
 } k_t;
 
 /* Initialisation vectors */

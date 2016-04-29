@@ -326,8 +326,10 @@ TEST("AES128 reads at least 16 bytes of a supplied initialisation vector") {
 }
 
 TEST("encrypt: encrypt(\"\")") {
+    uint8_t _key[16] = { 0 };
     const k_t key = {
-        .for_encryption = { 0 },
+        .data = _key,
+        .length = sizeof _key,
     };
     const iv_t iv = { 0 };
     uint8_t _pp[1] = { 0 };
@@ -352,8 +354,10 @@ TEST("encrypt: encrypt(\"\")") {
 }
 
 TEST("encrypt: basic functionality") {
+    uint8_t _key[16] = { 0 };
     const k_t key = {
-        .for_encryption = { 0 },
+        .data = _key,
+        .length = sizeof _key,
     };
     const iv_t iv = { 0 };
     uint8_t _pp[16] = { 0 };
@@ -380,8 +384,10 @@ TEST("encrypt: basic functionality") {
 }
 
 TEST("encrypt: with unaligned data") {
+    uint8_t _key[16] = { 0 };
     const k_t key = {
-        .for_encryption = { 0 },
+        .data = _key,
+        .length = sizeof _key,
     };
     const iv_t iv = { 0 };
     uint8_t _pp[16] = { 0 };

@@ -15,6 +15,7 @@ passwand_error_t make_key(const m_t *master, const salt_t *salt, int work_factor
     assert(master != NULL);
     assert(salt != NULL);
     assert(key != NULL);
+    assert(key->data != NULL);
 
     if (work_factor == -1)
         work_factor = 14; // default value
@@ -26,7 +27,7 @@ passwand_error_t make_key(const m_t *master, const salt_t *salt, int work_factor
     static const uint32_t p = 1;
 
     if (libscrypt_scrypt(master->data, master->length, salt->data, salt->length,
-            ((uint64_t)1) << work_factor, r, p, (uint8_t*)key, sizeof *key) != 0)
+            ((uint64_t)1) << work_factor, r, p, key->data, key->length) != 0)
         return PW_CRYPTO;
 
     return PW_OK;

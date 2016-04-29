@@ -17,11 +17,16 @@
 
 passwand_error_t aes_encrypt_init(const k_t *key, const iv_t iv, EVP_CIPHER_CTX *ctx) {
 
+    /* We expect the key and IV to match the parameters of the algorithm we're going to use them in.
+     */
+    if (key->length != AES_KEY_SIZE)
+        return PW_BAD_KEY_SIZE;
+
     /* XXX: Move this comment to somewhere top-level.
      * We use AES128 here because it has a more well designed key schedule than
      * AES256. CTR mode is recommended by Agile Bits over CBC mode.
      */
-    if (EVP_EncryptInit(ctx, EVP_aes_128_ctr(), key->for_encryption, iv) != 1)
+    if (EVP_EncryptInit(ctx, EVP_aes_128_ctr(), key->data, iv) != 1)
         return PW_CRYPTO;
 
     /* Disable padding as we pre-pad the input. */
@@ -73,7 +78,11 @@ passwand_error_t aes_encrypt_deinit(EVP_CIPHER_CTX *ctx) {
 
 passwand_error_t aes_decrypt_init(const k_t *key, const iv_t iv, EVP_CIPHER_CTX *ctx) {
 
-    if (EVP_DecryptInit(ctx, EVP_aes_128_ctr(), key->for_encryption, iv) != 1)
+    /* See comment in aes_encrypt. */
+    if (key->length != AES_KEY_SIZE)
+        return PW_BAD_KEY_SIZE;
+
+    if (EVP_DecryptInit(ctx, EVP_aes_128_ctr(), key->data, iv) != 1)
         return PW_CRYPTO;
 
     /* Disable padding. */
