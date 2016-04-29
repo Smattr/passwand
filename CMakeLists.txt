@@ -28,6 +28,9 @@ find_library (CUNIT NAMES cunit libcunit cunitlib)
 # CMake to the install path and explicitly direct it to libscrypt.so.0.
 find_library (SCRYPT NAME libscrypt.so.0 HINTS /usr/lib)
 
+# Try to find X11.
+pkg_check_modules (X11 x11)
+
 # Try to find GTK3 or, failing that, GTK2. If neither are found, just disable building the GUI
 # client.
 pkg_check_modules (GTK3 gtk+-3.0)
@@ -42,10 +45,10 @@ else (GTK3_FOUND)
   endif (GTK2_FOUND)
 endif (GTK3_FOUND)
 
-if (GTK3_FOUND OR GTK2_FOUND)
+if ((GTK3_FOUND OR GTK2_FOUND) AND X11_FOUND)
   add_executable (pw-gui exe/gui.c exe/argparse.c)
-  target_link_libraries (pw-gui passwand ${GTK_LIBRARIES})
-endif (GTK3_FOUND OR GTK2_FOUND)
+  target_link_libraries (pw-gui passwand ${GTK_LIBRARIES} ${X11_LIBRARIES})
+endif ((GTK3_FOUND OR GTK2_FOUND) AND X11_FOUND)
 
 add_executable (pw-cli exe/cli.c exe/argparse.c)
 target_link_libraries (pw-cli passwand)

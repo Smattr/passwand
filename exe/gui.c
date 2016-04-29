@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <X11/Xlib.h>
 
 #define DIE(args...) \
     do { \
@@ -137,6 +138,14 @@ int main(int argc, char **argv) {
 
     if (st.value == NULL)
         DIE("failed to find matching entry");
+
+    char *display = secure_getenv("DISPLAY");
+    if (display == NULL)
+        display = ":0";
+
+    Display *d = XOpenDisplay(display);
+    if (d == NULL)
+        DIE("failed to open X11 display");
 
     passwand_secure_free(st.value, strlen(st.value) + 1);
 
