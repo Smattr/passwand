@@ -1,11 +1,12 @@
+#include "argparse.h"
 #include <assert.h>
 #include <gtk/gtk.h>
 #include <stdbool.h>
-#include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-char *get_text(const char *title, const char *message) {
+char *get_text(const char *title, const char *message, const char *initial, bool hidden) {
 
     assert(title != NULL);
     assert(message != NULL);
@@ -23,6 +24,10 @@ char *get_text(const char *title, const char *message) {
     /* Add the input field. */
     GtkWidget *textbox = gtk_entry_new();
     gtk_entry_set_activates_default(GTK_ENTRY(textbox), true);
+    if (initial != NULL)
+        gtk_entry_set_text(GTK_ENTRY(textbox), initial);
+    if (hidden)
+        gtk_entry_set_visibility(GTK_ENTRY(textbox), false);
     gtk_container_add(GTK_CONTAINER(content), textbox);
 
     /* Display the dialog. */
@@ -46,8 +51,28 @@ int main(int argc, char **argv) {
 
     gtk_init(&argc, &argv);
 
-    char *space = get_text("Passwand", "Name space?");
-    printf("Received: %s\n", space == NULL ? "(nil)" : space);
+    options_t options;
+    if (parse(argc, argv, &options) != 0)
+        return EXIT_FAILURE;
 
-    return 0;
+    char *space;
+    if (options.space != NULL)
+        space = options.space;
+    else
+        space = get_text("Passwand", "Name space?", NULL, false);
+    if (space == NULL)
+        return EXIT_FAILURE;
+
+    char *key;
+    if (options.key != NULL)
+        key = options.key;
+    else
+        key = get_text("Passwand", "Key?", "password", false);
+    if (key == NULL)
+        return EXIT_FAILURE;
+
+    char *master = get_text("Passwand", "Master passphrase?", NULL, true);
+    printf("%s\n", master);
+
+    return EXIT_SUCCESS;
 }
