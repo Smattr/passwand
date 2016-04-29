@@ -233,7 +233,15 @@ static passwand_error_t get_mac(const char *master, const passwand_entry_t *e, m
         free(data.data);
         return PW_NO_MEM;
     }
-    passwand_error_t err = hmac(m, &data, &salt, mac, e->work_factor);
+
+    AUTO_K_T(k);
+    if (k == NULL)
+        return PW_NO_MEM;
+    passwand_error_t err = make_key(m, &salt, e->work_factor, k);
+    if (err != PW_OK)
+        return err;
+
+    err = hmac(k, &data, mac);
     free(data.data);
 
     return err;
