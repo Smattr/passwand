@@ -100,11 +100,41 @@ int main(int argc, char **argv) {
     if (master == NULL)
         return EXIT_FAILURE;
 
+    /* Import the database. */
     passwand_entry_t *entries;
     unsigned entry_len;
     passwand_error_t err = passwand_import(options.data, &entries, &entry_len);
     if (err != PW_OK)
-        DIE("failed to import database: %s\n", passwand_error(err));
+        DIE("failed to import database: %s", passwand_error(err));
+
+    /* State for the search we'll perform. */
+    typedef struct {
+        const char *space;
+        const char *key;
+        char *value;
+    } state_t;
+
+    void search(void *state, const char *space, const char *key, const char *value) {
+        state_t *st = state;
+        if (strcmp(st->space, space) == 0 && strcmp(st->key, key) == 0)
+            st->value = strdup(value);
+    }
+
+    state_t st = {
+        .space = space,
+        .key = key,
+        .value = NULL,
+    };
+
+    for (unsigned i = 0; i < entry_len && st.value == NULL; i++) {
+        entries[i].work_factor = options.work_factor;
+        err = passwand_entry_do(master, &entries[i], search, &st);
+        if (err != PW_OK)
+            DIE("failed to decrypt entry %u: %s", i, passwand_error(err));
+    }
+
+    if (st.value == NULL)
+        DIE("failed to find matching entry");
 
     return EXIT_SUCCESS;
 }
