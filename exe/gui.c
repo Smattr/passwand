@@ -101,6 +101,12 @@ int main(int argc, char **argv) {
     if (master == NULL)
         return EXIT_FAILURE;
 
+    /* Make sure we flush all GTK operations so we don't detect ourselves as the active window
+     * later.
+     */
+    while (gtk_events_pending())
+        gtk_main_iteration();
+
     /* Import the database. */
     passwand_entry_t *entries;
     unsigned entry_len;
@@ -138,16 +144,45 @@ int main(int argc, char **argv) {
 
     if (st.value == NULL)
         DIE("failed to find matching entry");
+    char *clearer __attribute__((cleanup(autoclear))) = st.value;
 
+    /* Find the current display. */
     char *display = secure_getenv("DISPLAY");
     if (display == NULL)
         display = ":0";
-
     Display *d = XOpenDisplay(display);
     if (d == NULL)
         DIE("failed to open X11 display");
 
-    passwand_secure_free(st.value, strlen(st.value) + 1);
+    /* Find the active window. */
+    Window win;
+    int state;
+    XGetInputFocus(d, &win, &state);
+    if (win == None)
+        DIE("no window focused");
+
+    for (unsigned i = 0; i < strlen(st.value); i++) {
+        XKeyEvent e = {
+            .display = d,
+            .window = win,
+            .root = RootWindow(d, DefaultScreen(d)),
+            .subwindow = None,
+            .time = CurrentTime,
+            .x = 1,
+            .y = 1,
+            .x_root = 1,
+            .y_root = 1,
+            .same_screen = True,
+            .type = KeyPress,
+            .state = 0,
+            .keycode = XKeysymToKeycode(d, st.value[i]),
+        };
+        XSendEvent(d, win, True, KeyPressMask, (XEvent*)&e);
+        e.type = KeyRelease;
+        XSendEvent(d, win, True, KeyReleaseMask, (XEvent*)&e);
+    }
+
+    XCloseDisplay(d);
 
     return EXIT_SUCCESS;
 }
