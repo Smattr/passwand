@@ -108,7 +108,7 @@ passwand_error_t unpack_data(const ppt_t *pp, const iv_t iv, pt_t *p) {
         return PW_TRUNCATED;
 
     /* Check the data was padded correctly. */
-    if (d.length - p->length > 16)
+    if (d.length - p->length > AES_BLOCK_SIZE)
         return PW_BAD_PADDING;
 
     /* Now we're ready to unpack it. */
