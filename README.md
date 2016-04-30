@@ -47,7 +47,7 @@ documented below (partly to inform you, partly to remind myself):
   * Most crypto tools, including 1Password, use a [CSPRNG](https://en.wikipedia.org/wiki/Cryptographically_secure_pseudorandom_number_generator)
     for generating random data. Instead, we just **read directly from /dev/random** because we have
     no need for low latency and there are flaws with most of the widely available CSPRNGs.
-  * Instead of using a PBKDF2-HMAC-SHA512 as a
+  * Instead of using PBKDF2-HMAC-SHA512 as a
     [KDF](https://en.wikipedia.org/wiki/Key_derivation_function), we use **Scrypt**. Agile Bits note
     that they would probably also do this (as it has better resistance against GPU-hosted attacks)
     except for it not being widely available outside of Linux/BSD.
@@ -60,7 +60,8 @@ documented below (partly to inform you, partly to remind myself):
   * We use **random padding bytes** and so does 1Password, though Agile Bits suggest deterministic
     padding based on an [IETF draft](https://www.ietf.org/id/draft-mcgrew-aead-aes-cbc-hmac-sha2-01.txt)
     may be simpler with no loss of security. I do not follow their argument for why this does not
-    weaken security, so have stuck with random padding.
+    weaken security, so have stuck with random padding (even though our use of AES in CTR mode
+    actually obviates the need for padding entirely).
   * Our packed data format begins with `oprime01`, while 1Password's begins with `opdata01`. This
     value is arbitrary and there was no rationale for using the same format marker as 1Password when
     our format is not the same.
@@ -79,9 +80,9 @@ documented below (partly to inform you, partly to remind myself):
   * We use **AES256 encryption**. 1Password switched from 128-bit AES encryption to 256-bit, though they themselves
     acknowledge that it provides no practical increase in security. The only non-PR motivation they
     have for switching is defending against brute force attacks by quantum computers. The time taken
-    to brute force a 128-bit key on a quantum computer is proportional to 2^64^, instead of 2^128^,
+    to brute force a 128-bit key on a quantum computer is proportional to 2⁶⁴, instead of 2¹²⁸,
     making this feasible. Brute forcing a 256-bit key on a quantum computer is supposedly
-    proportional to 2^128^. A brute force attack proportional to 2^128^ (classical computer on a
+    proportional to 2¹²⁸. A brute force attack proportional to 2¹²⁸ (classical computer on a
     128-bit key or quantum computer on a 256-bit key) is currently considered infeasible. The NSA
     also uses this motivation for their use of 256-bit keys.
     [More](https://blog.agilebits.com/2013/03/09/guess-why-were-moving-to-256-bit-aes-keys/).
