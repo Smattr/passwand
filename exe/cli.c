@@ -185,6 +185,14 @@ static int set(const options_t *options, master_t *master, passwand_entry_t *ent
     REQUIRED(key);
     REQUIRED(value);
 
+    master_t *confirm = getpassword("confirm master password: ");
+    if (confirm == NULL)
+        DIE("out of memory");
+    bool r = strcmp(master->master, confirm->master) == 0;
+    discard_master(confirm);
+    if (!r)
+        DIE("passwords do not match");
+
     passwand_entry_t e;
     if (passwand_entry_new(&e, master->master, options->space, options->key, options->value,
             options->work_factor) != PW_OK)
