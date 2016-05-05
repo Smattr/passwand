@@ -73,7 +73,7 @@ int parse(int argc, char **argv, options_t *options) {
                 break;
 
             default:
-                abort();
+                return -1;
         }
     }
 
