@@ -161,7 +161,8 @@ typedef struct {
     const char *key;
 } set_state_t;
 
-static void set_body(void *state, const char *space, const char *key, const char *value) {
+static void set_body(void *state, const char *space, const char *key,
+        const char *value __attribute__((unused))) {
 
     assert(state != NULL);
     assert(space != NULL);
