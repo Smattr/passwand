@@ -77,6 +77,11 @@ int parse(int argc, char **argv, options_t *options) {
         }
     }
 
+    if (optind < argc) {
+        fprintf(stderr, "unrecognised argument %s\n", argv[optind]);
+        return -1;
+    }
+
     if (options->data == NULL) {
         /* Setup default path. */
         char *home = secure_getenv("HOME");
