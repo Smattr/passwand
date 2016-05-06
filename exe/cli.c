@@ -99,27 +99,27 @@ static void discard_master(master_t *m) {
     passwand_secure_free(m, sizeof *m);
 }
 
-typedef struct {
-    const options_t *options;
-    bool found;
-} find_state_t;
-
-static void get_body(void *state, const char *space, const char *key, const char *value) {
-
-    assert(state != NULL);
-    assert(space != NULL);
-    assert(key != NULL);
-    assert(value != NULL);
-
-    find_state_t *st = state;
-    if (strcmp(st->options->space, space) == 0 && strcmp(st->options->key, key) == 0) {
-        puts(value);
-        st->found = true;
-    }
-}
-
 static int get(const options_t *options, master_t *master, passwand_entry_t *entries,
         unsigned entry_len) {
+
+    typedef struct {
+        const options_t *options;
+        bool found;
+    } find_state_t;
+
+    void get_body(void *state, const char *space, const char *key, const char *value) {
+
+        assert(state != NULL);
+        assert(space != NULL);
+        assert(key != NULL);
+        assert(value != NULL);
+
+        find_state_t *st = state;
+        if (strcmp(st->options->space, space) == 0 && strcmp(st->options->key, key) == 0) {
+            puts(value);
+            st->found = true;
+        }
+    }
 
     find_state_t st = {
         .options = options,
@@ -135,30 +135,6 @@ static int get(const options_t *options, master_t *master, passwand_entry_t *ent
 
     discard_master(master);
     return EXIT_SUCCESS;
-}
-
-typedef struct {
-    bool found;
-    unsigned index;
-    const char *space;
-    const char *key;
-} set_state_t;
-
-static void set_body(void *state, const char *space, const char *key,
-        const char *value __attribute__((unused))) {
-
-    assert(state != NULL);
-    assert(space != NULL);
-    assert(key != NULL);
-    assert(value != NULL);
-
-    set_state_t *st = state;
-    if (strcmp(st->space, space) == 0 && strcmp(st->key, key) == 0) {
-        /* This entry matches the one we just set. Mark it. */
-        st->found = true;
-    } else {
-        st->index++;
-    }
 }
 
 static int set(const options_t *options, master_t *master, passwand_entry_t *entries,
@@ -179,6 +155,31 @@ static int set(const options_t *options, master_t *master, passwand_entry_t *ent
 
     /* Figure out if the entry we've just created collides with (and overwrites) an existing one.
      */
+
+    typedef struct {
+        bool found;
+        unsigned index;
+        const char *space;
+        const char *key;
+    } set_state_t;
+
+    void set_body(void *state, const char *space, const char *key,
+            const char *value __attribute__((unused))) {
+
+        assert(state != NULL);
+        assert(space != NULL);
+        assert(key != NULL);
+        assert(value != NULL);
+
+        set_state_t *st = state;
+        if (strcmp(st->space, space) == 0 && strcmp(st->key, key) == 0) {
+            /* This entry matches the one we just set. Mark it. */
+            st->found = true;
+        } else {
+            st->index++;
+        }
+    }
+
     set_state_t st = {
         .found = false,
         .index = 0,
@@ -232,22 +233,6 @@ static int list(const options_t *options __attribute__((unused)), master_t *mast
     return EXIT_SUCCESS;
 }
 
-typedef struct {
-    master_t *master;
-    passwand_entry_t *entries;
-    unsigned index;
-    passwand_error_t err;
-    int work_factor;
-} change_master_state_t;
-
-static void change_master_body(void *state, const char *space, const char *key,
-        const char *value) {
-    change_master_state_t *st = state;
-    st->err = passwand_entry_new(&st->entries[st->index], st->master->master, space, key, value,
-        st->work_factor);
-    st->index++;
-}
-
 static int change_master(const options_t *options, master_t *master, passwand_entry_t *entries,
         unsigned entry_len) {
 
@@ -273,6 +258,22 @@ static int change_master(const options_t *options, master_t *master, passwand_en
     if (new_entries == NULL) {
         discard_master(new_master);
         DIE("out of memory");
+    }
+
+    typedef struct {
+        master_t *master;
+        passwand_entry_t *entries;
+        unsigned index;
+        passwand_error_t err;
+        int work_factor;
+    } change_master_state_t;
+
+    void change_master_body(void *state, const char *space, const char *key,
+            const char *value) {
+        change_master_state_t *st = state;
+        st->err = passwand_entry_new(&st->entries[st->index], st->master->master, space, key, value,
+            st->work_factor);
+        st->index++;
     }
 
     change_master_state_t st = {
