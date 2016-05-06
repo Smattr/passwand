@@ -67,6 +67,34 @@ char *get_text(const char *title, const char *message, const char *initial, bool
     return r;
 }
 
+static int send_char(Display *display, Window window, char c) {
+
+    if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' ||
+           c == ' '))
+        return -1;
+
+    XKeyEvent e = {
+        .display = display,
+        .window = window,
+        .root = RootWindow(display, DefaultScreen(display)),
+        .subwindow = None,
+        .time = CurrentTime,
+        .x = 1,
+        .y = 1,
+        .x_root = 1,
+        .y_root = 1,
+        .same_screen = True,
+        .type = KeyPress,
+        .state = (c >= 'A' && c <= 'Z') ? ShiftMask : 0,
+        .keycode = XKeysymToKeycode(display, c),
+    };
+    XSendEvent(display, window, True, KeyPressMask, (XEvent*)&e);
+    e.type = KeyRelease;
+    XSendEvent(display, window, True, KeyReleaseMask, (XEvent*)&e);
+
+    return 0;
+}
+
 int main(int argc, char **argv) {
 
     gtk_init(&argc, &argv);
@@ -162,24 +190,8 @@ int main(int argc, char **argv) {
         DIE("no window focused");
 
     for (unsigned i = 0; i < strlen(st.value); i++) {
-        XKeyEvent e = {
-            .display = d,
-            .window = win,
-            .root = RootWindow(d, DefaultScreen(d)),
-            .subwindow = None,
-            .time = CurrentTime,
-            .x = 1,
-            .y = 1,
-            .x_root = 1,
-            .y_root = 1,
-            .same_screen = True,
-            .type = KeyPress,
-            .state = 0,
-            .keycode = XKeysymToKeycode(d, st.value[i]),
-        };
-        XSendEvent(d, win, True, KeyPressMask, (XEvent*)&e);
-        e.type = KeyRelease;
-        XSendEvent(d, win, True, KeyReleaseMask, (XEvent*)&e);
+        if (send_char(d, win, st.value[i]) != 0)
+            DIE("failed to send character \"%c\"", st.value[i]);
     }
 
     XCloseDisplay(d);
