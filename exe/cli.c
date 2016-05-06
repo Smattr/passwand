@@ -118,25 +118,8 @@ static void get_body(void *state, const char *space, const char *key, const char
     }
 }
 
-#define REQUIRED(field) \
-    do { \
-        if (options->field == NULL) { \
-            DIE("missing required argument --" #field); \
-        } \
-    } while (0)
-#define IGNORED(field) \
-    do { \
-        if (options->field != NULL) { \
-            DIE("irrelevant argument --" #field); \
-        } \
-    } while (0)
-
 static int get(const options_t *options, master_t *master, passwand_entry_t *entries,
         unsigned entry_len) {
-
-    REQUIRED(space);
-    REQUIRED(key);
-    IGNORED(value);
 
     find_state_t st = {
         .options = options,
@@ -180,10 +163,6 @@ static void set_body(void *state, const char *space, const char *key,
 
 static int set(const options_t *options, master_t *master, passwand_entry_t *entries,
         unsigned entry_len) {
-
-    REQUIRED(space);
-    REQUIRED(key);
-    REQUIRED(value);
 
     master_t *confirm = getpassword("confirm master password: ");
     if (confirm == NULL)
@@ -230,12 +209,8 @@ static int set(const options_t *options, master_t *master, passwand_entry_t *ent
     return EXIT_SUCCESS;
 }
 
-static int list(const options_t *options, master_t *master, passwand_entry_t *entries,
-        unsigned entry_len) {
-
-    IGNORED(space);
-    IGNORED(key);
-    IGNORED(value);
+static int list(const options_t *options __attribute__((unused)), master_t *master,
+        passwand_entry_t *entries, unsigned entry_len) {
 
     /* Note that this nested function does not induce a trampoline because it does not modify local
      * state.
@@ -275,10 +250,6 @@ static void change_master_body(void *state, const char *space, const char *key,
 
 static int change_master(const options_t *options, master_t *master, passwand_entry_t *entries,
         unsigned entry_len) {
-
-    IGNORED(space);
-    IGNORED(key);
-    IGNORED(value);
 
     master_t *new_master = getpassword("new master password: ");
     if (new_master == NULL)
@@ -342,7 +313,6 @@ int main(int argc, char **argv) {
         printf("usage: %s action options...\n", argv[0]);
         return EXIT_SUCCESS;
     }
-
     master_t *master = NULL;
 
     if (strcmp(argv[1], "get") == 0)
@@ -368,6 +338,38 @@ int main(int argc, char **argv) {
 
     for (unsigned i = 0; i < entry_len; i++)
         entries[i].work_factor = options.work_factor;
+
+#define REQUIRED(field) \
+    do { \
+        if (options.field == NULL) { \
+            DIE("missing required argument --" #field); \
+        } \
+    } while (0)
+#define IGNORED(field) \
+    do { \
+        if (options.field != NULL) { \
+            DIE("irrelevant argument --" #field); \
+        } \
+    } while (0)
+    if (action == get) {
+        REQUIRED(space);
+        REQUIRED(key);
+        IGNORED(value);
+    } else if (action == set) {
+        REQUIRED(space);
+        REQUIRED(key);
+        REQUIRED(value);
+    } else if (action == list) {
+        IGNORED(space);
+        IGNORED(key);
+        IGNORED(value);
+    } else if (action == change_master) {
+        IGNORED(space);
+        IGNORED(key);
+        IGNORED(value);
+    }
+#undef IGNORED
+#undef REQUIRED
 
     master = getpassword(NULL);
     if (master == NULL)
