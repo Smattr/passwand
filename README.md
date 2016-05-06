@@ -55,7 +55,7 @@ documented below (partly to inform you, partly to remind myself):
     key and a 256-bit HMAC key. Instead we just **run our KDF twice with different salts**
     to generate one key for encryption and one key for HMAC. This is possible because our KDF,
     Scrypt, does not have a fixed width unlike theirs.
-  * Like 1Password, we **prepend padding** instead of appending it. Agile Bits argument for this is
+  * Like 1Password, we **prepend padding** instead of appending it. Agile Bits' argument for this is
     that it acts as an extra initialisation vector.
   * We use **random padding bytes** and so does 1Password, though Agile Bits suggest deterministic
     padding based on an [IETF draft](https://www.ietf.org/id/draft-mcgrew-aead-aes-cbc-hmac-sha2-01.txt)
