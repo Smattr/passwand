@@ -86,3 +86,7 @@ documented below (partly to inform you, partly to remind myself):
     128-bit key or quantum computer on a 256-bit key) is currently considered infeasible. The NSA
     also uses this motivation for their use of 256-bit keys.
     [More](https://blog.agilebits.com/2013/03/09/guess-why-were-moving-to-256-bit-aes-keys/).
+  * We use a **default Scrypt work factor of 2¹⁴**. This is based on a
+    [presentation from Colin Percival](https://www.tarsnap.com/scrypt/scrypt-slides.pdf), wherein
+    he recommends this work factor for interactive logins. You should use the highest work factor
+    that is at least 2¹⁴ and is not intolerably slow to you.
