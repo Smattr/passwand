@@ -67,10 +67,58 @@ char *get_text(const char *title, const char *message, const char *initial, bool
     return r;
 }
 
+static bool supported_lower(char c) {
+    switch (c) {
+        case 'a' ... 'z':
+        case '`':
+        case '0' ... '9':
+        case '-':
+        case '=':
+        case '[':
+        case ']':
+        case '\\':
+        case ';':
+        case '\'':
+        case ',':
+        case '.':
+        case '/':
+            return true;
+    }
+    return false;
+}
+
+static bool supported_upper(char c) {
+    switch (c) {
+        case 'A' ... 'Z':
+        case '~':
+        case '!':
+        case '@':
+        case '#':
+        case '$':
+        case '%':
+        case '^':
+        case '&':
+        case '*':
+        case '(':
+        case ')':
+        case '_':
+        case '+':
+        case '{':
+        case '}':
+        case '|':
+        case ':':
+        case '"':
+        case '<':
+        case '>':
+        case '?':
+            return true;
+    }
+    return false;
+}
+
 static int send_char(Display *display, Window window, char c) {
 
-    if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' ||
-           c == ' ' || c == '_'))
+    if (!(supported_upper(c) || supported_lower(c)))
         return -1;
 
     XKeyEvent e = {
@@ -85,7 +133,7 @@ static int send_char(Display *display, Window window, char c) {
         .y_root = 1,
         .same_screen = True,
         .type = KeyPress,
-        .state = ((c >= 'A' && c <= 'Z') || c == '_') ? ShiftMask : 0,
+        .state = supported_upper(c) ? ShiftMask : 0,
         .keycode = XKeysymToKeycode(display, c),
     };
     XSendEvent(display, window, True, KeyPressMask, (XEvent*)&e);
