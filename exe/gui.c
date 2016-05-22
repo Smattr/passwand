@@ -70,7 +70,7 @@ char *get_text(const char *title, const char *message, const char *initial, bool
 static int send_char(Display *display, Window window, char c) {
 
     if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' ||
-           c == ' '))
+           c == ' ' || c == '_'))
         return -1;
 
     XKeyEvent e = {
@@ -85,7 +85,7 @@ static int send_char(Display *display, Window window, char c) {
         .y_root = 1,
         .same_screen = True,
         .type = KeyPress,
-        .state = (c >= 'A' && c <= 'Z') ? ShiftMask : 0,
+        .state = ((c >= 'A' && c <= 'Z') || c == '_') ? ShiftMask : 0,
         .keycode = XKeysymToKeycode(display, c),
     };
     XSendEvent(display, window, True, KeyPressMask, (XEvent*)&e);
