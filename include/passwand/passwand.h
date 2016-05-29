@@ -97,7 +97,7 @@ passwand_error_t passwand_entry_check_mac(const char *master, const passwand_ent
  * @param state  State passed to the user action
  * @return       PW_OK on success
  */
-passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
+passwand_error_t passwand_entry_do(const char *master, const passwand_entry_t *e,
     void (*action)(void *state, const char *space, const char *key, const char *value),
     void *state);
 

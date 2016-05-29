@@ -295,7 +295,7 @@ passwand_error_t passwand_entry_check_mac(const char *master, const passwand_ent
     return r ? PW_OK : PW_BAD_HMAC;
 }
 
-passwand_error_t passwand_entry_do(const char *master, passwand_entry_t *e,
+passwand_error_t passwand_entry_do(const char *master, const passwand_entry_t *e,
         void (*action)(void *state, const char *space, const char *key, const char *value),
         void *state) {
 
