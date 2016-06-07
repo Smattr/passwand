@@ -2,10 +2,12 @@
 #include <assert.h>
 #include <gtk/gtk.h>
 #include <passwand/passwand.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <X11/Xlib.h>
 
 #define DIE(args...) \
@@ -143,6 +145,76 @@ static int send_char(Display *display, Window window, char c) {
     return 0;
 }
 
+typedef struct {
+    bool *done;
+    unsigned *index;
+    const passwand_entry_t *entries;
+    unsigned entry_len;
+    const char *master;
+    const char *space;
+    const char *key;
+
+    const char *err_message;
+} thread_state_t;
+
+static void *search(void *arg) {
+    assert(arg != NULL);
+
+    thread_state_t *ts = arg;
+    assert(ts->done != NULL);
+    assert(ts->index != NULL);
+    assert(ts->entries != NULL);
+    assert(ts->master != NULL);
+    assert(ts->space != NULL);
+    assert(ts->key != NULL);
+    assert(ts->err_message == NULL);
+
+    /* State for the search we'll perform. */
+    typedef struct {
+        const char *space;
+        const char *key;
+        char *value;
+    } state_t;
+
+    void check(void *state, const char *space, const char *key, const char *value) {
+        state_t *st = state;
+        if (strcmp(st->space, space) == 0 && strcmp(st->key, key) == 0) {
+            if (passwand_secure_malloc((void**)&st->value, strlen(value) + 1) == PW_OK)
+                strcpy(st->value, value);
+        }
+    }
+
+    state_t st = {
+        .space = ts->space,
+        .key = ts->key,
+    };
+
+    for (;;) {
+
+        if (__atomic_load_n(ts->done, __ATOMIC_SEQ_CST))
+            break;
+
+        /* Get the next entry to check */
+        unsigned index = __atomic_fetch_add(ts->index, 1, __ATOMIC_SEQ_CST);
+        if (index >= ts->entry_len)
+            break;
+
+        passwand_error_t err = passwand_entry_do(ts->master, &ts->entries[index], check, &st);
+        if (err != PW_OK) {
+            ts->err_message = passwand_error(err);
+            return (void*)-1;
+        }
+
+        if (st.value != NULL) {
+            /* We found it! */
+            __atomic_store_n(ts->done, true, __ATOMIC_SEQ_CST);
+            return st.value;
+        }
+    }
+
+    return NULL;
+}
+
 int main(int argc, char **argv) {
 
     gtk_init(&argc, &argv);
@@ -190,37 +262,75 @@ int main(int argc, char **argv) {
     if (err != PW_OK)
         DIE("failed to import database: %s", passwand_error(err));
 
-    /* State for the search we'll perform. */
-    typedef struct {
-        const char *space;
-        const char *key;
-        char *value;
-    } state_t;
+    for (unsigned i = 0; i < entry_len; i++)
+        entries[i].work_factor = options.work_factor;
 
-    void search(void *state, const char *space, const char *key, const char *value) {
-        state_t *st = state;
-        if (strcmp(st->space, space) == 0 && strcmp(st->key, key) == 0) {
-            if (passwand_secure_malloc((void**)&st->value, strlen(value) + 1) == PW_OK)
-                strcpy(st->value, value);
+    /* We now are ready to search for the entry, but let's parallelise it across as many cores as
+     * we have to speed it up.
+     */
+
+    char *value = NULL;
+
+    long cpus = sysconf(_SC_NPROCESSORS_ONLN);
+    assert(cpus >= 1);
+
+    thread_state_t *tses = calloc(cpus, sizeof(thread_state_t));
+    if (tses == NULL)
+        DIE("out of memory");
+
+    pthread_t *threads = calloc(cpus - 1, sizeof(pthread_t));
+    if (threads == NULL)
+        DIE("out of memory");
+
+    bool done = false;
+    unsigned index = 0;
+
+    /* Initialise and start threads. */
+    for (long i = 0; i < cpus; i++) {
+        tses[i].done = &done;
+        tses[i].index = &index;
+        tses[i].entries = entries;
+        tses[i].entry_len = entry_len;
+        tses[i].master = master;
+        tses[i].space = space;
+        tses[i].key = key;
+
+        if (i < cpus - 1) {
+            int r = pthread_create(&threads[i], NULL, search, &tses[i]);
+            if (r != 0)
+                DIE("failed to create thread %ld", i + 1);
         }
     }
 
-    state_t st = {
-        .space = space,
-        .key = key,
-        .value = NULL,
-    };
-
-    for (unsigned i = 0; i < entry_len && st.value == NULL; i++) {
-        entries[i].work_factor = options.work_factor;
-        err = passwand_entry_do(master, &entries[i], search, &st);
-        if (err != PW_OK)
-            DIE("failed to decrypt entry %u: %s", i, passwand_error(err));
+    /* Join the other threads in searching. */
+    void *ret = search(&tses[cpus - 1]);
+    if (ret == (void*)-1) {
+        assert(tses[cpus - 1].err_message != NULL);
+        DIE("error: %s", tses[cpus - 1].err_message);
+    } else if (ret != NULL) {
+        value = ret;
     }
 
-    if (st.value == NULL)
+    /* Collect threads. */
+    for (long i = 0; i < cpus - 1; i++) {
+        int r = pthread_join(threads[i], &ret);
+        if (r != 0)
+            DIE("failed to join thread %ld", i + 1);
+        if (ret == (void*)-1) {
+            assert(tses[i].err_message != NULL);
+            DIE("error: %s", tses[i].err_message);
+        } else if (ret != NULL) {
+            assert(value == NULL && "multiple matching entries found");
+            value = ret;
+        }
+    }
+
+    free(threads);
+    free(tses);
+
+    if (value == NULL)
         DIE("failed to find matching entry");
-    char *clearer __attribute__((cleanup(autoclear))) = st.value;
+    char *clearer __attribute__((cleanup(autoclear))) = value;
 
     /* Find the current display. */
     char *display = secure_getenv("DISPLAY");
@@ -237,9 +347,9 @@ int main(int argc, char **argv) {
     if (win == None)
         DIE("no window focused");
 
-    for (unsigned i = 0; i < strlen(st.value); i++) {
-        if (send_char(d, win, st.value[i]) != 0)
-            DIE("failed to send character \"%c\"", st.value[i]);
+    for (unsigned i = 0; i < strlen(value); i++) {
+        if (send_char(d, win, value[i]) != 0)
+            DIE("failed to send character \"%c\"", value[i]);
     }
 
     XCloseDisplay(d);
