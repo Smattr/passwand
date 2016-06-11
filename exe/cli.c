@@ -210,6 +210,60 @@ static int set(const options_t *options, master_t *master, passwand_entry_t *ent
     return EXIT_SUCCESS;
 }
 
+static int delete(const options_t *options __attribute__((unused)), master_t *master,
+        passwand_entry_t *entries, unsigned entry_len) {
+
+    typedef struct {
+        bool found;
+        const char *space;
+        const char *key;
+    } delete_state_t;
+
+    void check(void *state, const char *space, const char *key,
+            const char *value __attribute__((unused))) {
+
+        assert(state != NULL);
+        assert(space != NULL);
+        assert(key != NULL);
+
+        delete_state_t *st = state;
+        assert(st->space != NULL);
+        assert(st->key != NULL);
+
+        assert(!st->found);
+        st->found = strcmp(st->space, space) == 0 && strcmp(st->key, key) == 0;
+    }
+
+    delete_state_t st = {
+        .found = false,
+        .space = options->space,
+        .key = options->key,
+    };
+
+    /* Try to find the entry to delete. */
+    unsigned i;
+    for (i = 0; i < entry_len; i++) {
+        if (passwand_entry_do(master->master, &entries[i], check, &st) != PW_OK)
+            DIE("failed to handle entry %u", i);
+        if (st.found)
+            break;
+    }
+
+    if (!st.found)
+        DIE("failed to find entry");
+
+    /* Shuffle entries following the one to be deleted, to remove the deleted one. */
+    for (unsigned j = i; j < entry_len - 1; j++)
+        entries[j] = entries[j + 1];
+
+    passwand_error_t err = passwand_export(options->data, entries, entry_len - 1);
+    if (err != PW_OK)
+        DIE("failed to export entries: %s", passwand_error(err));
+
+    discard_master(master);
+    return EXIT_SUCCESS;
+}
+
 static int list(const options_t *options __attribute__((unused)), master_t *master,
         passwand_entry_t *entries, unsigned entry_len) {
 
@@ -324,6 +378,8 @@ int main(int argc, char **argv) {
         action = list;
     else if (strcmp(argv[1], "change-master") == 0)
         action = change_master;
+    else if (strcmp(argv[1], "delete") == 0)
+        action = delete;
     else
         DIE("invalid action");
 
@@ -367,6 +423,10 @@ int main(int argc, char **argv) {
     } else if (action == change_master) {
         IGNORED(space);
         IGNORED(key);
+        IGNORED(value);
+    } else if (action == delete) {
+        REQUIRED(space);
+        REQUIRED(key);
         IGNORED(value);
     }
 #undef IGNORED
