@@ -365,7 +365,8 @@ int main(int argc, char **argv) {
         unsigned entry_len);
 
     if (argc < 2 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-?") == 0) {
-        printf("usage: %s action options...\n", argv[0]);
+        printf("usage: %s action options...\n"
+               " actions: change-master, delete, get, list, set\n", argv[0]);
         return EXIT_SUCCESS;
     }
     master_t *master = NULL;
