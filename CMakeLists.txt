@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 project (passwand)
 
-set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -W -Wall -Wextra -Wtrampolines")
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -W -Wall -Wextra -Wtrampolines -Wwrite-strings")
 add_definitions (-D_XOPEN_SOURCE=700 -D_BSD_SOURCE -D_GNU_SOURCE)
 
 if (NOT CMAKE_BUILD_TYPE)
