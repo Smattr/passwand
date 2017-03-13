@@ -13,10 +13,12 @@ int parse(int argc, char **argv, options_t *options) {
 
     memset(options, 0, sizeof *options);
     options->work_factor = 14;
+    options->jobs = 0; // == "number of CPUs"
 
     while (true) {
         struct option opts[] = {
             {"data", required_argument, 0, 'd'},
+            {"jobs", required_argument, 0, 'j'},
             {"space", required_argument, 0, 's'},
             {"key", required_argument, 0, 'k'},
             {"value", required_argument, 0, 'v'},
@@ -47,6 +49,17 @@ int parse(int argc, char **argv, options_t *options) {
             case 'd':
                 HANDLE_ARG(data);
                 break;
+
+            case 'j': {
+                char *endptr;
+                unsigned long jobs = strtoul(optarg, &endptr, 10);
+                if (endptr == optarg || *endptr != '\0' || jobs == ULONG_MAX) {
+                    fprintf(stderr, "invalid argument to --jobs\n");
+                    return -1;
+                }
+                options->jobs = jobs;
+                break;
+            }
 
             case 's':
                 HANDLE_ARG(space);
