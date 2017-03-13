@@ -62,7 +62,7 @@ int parse(int argc, char **argv, options_t *options) {
 
 #undef HANDLE_ARG
 
-            case 'N':;
+            case 'N': {
                 char *endptr;
                 unsigned long wf = strtoul(optarg, &endptr, 10);
                 if (endptr == optarg || *endptr != '\0' || wf == ULONG_MAX) {
@@ -71,6 +71,7 @@ int parse(int argc, char **argv, options_t *options) {
                 }
                 options->work_factor = wf;
                 break;
+            }
 
             default:
                 return -1;
