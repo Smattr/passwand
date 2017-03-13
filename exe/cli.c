@@ -365,8 +365,17 @@ int main(int argc, char **argv) {
         unsigned entry_len);
 
     if (argc < 2 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-?") == 0) {
-        printf("usage: %s action options...\n"
-               " actions: change-master, delete, get, list, set\n", argv[0]);
+        printf("usage:\n"
+               " %s change-master                               Change the master password\n"
+               " %s delete --space SPACE --key KEY              Delete an existing entry\n"
+               " %s get --space SPACE --key KEY                 Retrieve an existing entry\n"
+               " %s list                                        List all entries\n"
+               " %s set --space SPACE --key KEY --value VALUE   Set an entry\n"
+               "\n"
+               "common options:\n"
+               " --data DATA            Path to data file (default ~/.passwand.json)\n"
+               " --work-factor FACTOR   Scrypt work factor (default 14)\n",
+               argv[0], argv[0], argv[0], argv[0], argv[0]);
         return EXIT_SUCCESS;
     }
     master_t *master = NULL;
