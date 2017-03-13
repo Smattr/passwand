@@ -397,11 +397,13 @@ int main(int argc, char **argv) {
     if (parse(argc - 1, argv + 1, &options) != 0)
         return EXIT_FAILURE;
 
-    passwand_entry_t *entries;
-    unsigned entry_len;
-    passwand_error_t err = passwand_import(options.data, &entries, &entry_len);
-    if (err != PW_OK)
-        DIE("failed to load database: %s", passwand_error(err));
+    passwand_entry_t *entries = NULL;
+    unsigned entry_len = 0;
+    if (access(options.data, F_OK) == 0) {
+        passwand_error_t err = passwand_import(options.data, &entries, &entry_len);
+        if (err != PW_OK)
+            DIE("failed to load database: %s", passwand_error(err));
+    }
 
     for (unsigned i = 0; i < entry_len; i++)
         entries[i].work_factor = options.work_factor;
