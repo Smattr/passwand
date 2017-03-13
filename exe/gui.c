@@ -118,10 +118,9 @@ static bool supported_upper(char c) {
     return false;
 }
 
-static int send_char(Display *display, Window window, char c) {
+static void send_char(Display *display, Window window, char c) {
 
-    if (!(supported_upper(c) || supported_lower(c)))
-        return -1;
+    assert(supported_upper(c) || supported_lower(c));
 
     XKeyEvent e = {
         .display = display,
@@ -141,8 +140,6 @@ static int send_char(Display *display, Window window, char c) {
     XSendEvent(display, window, True, KeyPressMask, (XEvent*)&e);
     e.type = KeyRelease;
     XSendEvent(display, window, True, KeyReleaseMask, (XEvent*)&e);
-
-    return 0;
 }
 
 typedef struct {
@@ -348,9 +345,12 @@ int main(int argc, char **argv) {
         DIE("no window focused");
 
     for (unsigned i = 0; i < strlen(value); i++) {
-        if (send_char(d, win, value[i]) != 0)
-            DIE("failed to send character \"%c\"", value[i]);
+        if (!(supported_upper(value[i]) || supported_lower(value[i])))
+            DIE("unsupported character at index %u in entry", i);
     }
+
+    for (unsigned i = 0; i < strlen(value); i++)
+        send_char(d, win, value[i]);
 
     XCloseDisplay(d);
 
