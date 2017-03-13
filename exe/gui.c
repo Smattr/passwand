@@ -333,7 +333,7 @@ int main(int argc, char **argv) {
     char *clearer __attribute__((cleanup(autoclear))) = value;
 
     /* Find the current display. */
-    char *display = secure_getenv("DISPLAY");
+    const char *display = secure_getenv("DISPLAY");
     if (display == NULL)
         display = ":0";
     Display *d = XOpenDisplay(display);
