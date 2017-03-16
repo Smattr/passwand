@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -100,6 +101,11 @@ int parse(int argc, char **argv, options_t *options) {
         /* Setup default path. */
         char *home = secure_getenv("HOME");
         if (home == NULL)
+            return -1;
+        /* Check for overflow. */
+        if (SIZE_MAX - strlen(home) < strlen("/.passwand.json"))
+            return -1;
+        if (SIZE_MAX - strlen(home) - strlen("/.passwand.json") < 1)
             return -1;
         char *path = malloc(strlen(home) + strlen("/.passwand.json") + 1);
         if (path == NULL)
