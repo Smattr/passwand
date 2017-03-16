@@ -49,7 +49,7 @@ char *get_text(const char *title, const char *message, const char *initial, bool
 
     char *r;
     if (result == GTK_RESPONSE_OK) {
-        const char *text = strdup(gtk_entry_get_text(GTK_ENTRY(textbox)));
+        const char *text = gtk_entry_get_text(GTK_ENTRY(textbox));
         if (hidden) {
             if (passwand_secure_malloc((void**)&r, strlen(text) + 1) != PW_OK) {
                 r = NULL;
