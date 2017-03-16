@@ -1,5 +1,6 @@
 #include "argparse.h"
 #include <assert.h>
+#include <limits.h>
 #include <passwand/passwand.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -191,6 +192,9 @@ static int set(const options_t *options, master_t *master, passwand_entry_t *ent
         if (passwand_entry_do(master->master, &entries[i], set_body, &st) != PW_OK)
             DIE("failed to handle entry %u", i);
     }
+
+    if (!st.found && entry_len == UINT_MAX)
+        DIE("maximum number of entries exceeded");
 
     passwand_entry_t *new_entries = calloc(entry_len + (st.found ? 0 : 1), sizeof(passwand_entry_t));
     if (new_entries == NULL)
