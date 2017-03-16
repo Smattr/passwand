@@ -2,6 +2,7 @@
 #include <fcntl.h>
 #include "internal.h"
 #include <json.h>
+#include <limits.h>
 #include <passwand/passwand.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -89,6 +90,9 @@ passwand_error_t passwand_export(const char *path, passwand_entry_t *entries, un
 
     /* Now write out the array to the given file. */
 
+    size_t path_len = strlen(path);
+    if (SIZE_MAX - path_len < 2)
+        return PW_OVERFLOW;
     char *tmp __attribute__((cleanup(autofree))) = malloc(strlen(path) + 2);
     if (tmp == NULL)
         return PW_NO_MEM;
