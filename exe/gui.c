@@ -19,7 +19,7 @@
         exit(EXIT_FAILURE); \
     } while (0)
 
-char *get_text(const char *title, const char *message, const char *initial, bool hidden) {
+static char *get_text(const char *title, const char *message, const char *initial, bool hidden) {
 
     assert(title != NULL);
     assert(message != NULL);
