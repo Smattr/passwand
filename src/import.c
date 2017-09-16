@@ -95,14 +95,14 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
 
 #define FREE_PRECEDING() \
     do { \
-        for (unsigned j = 0; j <= i; j++) { \
-            free((*entries)[j].space); \
-            free((*entries)[j].key); \
-            free((*entries)[j].value); \
-            free((*entries)[j].hmac); \
-            free((*entries)[j].hmac_salt); \
-            free((*entries)[j].salt); \
-            free((*entries)[j].iv); \
+        for (unsigned k = 0; k <= i; k++) { \
+            free((*entries)[k].space); \
+            free((*entries)[k].key); \
+            free((*entries)[k].value); \
+            free((*entries)[k].hmac); \
+            free((*entries)[k].hmac_salt); \
+            free((*entries)[k].salt); \
+            free((*entries)[k].iv); \
         } \
         free(*entries); \
     } while (0)
