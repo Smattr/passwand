@@ -36,7 +36,6 @@ would probably not exist.
 
 The design of 1Password's key chain and `opdata` format are documented in the following:
 
-  * http://learn2.agilebits.com/1Password4/Security/keychain-design.html
   * https://support.1password.com/agile-keychain-design/
   * https://support.1password.com/opvault-design/
   * https://support.1password.com/defense-against-crackers/
