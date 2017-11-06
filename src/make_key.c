@@ -1,10 +1,6 @@
-/* XXX: libscrypt.h is busted and doesn't include the necessary headers for uint8_t and size_t. */
-#include <stddef.h>
-#include <stdint.h>
-
 #include <assert.h>
 #include "internal.h"
-#include <libscrypt.h>
+#include <crypto/crypto_scrypt.h>
 #include <passwand/passwand.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -25,7 +21,7 @@ passwand_error_t make_key(const m_t *master, const salt_t *salt, int work_factor
     static const uint32_t r = 8;
     static const uint32_t p = 1;
 
-    if (libscrypt_scrypt(master->data, master->length, salt->data, salt->length,
+    if (crypto_scrypt(master->data, master->length, salt->data, salt->length,
             ((uint64_t)1) << work_factor, r, p, (uint8_t*)key, AES_KEY_SIZE) != 0)
         return PW_CRYPTO;
 
