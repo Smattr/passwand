@@ -1,6 +1,9 @@
 cmake_minimum_required (VERSION 2.6)
 project (passwand C)
 
+# This seems to be some magic to get libraries to install correctly.
+include(GNUInstallDirs)
+
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -W -Wall -Wextra -Wtrampolines -Wwrite-strings -Wmissing-declarations -Wshadow")
 add_definitions (-D_XOPEN_SOURCE=700 -D_BSD_SOURCE -D_GNU_SOURCE)
 
@@ -62,10 +65,12 @@ find_package (Threads)
 if ((GTK3_FOUND OR GTK2_FOUND) AND X11_FOUND)
   add_executable (pw-gui exe/gui.c exe/argparse.c)
   target_link_libraries (pw-gui passwand ${GTK_LIBRARIES} ${X11_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+  install (TARGETS pw-gui RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif ((GTK3_FOUND OR GTK2_FOUND) AND X11_FOUND)
 
 add_executable (pw-cli exe/cli.c exe/argparse.c)
 target_link_libraries (pw-cli passwand ${CMAKE_THREAD_LIBS_INIT})
+install (TARGETS pw-cli RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/include)
 
@@ -76,6 +81,10 @@ target_include_directories (passwand PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/scrypt/
 target_link_libraries (passwand ${OPENSSL_LIBRARIES} ${JSON_LIBRARIES}
   ${CMAKE_CURRENT_BINARY_DIR}/scrypt/scrypt/libscrypt_sse2.a
   ${CMAKE_CURRENT_BINARY_DIR}/scrypt/scrypt/libcrypto_scrypt.a)
+install (TARGETS passwand
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install (DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 add_executable (passwand-tests
 
