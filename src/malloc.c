@@ -114,9 +114,12 @@ static int morecore(void **p) {
     assert(page % sizeof(long long) == 0);
 
     /* Allocate a new mlocked page. */
-    *p = mmap(NULL, page, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_LOCKED, -1, 0);
-    if (*p == MAP_FAILED)
+    if (posix_memalign(p, page, page) != 0)
         return -1;
+    if (mlock(*p, page) != 0) {
+        free(*p);
+        return -1;
+    }
 
     return 0;
 }
@@ -220,7 +223,9 @@ retry:;
     /* Fill this allocation using the end of the memory just acquired. */
     chunk_t *c = calloc(1, sizeof *c);
     if (c == NULL) {
-        munmap(q, EXPECTED_PAGE_SIZE);
+        int r __attribute__((unused)) = munlock(q, EXPECTED_PAGE_SIZE);
+        assert(r == 0 && "munlock unexpectedly failed");
+        free(q);
         return -1;
     }
     c->base = q;
