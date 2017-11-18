@@ -7,6 +7,9 @@ include(GNUInstallDirs)
 add_compile_options (-std=c11 -W -Wall -Wextra -Wtrampolines -Wwrite-strings -Wmissing-declarations -Wshadow)
 add_definitions (-D_BSD_SOURCE -D_GNU_SOURCE)
 
+# Disable __builtin_memset when we need it not to be optimised out.
+set_source_files_properties (src/erase.c PROPERTIES COMPILE_FLAGS -fno-builtin-memset)
+
 find_package (PkgConfig)
 
 pkg_check_modules (OPENSSL REQUIRED openssl)

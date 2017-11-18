@@ -8,9 +8,6 @@
  * away the call to memset below.
  */
 
-#pragma GCC push_options
-#pragma GCC optimize("no-builtin-memset")
-
 /* A volatile pointer through which memset will be accessed, preventing the compiler optimising its
  * call. Idea borrowed from NetBSD.
  */
@@ -26,4 +23,3 @@ passwand_error_t passwand_erase(void *s, size_t len) {
 
     return PW_OK;
 }
-#pragma GCC pop_options
