@@ -4,7 +4,7 @@ project (passwand C)
 # This seems to be some magic to get libraries to install correctly.
 include(GNUInstallDirs)
 
-set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -W -Wall -Wextra -Wtrampolines -Wwrite-strings -Wmissing-declarations -Wshadow")
+add_compile_options (-std=c11 -W -Wall -Wextra -Wtrampolines -Wwrite-strings -Wmissing-declarations -Wshadow)
 add_definitions (-D_BSD_SOURCE -D_GNU_SOURCE)
 
 find_package (PkgConfig)
