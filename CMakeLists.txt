@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 3.2)
 project (passwand C)
 
 # This seems to be some magic to get libraries to install correctly.
@@ -36,6 +36,7 @@ ExternalProject_Add (scrypt
   CONFIGURE_COMMAND autoreconf -i && ./configure --prefix=${CMAKE_CURRENT_BINARY_DIR}/scrypt/install
   BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/scrypt/scrypt
   BUILD_COMMAND make
+  BUILD_BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/scrypt/scrypt/libscrypt_sse2.a ${CMAKE_CURRENT_BINARY_DIR}/scrypt/scrypt/libcrypto_scrypt.a
 
   # Install to the build directory. This is not really necessary since we don't
   # use the installed artefacts, but it seems sensible to validate that this
