@@ -41,15 +41,15 @@ TEST("entry_new: check_mac(entry_new(...))") {
     free(e.hmac_salt);
 }
 
+static void check(void *state, const char *s, const char *k, const char *v) {
+    bool *st = state;
+    *st = strcmp(space, s) == 0 && strcmp(key, k) == 0 && strcmp(value, v) == 0;
+}
+
 TEST("entry_new: recoverable") {
     passwand_entry_t e;
     passwand_error_t err = passwand_entry_new(&e, master, space, key, value, 14);
     CU_ASSERT_EQUAL_FATAL(err, PW_OK);
-
-    void check(void *state, const char *s, const char *k, const char *v) {
-        bool *st = state;
-        *st = strcmp(space, s) == 0 && strcmp(key, k) == 0 && strcmp(value, v) == 0;
-    }
 
     bool checked = false;
     err = passwand_entry_do(master, &e, check, &checked);

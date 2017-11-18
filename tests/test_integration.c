@@ -23,6 +23,45 @@ static void cleanup_entry(passwand_entry_t *e) {
         free(e->iv);
 }
 
+typedef struct {
+    unsigned index;
+    bool failed;
+} state_t;
+
+static void body(void *state, const char *space, const char *key, const char *value) {
+    state_t *st = state;
+    switch (st->index) {
+
+        case 0:
+            st->failed |= !(strcmp(space, "foo.com") == 0 &&
+                            strcmp(key, "username") == 0 &&
+                            strcmp(value, "bob") == 0);
+            break;
+
+        case 1:
+            st->failed |= !(strcmp(space, "foo.com") == 0 &&
+                            strcmp(key, "password") == 0 &&
+                            strcmp(value, "bob's password") == 0);
+            break;
+
+        case 2:
+            st->failed |= !(strcmp(space, "bar.com") == 0 &&
+                            strcmp(key, "username") == 0 &&
+                            strcmp(value, "alice") == 0);
+            break;
+
+        case 3:
+            st->failed |= !(strcmp(space, "bar.com") == 0 &&
+                            strcmp(key, "password") == 0 &&
+                            strcmp(value, "alice's password") == 0);
+            break;
+
+        default:
+            st->failed = true;
+    }
+    st->index++;
+}
+
 TEST("integration: basic lifecycle") {
     const char *master = "hello world";
 
@@ -88,44 +127,6 @@ TEST("integration: basic lifecycle") {
 
     for (unsigned i = 0; i < entry_len; i++)
         entries[i].work_factor = work_factor;
-
-    typedef struct {
-        unsigned index;
-        bool failed;
-    } state_t;
-    void body(void *state, const char *space, const char *key, const char *value) {
-        state_t *st = state;
-        switch (st->index) {
-
-            case 0:
-                st->failed |= !(strcmp(space, "foo.com") == 0 &&
-                                strcmp(key, "username") == 0 &&
-                                strcmp(value, "bob") == 0);
-                break;
-
-            case 1:
-                st->failed |= !(strcmp(space, "foo.com") == 0 &&
-                                strcmp(key, "password") == 0 &&
-                                strcmp(value, "bob's password") == 0);
-                break;
-
-            case 2:
-                st->failed |= !(strcmp(space, "bar.com") == 0 &&
-                                strcmp(key, "username") == 0 &&
-                                strcmp(value, "alice") == 0);
-                break;
-
-            case 3:
-                st->failed |= !(strcmp(space, "bar.com") == 0 &&
-                                strcmp(key, "password") == 0 &&
-                                strcmp(value, "alice's password") == 0);
-                break;
-
-            default:
-                st->failed = true;
-        }
-        st->index++;
-    }
 
     state_t st = {
         .index = 0,
