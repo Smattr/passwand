@@ -102,27 +102,27 @@ static void discard_master(master_t *m) {
     passwand_secure_free(m, sizeof *m);
 }
 
+typedef struct {
+    const options_t *options;
+    bool found;
+} find_state_t;
+
+static void get_body(void *state, const char *space, const char *key, const char *value) {
+
+    assert(state != NULL);
+    assert(space != NULL);
+    assert(key != NULL);
+    assert(value != NULL);
+
+    find_state_t *st = state;
+    if (strcmp(st->options->space, space) == 0 && strcmp(st->options->key, key) == 0) {
+        puts(value);
+        st->found = true;
+    }
+}
+
 static int get(const options_t *options, master_t *master, passwand_entry_t *entries,
         unsigned entry_len) {
-
-    typedef struct {
-        const options_t *options;
-        bool found;
-    } find_state_t;
-
-    void get_body(void *state, const char *space, const char *key, const char *value) {
-
-        assert(state != NULL);
-        assert(space != NULL);
-        assert(key != NULL);
-        assert(value != NULL);
-
-        find_state_t *st = state;
-        if (strcmp(st->options->space, space) == 0 && strcmp(st->options->key, key) == 0) {
-            puts(value);
-            st->found = true;
-        }
-    }
 
     find_state_t st = {
         .options = options,
@@ -138,6 +138,30 @@ static int get(const options_t *options, master_t *master, passwand_entry_t *ent
 
     discard_master(master);
     return EXIT_SUCCESS;
+}
+
+typedef struct {
+    bool found;
+    unsigned index;
+    const char *space;
+    const char *key;
+} set_state_t;
+
+static void set_body(void *state, const char *space, const char *key,
+        const char *value __attribute__((unused))) {
+
+    assert(state != NULL);
+    assert(space != NULL);
+    assert(key != NULL);
+    assert(value != NULL);
+
+    set_state_t *st = state;
+    if (strcmp(st->space, space) == 0 && strcmp(st->key, key) == 0) {
+        /* This entry matches the one we just set. Mark it. */
+        st->found = true;
+    } else {
+        st->index++;
+    }
 }
 
 static int set(const options_t *options, master_t *master, passwand_entry_t *entries,
@@ -158,30 +182,6 @@ static int set(const options_t *options, master_t *master, passwand_entry_t *ent
 
     /* Figure out if the entry we've just created collides with (and overwrites) an existing one.
      */
-
-    typedef struct {
-        bool found;
-        unsigned index;
-        const char *space;
-        const char *key;
-    } set_state_t;
-
-    void set_body(void *state, const char *space, const char *key,
-            const char *value __attribute__((unused))) {
-
-        assert(state != NULL);
-        assert(space != NULL);
-        assert(key != NULL);
-        assert(value != NULL);
-
-        set_state_t *st = state;
-        if (strcmp(st->space, space) == 0 && strcmp(st->key, key) == 0) {
-            /* This entry matches the one we just set. Mark it. */
-            st->found = true;
-        } else {
-            st->index++;
-        }
-    }
 
     set_state_t st = {
         .found = false,
@@ -216,29 +216,29 @@ static int set(const options_t *options, master_t *master, passwand_entry_t *ent
     return EXIT_SUCCESS;
 }
 
+typedef struct {
+    bool found;
+    const char *space;
+    const char *key;
+} delete_state_t;
+
+static void check(void *state, const char *space, const char *key,
+        const char *value __attribute__((unused))) {
+
+    assert(state != NULL);
+    assert(space != NULL);
+    assert(key != NULL);
+
+    delete_state_t *st = state;
+    assert(st->space != NULL);
+    assert(st->key != NULL);
+
+    assert(!st->found);
+    st->found = strcmp(st->space, space) == 0 && strcmp(st->key, key) == 0;
+}
+
 static int delete(const options_t *options __attribute__((unused)), master_t *master,
         passwand_entry_t *entries, unsigned entry_len) {
-
-    typedef struct {
-        bool found;
-        const char *space;
-        const char *key;
-    } delete_state_t;
-
-    void check(void *state, const char *space, const char *key,
-            const char *value __attribute__((unused))) {
-
-        assert(state != NULL);
-        assert(space != NULL);
-        assert(key != NULL);
-
-        delete_state_t *st = state;
-        assert(st->space != NULL);
-        assert(st->key != NULL);
-
-        assert(!st->found);
-        st->found = strcmp(st->space, space) == 0 && strcmp(st->key, key) == 0;
-    }
 
     delete_state_t st = {
         .found = false,
@@ -270,66 +270,63 @@ static int delete(const options_t *options __attribute__((unused)), master_t *ma
     return EXIT_SUCCESS;
 }
 
+static void print(void *state, const char *space, const char *key,
+        const char *value __attribute__((unused))) {
+    assert(space != NULL);
+    assert(key != NULL);
+
+    pthread_mutex_t *printf_lock = state;
+    if (printf_lock != NULL) {
+        int r __attribute__((unused)) = pthread_mutex_lock(printf_lock);
+        assert(r == 0);
+    }
+
+    printf("%s/%s\n", space, key);
+
+    if (printf_lock != NULL) {
+        int r __attribute__((unused)) = pthread_mutex_unlock(printf_lock);
+        assert(r == 0);
+    }
+}
+
+typedef struct {
+    unsigned *index;
+    const passwand_entry_t *entries;
+    unsigned entry_len;
+    const char *master;
+    pthread_mutex_t *printf_lock;
+    unsigned err_index;
+} thread_state_t;
+
+static void *list_loop(void *arg) {
+    assert(arg != NULL);
+
+    thread_state_t *ts = arg;
+    assert(ts->index != NULL);
+    assert(ts->entries != NULL || ts->entry_len == 0);
+
+    for (;;) {
+
+        unsigned index = atomic_fetch_add(ts->index, 1);
+        if (index >= ts->entry_len)
+            break;
+
+        passwand_error_t err = passwand_entry_do(ts->master, &ts->entries[index], print,
+            ts->printf_lock);
+        if (err != PW_OK) {
+            static_assert(sizeof(passwand_error_t) <= sizeof(void*),
+                "passwand error won't fit in return type");
+            ts->err_index = index;
+            return (void*)err;
+        }
+
+    }
+
+    return (void*)PW_OK;
+}
+
 static int list(const options_t *options __attribute__((unused)), master_t *master,
         passwand_entry_t *entries, unsigned entry_len) {
-
-    /* Note that this nested function does not induce a trampoline because it does not modify local
-     * state.
-     */
-    void print(void *state, const char *space, const char *key,
-            const char *value __attribute__((unused))) {
-        assert(space != NULL);
-        assert(key != NULL);
-
-        pthread_mutex_t *printf_lock = state;
-        if (printf_lock != NULL) {
-            int r __attribute__((unused)) = pthread_mutex_lock(printf_lock);
-            assert(r == 0);
-        }
-
-        printf("%s/%s\n", space, key);
-
-        if (printf_lock != NULL) {
-            int r __attribute__((unused)) = pthread_mutex_unlock(printf_lock);
-            assert(r == 0);
-        }
-    }
-
-    typedef struct {
-        unsigned *index;
-        const passwand_entry_t *entries;
-        unsigned entry_len;
-        const char *master;
-        pthread_mutex_t *printf_lock;
-        unsigned err_index;
-    } thread_state_t;
-
-    void *loop(void *arg) {
-        assert(arg != NULL);
-
-        thread_state_t *ts = arg;
-        assert(ts->index != NULL);
-        assert(ts->entries != NULL || ts->entry_len == 0);
-
-        for (;;) {
-
-            unsigned index = atomic_fetch_add(ts->index, 1);
-            if (index >= ts->entry_len)
-                break;
-
-            passwand_error_t err = passwand_entry_do(ts->master, &ts->entries[index], print,
-                ts->printf_lock);
-            if (err != PW_OK) {
-                static_assert(sizeof(passwand_error_t) <= sizeof(void*),
-                    "passwand error won't fit in return type");
-                ts->err_index = index;
-                return (void*)err;
-            }
-
-        }
-
-        return (void*)PW_OK;
-    }
 
     unsigned long jobs = options->jobs;
     if (jobs == 0) { // automatic
@@ -353,7 +350,7 @@ static int list(const options_t *options __attribute__((unused)), master_t *mast
             .printf_lock = NULL,
         };
 
-        passwand_error_t err = (passwand_error_t)loop(&ts);
+        passwand_error_t err = (passwand_error_t)list_loop(&ts);
         if (err != PW_OK)
             DIE("failed to handle entry %u: %s", ts.err_index, passwand_error(err));
 
@@ -382,14 +379,14 @@ static int list(const options_t *options __attribute__((unused)), master_t *mast
             tses[i].printf_lock = &printf_lock;
 
             if (i < jobs - 1) {
-                int r = pthread_create(&threads[i], NULL, loop, &tses[i]);
+                int r = pthread_create(&threads[i], NULL, list_loop, &tses[i]);
                 if (r != 0)
                     DIE("failed to create thread %lu", i + 1);
             }
         }
 
         /* Join the other threads in printing. */
-        passwand_error_t err = (passwand_error_t)loop(&tses[jobs - 1]);
+        passwand_error_t err = (passwand_error_t)list_loop(&tses[jobs - 1]);
         if (err != PW_OK)
             DIE("failed to handle entry %u: %s", tses[jobs - 1].err_index, passwand_error(err));
 
@@ -412,6 +409,22 @@ static int list(const options_t *options __attribute__((unused)), master_t *mast
 
     discard_master(master);
     return EXIT_SUCCESS;
+}
+
+typedef struct {
+    master_t *master;
+    passwand_entry_t *entries;
+    unsigned index;
+    passwand_error_t err;
+    int work_factor;
+} change_master_state_t;
+
+static void change_master_body(void *state, const char *space, const char *key,
+        const char *value) {
+    change_master_state_t *st = state;
+    st->err = passwand_entry_new(&st->entries[st->index], st->master->master, space, key, value,
+        st->work_factor);
+    st->index++;
 }
 
 static int change_master(const options_t *options, master_t *master, passwand_entry_t *entries,
@@ -439,22 +452,6 @@ static int change_master(const options_t *options, master_t *master, passwand_en
     if (new_entries == NULL) {
         discard_master(new_master);
         DIE("out of memory");
-    }
-
-    typedef struct {
-        master_t *master;
-        passwand_entry_t *entries;
-        unsigned index;
-        passwand_error_t err;
-        int work_factor;
-    } change_master_state_t;
-
-    void change_master_body(void *state, const char *space, const char *key,
-            const char *value) {
-        change_master_state_t *st = state;
-        st->err = passwand_entry_new(&st->entries[st->index], st->master->master, space, key, value,
-            st->work_factor);
-        st->index++;
     }
 
     change_master_state_t st = {
