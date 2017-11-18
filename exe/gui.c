@@ -155,6 +155,21 @@ typedef struct {
     const char *err_message;
 } thread_state_t;
 
+/* State for the search we'll perform. */
+typedef struct {
+    const char *space;
+    const char *key;
+    char *value;
+} check_state_t;
+
+static void check(void *state, const char *space, const char *key, const char *value) {
+    check_state_t *st = state;
+    if (strcmp(st->space, space) == 0 && strcmp(st->key, key) == 0) {
+        if (passwand_secure_malloc((void**)&st->value, strlen(value) + 1) == PW_OK)
+            strcpy(st->value, value);
+    }
+}
+
 static void *search(void *arg) {
     assert(arg != NULL);
 
@@ -167,22 +182,7 @@ static void *search(void *arg) {
     assert(ts->key != NULL);
     assert(ts->err_message == NULL);
 
-    /* State for the search we'll perform. */
-    typedef struct {
-        const char *space;
-        const char *key;
-        char *value;
-    } state_t;
-
-    void check(void *state, const char *space, const char *key, const char *value) {
-        state_t *st = state;
-        if (strcmp(st->space, space) == 0 && strcmp(st->key, key) == 0) {
-            if (passwand_secure_malloc((void**)&st->value, strlen(value) + 1) == PW_OK)
-                strcpy(st->value, value);
-        }
-    }
-
-    state_t st = {
+    check_state_t st = {
         .space = ts->space,
         .key = ts->key,
     };
