@@ -1,4 +1,5 @@
 #include <passwand/passwand.h>
+#include <stdatomic.h>
 #include <stddef.h>
 #include <string.h>
 
@@ -21,7 +22,7 @@ passwand_error_t passwand_erase(void *s, size_t len) {
         return PW_OK;
 
     memset_explicit(s, 0, len);
-    __sync_synchronize();
+    atomic_thread_fence(memory_order_seq_cst);
 
     return PW_OK;
 }

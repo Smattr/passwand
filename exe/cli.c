@@ -3,6 +3,7 @@
 #include <limits.h>
 #include <passwand/passwand.h>
 #include <pthread.h>
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -312,7 +313,7 @@ static int list(const options_t *options __attribute__((unused)), master_t *mast
 
         for (;;) {
 
-            unsigned index = __atomic_fetch_add(ts->index, 1, __ATOMIC_SEQ_CST);
+            unsigned index = atomic_fetch_add(ts->index, 1);
             if (index >= ts->entry_len)
                 break;
 

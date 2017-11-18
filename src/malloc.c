@@ -23,6 +23,7 @@
 
 #include <assert.h>
 #include <passwand/passwand.h>
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -37,13 +38,13 @@ static void lock(void) {
     long expected;
     do {
         expected = 0;
-    } while (!__atomic_compare_exchange_n(&l, &expected, 1, true, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE));
+    } while (!atomic_compare_exchange_weak(&l, &expected, 1));
 }
 static void unlock(void) {
     long expected;
     do {
         expected = 1;
-    } while (!__atomic_compare_exchange_n(&l, &expected, 0, true, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE));
+    } while (!atomic_compare_exchange_weak(&l, &expected, 0));
 }
 
 static void lock_release(void *p __attribute__((unused))) {

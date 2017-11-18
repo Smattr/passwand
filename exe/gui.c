@@ -3,6 +3,7 @@
 #include <gtk/gtk.h>
 #include <passwand/passwand.h>
 #include <pthread.h>
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -188,11 +189,11 @@ static void *search(void *arg) {
 
     for (;;) {
 
-        if (__atomic_load_n(ts->done, __ATOMIC_SEQ_CST))
+        if (atomic_load(ts->done))
             break;
 
         /* Get the next entry to check */
-        unsigned index = __atomic_fetch_add(ts->index, 1, __ATOMIC_SEQ_CST);
+        unsigned index = atomic_fetch_add(ts->index, 1);
         if (index >= ts->entry_len)
             break;
 
@@ -204,7 +205,7 @@ static void *search(void *arg) {
 
         if (st.value != NULL) {
             /* We found it! */
-            __atomic_store_n(ts->done, true, __ATOMIC_SEQ_CST);
+            atomic_store(ts->done, true);
             return st.value;
         }
     }
