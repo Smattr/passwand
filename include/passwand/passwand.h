@@ -118,7 +118,7 @@ passwand_error_t passwand_erase(void *s, size_t len);
  * @param entry_len The size of the array
  * @return PW_OK on success
  */
-passwand_error_t passwand_export(const char *path, passwand_entry_t *entries, unsigned entry_len);
+passwand_error_t passwand_export(const char *path, passwand_entry_t *entries, size_t entry_len);
 
 /** Import a list of password entries from a file.
  *
@@ -127,7 +127,7 @@ passwand_error_t passwand_export(const char *path, passwand_entry_t *entries, un
  * @param entry_len Output argument for the size of entries
  * @return PW_OK on success
  */
-passwand_error_t passwand_import(const char *path, passwand_entry_t **entries, unsigned *entry_len);
+passwand_error_t passwand_import(const char *path, passwand_entry_t **entries, size_t *entry_len);
 
 /** Allocate some secure memory.
  *

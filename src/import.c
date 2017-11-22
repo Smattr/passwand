@@ -48,7 +48,7 @@ static void autojsonput(void *p) {
 }
 
 passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
-        unsigned *entry_len) {
+        size_t *entry_len) {
 
     assert(path != NULL);
     assert(entries != NULL);
@@ -91,11 +91,11 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
     if (*entries == NULL)
         return PW_NO_MEM;
 
-    for (unsigned i = 0; i < *entry_len; i++) {
+    for (size_t i = 0; i < *entry_len; i++) {
 
 #define FREE_PRECEDING() \
     do { \
-        for (unsigned k = 0; k <= i; k++) { \
+        for (size_t k = 0; k <= i; k++) { \
             free((*entries)[k].space); \
             free((*entries)[k].key); \
             free((*entries)[k].value); \

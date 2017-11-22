@@ -145,9 +145,9 @@ static void send_char(Display *display, Window window, char c) {
 
 typedef struct {
     bool *done;
-    unsigned *index;
+    size_t *index;
     const passwand_entry_t *entries;
-    unsigned entry_len;
+    size_t entry_len;
     const char *master;
     const char *space;
     const char *key;
@@ -193,7 +193,7 @@ static void *search(void *arg) {
             break;
 
         /* Get the next entry to check */
-        unsigned index = atomic_fetch_add(ts->index, 1);
+        size_t index = atomic_fetch_add(ts->index, 1);
         if (index >= ts->entry_len)
             break;
 
@@ -255,12 +255,12 @@ int main(int argc, char **argv) {
 
     /* Import the database. */
     passwand_entry_t *entries;
-    unsigned entry_len;
+    size_t entry_len;
     passwand_error_t err = passwand_import(options.data, &entries, &entry_len);
     if (err != PW_OK)
         DIE("failed to import database: %s", passwand_error(err));
 
-    for (unsigned i = 0; i < entry_len; i++)
+    for (size_t i = 0; i < entry_len; i++)
         entries[i].work_factor = options.work_factor;
 
     /* We now are ready to search for the entry, but let's parallelise it across as many cores as
@@ -281,7 +281,7 @@ int main(int argc, char **argv) {
         DIE("out of memory");
 
     bool done = false;
-    unsigned index = 0;
+    size_t index = 0;
 
     /* Initialise and start threads. */
     for (long i = 0; i < cpus; i++) {
@@ -345,12 +345,12 @@ int main(int argc, char **argv) {
     if (win == None)
         DIE("no window focused");
 
-    for (unsigned i = 0; i < strlen(value); i++) {
+    for (size_t i = 0; i < strlen(value); i++) {
         if (!(supported_upper(value[i]) || supported_lower(value[i])))
-            DIE("unsupported character at index %u in entry", i);
+            DIE("unsupported character at index %zu in entry", i);
     }
 
-    for (unsigned i = 0; i < strlen(value); i++)
+    for (size_t i = 0; i < strlen(value); i++)
         send_char(d, win, value[i]);
 
     XCloseDisplay(d);

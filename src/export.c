@@ -49,7 +49,7 @@ static passwand_error_t add_to_dict(json_object *d, const char *key, const uint8
     return PW_OK;
 }
 
-passwand_error_t passwand_export(const char *path, passwand_entry_t *entries, unsigned entry_len) {
+passwand_error_t passwand_export(const char *path, passwand_entry_t *entries, size_t entry_len) {
 
     assert(path != NULL);
     assert(entries != NULL || entry_len == 0);
@@ -59,7 +59,7 @@ passwand_error_t passwand_export(const char *path, passwand_entry_t *entries, un
     if (j == NULL)
         return PW_NO_MEM;
 
-    for (unsigned i = 0; i < entry_len; i++) {
+    for (size_t i = 0; i < entry_len; i++) {
 
         /* Encapsulate each entry in a JSON dictionary. */
         json_object *d = json_object_new_object();

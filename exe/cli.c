@@ -122,15 +122,15 @@ static void get_body(void *state, const char *space, const char *key, const char
 }
 
 static int get(const options_t *options, master_t *master, passwand_entry_t *entries,
-        unsigned entry_len) {
+        size_t entry_len) {
 
     find_state_t st = {
         .options = options,
         .found = false,
     };
-    for (unsigned i = 0; !st.found && i < entry_len; i++) {
+    for (size_t i = 0; !st.found && i < entry_len; i++) {
         if (passwand_entry_do(master->master, &entries[i], get_body, &st) != PW_OK)
-            DIE("failed to handle entry %u", i);
+            DIE("failed to handle entry %zu", i);
     }
 
     if (!st.found)
@@ -142,7 +142,7 @@ static int get(const options_t *options, master_t *master, passwand_entry_t *ent
 
 typedef struct {
     bool found;
-    unsigned index;
+    size_t index;
     const char *space;
     const char *key;
 } set_state_t;
@@ -165,7 +165,7 @@ static void set_body(void *state, const char *space, const char *key,
 }
 
 static int set(const options_t *options, master_t *master, passwand_entry_t *entries,
-        unsigned entry_len) {
+        size_t entry_len) {
 
     master_t *confirm = getpassword("confirm master password: ");
     if (confirm == NULL)
@@ -189,9 +189,9 @@ static int set(const options_t *options, master_t *master, passwand_entry_t *ent
         .space = options->space,
         .key = options->key,
     };
-    for (unsigned i = 0; !st.found && i < entry_len; i++) {
+    for (size_t i = 0; !st.found && i < entry_len; i++) {
         if (passwand_entry_do(master->master, &entries[i], set_body, &st) != PW_OK)
-            DIE("failed to handle entry %u", i);
+            DIE("failed to handle entry %zu", i);
     }
 
     if (!st.found && entry_len == UINT_MAX)
@@ -238,7 +238,7 @@ static void check(void *state, const char *space, const char *key,
 }
 
 static int delete(const options_t *options __attribute__((unused)), master_t *master,
-        passwand_entry_t *entries, unsigned entry_len) {
+        passwand_entry_t *entries, size_t entry_len) {
 
     delete_state_t st = {
         .found = false,
@@ -247,10 +247,10 @@ static int delete(const options_t *options __attribute__((unused)), master_t *ma
     };
 
     /* Try to find the entry to delete. */
-    unsigned i;
+    size_t i;
     for (i = 0; i < entry_len; i++) {
         if (passwand_entry_do(master->master, &entries[i], check, &st) != PW_OK)
-            DIE("failed to handle entry %u", i);
+            DIE("failed to handle entry %zu", i);
         if (st.found)
             break;
     }
@@ -259,7 +259,7 @@ static int delete(const options_t *options __attribute__((unused)), master_t *ma
         DIE("failed to find entry");
 
     /* Shuffle entries following the one to be deleted, to remove the deleted one. */
-    for (unsigned j = i; j < entry_len - 1; j++)
+    for (size_t j = i; j < entry_len - 1; j++)
         entries[j] = entries[j + 1];
 
     passwand_error_t err = passwand_export(options->data, entries, entry_len - 1);
@@ -290,12 +290,12 @@ static void print(void *state, const char *space, const char *key,
 }
 
 typedef struct {
-    unsigned *index;
+    size_t *index;
     const passwand_entry_t *entries;
-    unsigned entry_len;
+    size_t entry_len;
     const char *master;
     pthread_mutex_t *printf_lock;
-    unsigned err_index;
+    size_t err_index;
 } thread_state_t;
 
 static void *list_loop(void *arg) {
@@ -307,7 +307,7 @@ static void *list_loop(void *arg) {
 
     for (;;) {
 
-        unsigned index = atomic_fetch_add(ts->index, 1);
+        size_t index = atomic_fetch_add(ts->index, 1);
         if (index >= ts->entry_len)
             break;
 
@@ -326,7 +326,7 @@ static void *list_loop(void *arg) {
 }
 
 static int list(const options_t *options __attribute__((unused)), master_t *master,
-        passwand_entry_t *entries, unsigned entry_len) {
+        passwand_entry_t *entries, size_t entry_len) {
 
     unsigned long jobs = options->jobs;
     if (jobs == 0) { // automatic
@@ -341,7 +341,7 @@ static int list(const options_t *options __attribute__((unused)), master_t *mast
          * dealing with pthreads.
          */
 
-        unsigned index = 0;
+        size_t index = 0;
         thread_state_t ts = {
             .index = &index,
             .entries = entries,
@@ -352,7 +352,7 @@ static int list(const options_t *options __attribute__((unused)), master_t *mast
 
         passwand_error_t err = (passwand_error_t)list_loop(&ts);
         if (err != PW_OK)
-            DIE("failed to handle entry %u: %s", ts.err_index, passwand_error(err));
+            DIE("failed to handle entry %zu: %s", ts.err_index, passwand_error(err));
 
     } else {
 
@@ -370,7 +370,7 @@ static int list(const options_t *options __attribute__((unused)), master_t *mast
             DIE("out of memory");
 
         /* Initialise and start the threads. */
-        unsigned index = 0;
+        size_t index = 0;
         for (unsigned long i = 0; i < jobs; i++) {
             tses[i].index = &index;
             tses[i].entries = entries;
@@ -388,7 +388,7 @@ static int list(const options_t *options __attribute__((unused)), master_t *mast
         /* Join the other threads in printing. */
         passwand_error_t err = (passwand_error_t)list_loop(&tses[jobs - 1]);
         if (err != PW_OK)
-            DIE("failed to handle entry %u: %s", tses[jobs - 1].err_index, passwand_error(err));
+            DIE("failed to handle entry %zu: %s", tses[jobs - 1].err_index, passwand_error(err));
 
         /* Collect threads */
         for (unsigned long i = 0; i < jobs - 1; i++) {
@@ -398,7 +398,7 @@ static int list(const options_t *options __attribute__((unused)), master_t *mast
                 DIE("failed to join thread %lu", i + 1);
             err = (passwand_error_t)ret;
             if (err != PW_OK)
-                DIE("failed to handle entry %u: %s", tses[i].err_index, passwand_error(err));
+                DIE("failed to handle entry %zu: %s", tses[i].err_index, passwand_error(err));
         }
 
         free(threads);
@@ -414,7 +414,7 @@ static int list(const options_t *options __attribute__((unused)), master_t *mast
 typedef struct {
     master_t *master;
     passwand_entry_t *entries;
-    unsigned index;
+    size_t index;
     passwand_error_t err;
     int work_factor;
 } change_master_state_t;
@@ -428,7 +428,7 @@ static void change_master_body(void *state, const char *space, const char *key,
 }
 
 static int change_master(const options_t *options, master_t *master, passwand_entry_t *entries,
-        unsigned entry_len) {
+        size_t entry_len) {
 
     master_t *new_master = getpassword("new master password: ");
     if (new_master == NULL)
@@ -461,16 +461,16 @@ static int change_master(const options_t *options, master_t *master, passwand_en
         .err = PW_OK,
         .work_factor = options->work_factor,
     };
-    for (unsigned i = 0; i < entry_len; i++) {
+    for (size_t i = 0; i < entry_len; i++) {
         passwand_error_t err = passwand_entry_do(master->master, &entries[i], change_master_body,
             &st);
         if (err != PW_OK) {
             discard_master(new_master);
-            DIE("failed to process entry %u: %s\n", i, passwand_error(err));
+            DIE("failed to process entry %zu: %s\n", i, passwand_error(err));
         }
         if (st.err != PW_OK) {
             discard_master(new_master);
-            DIE("failed to process entry %u: %s\n", i, passwand_error(st.err));
+            DIE("failed to process entry %zu: %s\n", i, passwand_error(st.err));
         }
     }
     discard_master(new_master);
@@ -486,7 +486,7 @@ static int change_master(const options_t *options, master_t *master, passwand_en
 int main(int argc, char **argv) {
 
     int (*action)(const options_t *options, master_t *master, passwand_entry_t *entries,
-        unsigned entry_len);
+        size_t entry_len);
 
     if (argc < 2 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-?") == 0) {
         printf("usage:\n"
@@ -522,14 +522,14 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
 
     passwand_entry_t *entries = NULL;
-    unsigned entry_len = 0;
+    size_t entry_len = 0;
     if (access(options.data, F_OK) == 0) {
         passwand_error_t err = passwand_import(options.data, &entries, &entry_len);
         if (err != PW_OK)
             DIE("failed to load database: %s", passwand_error(err));
     }
 
-    for (unsigned i = 0; i < entry_len; i++)
+    for (size_t i = 0; i < entry_len; i++)
         entries[i].work_factor = options.work_factor;
 
 #define REQUIRED(field) \

@@ -24,7 +24,7 @@ static void cleanup_entry(passwand_entry_t *e) {
 }
 
 typedef struct {
-    unsigned index;
+    size_t index;
     bool failed;
 } state_t;
 
@@ -65,7 +65,7 @@ static void body(void *state, const char *space, const char *key, const char *va
 TEST("integration: basic lifecycle") {
     const char *master = "hello world";
 
-    unsigned entry_len = 4;
+    size_t entry_len = 4;
     passwand_entry_t *entries = calloc(entry_len, sizeof entries[0]);
 
     const int work_factor = 14;
@@ -116,7 +116,7 @@ TEST("integration: basic lifecycle") {
         CU_ASSERT_EQUAL_FATAL(err, PW_OK);
     }
 
-    for (unsigned i = 0; i < entry_len; i++)
+    for (size_t i = 0; i < entry_len; i++)
         cleanup_entry(&entries[i]);
     free(entries);
 
@@ -125,14 +125,14 @@ TEST("integration: basic lifecycle") {
 
     CU_ASSERT_EQUAL_FATAL(entry_len, 4);
 
-    for (unsigned i = 0; i < entry_len; i++)
+    for (size_t i = 0; i < entry_len; i++)
         entries[i].work_factor = work_factor;
 
     state_t st = {
         .index = 0,
         .failed = false,
     };
-    for (unsigned i = 0; i < entry_len; i++) {
+    for (size_t i = 0; i < entry_len; i++) {
         err = passwand_entry_do(master, &entries[i], body, &st);
         CU_ASSERT_EQUAL_FATAL(err, PW_OK);
         CU_ASSERT_EQUAL_FATAL(st.failed, false);
@@ -140,7 +140,7 @@ TEST("integration: basic lifecycle") {
 
     unlink(tmp);
 
-    for (unsigned i = 0; i < entry_len; i++)
+    for (size_t i = 0; i < entry_len; i++)
         cleanup_entry(&entries[i]);
     free(entries);
 }

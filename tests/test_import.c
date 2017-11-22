@@ -20,7 +20,7 @@ TEST("import: import(\"[]\")") {
 
     /* Now read in the entries */
     passwand_entry_t *entries;
-    unsigned entry_len;
+    size_t entry_len;
     int r = passwand_import(tmp, &entries, &entry_len);
     unlink(tmp);
     CU_ASSERT_EQUAL_FATAL(r, 0);
@@ -46,7 +46,7 @@ TEST("import: with a missing field") {
 
     /* Now read in the entries */
     passwand_entry_t *entries;
-    unsigned entry_len;
+    size_t entry_len;
     int r = passwand_import(tmp, &entries, &entry_len);
     unlink(tmp);
     CU_ASSERT_NOT_EQUAL_FATAL(r, 0);
@@ -69,7 +69,7 @@ TEST("import: basic functionality") {
 
     /* Now read in the entries */
     passwand_entry_t *entries;
-    unsigned entry_len;
+    size_t entry_len;
     int r = passwand_import(tmp, &entries, &entry_len);
     unlink(tmp);
     CU_ASSERT_EQUAL_FATAL(r, 0);
@@ -110,7 +110,7 @@ TEST("import: with an extra field") {
 
     /* Now read in the entries */
     passwand_entry_t *entries;
-    unsigned entry_len;
+    size_t entry_len;
     int r = passwand_import(tmp, &entries, &entry_len);
     unlink(tmp);
     CU_ASSERT_EQUAL_FATAL(r, 0);
@@ -171,7 +171,7 @@ TEST("import: import(export(x)) == x") {
             .work_factor = 15,
         },
     };
-    unsigned entry_len = sizeof entries / sizeof entries[0];
+    size_t entry_len = sizeof entries / sizeof entries[0];
 
     /* Create a temporary file to export to. */
     char tmp[] = "/tmp/tmp.XXXXXX";
@@ -187,14 +187,14 @@ TEST("import: import(export(x)) == x") {
 
     /* Now let's import them back in. */
     passwand_entry_t *new_entries;
-    unsigned new_entry_len;
+    size_t new_entry_len;
     err = passwand_import(tmp, &new_entries, &new_entry_len);
     unlink(tmp);
     CU_ASSERT_EQUAL_FATAL(err, PW_OK);
 
     /* Now check we got back what we exported. */
     CU_ASSERT_EQUAL_FATAL(entry_len, new_entry_len);
-    for (unsigned i = 0; i < entry_len; i++) {
+    for (size_t i = 0; i < entry_len; i++) {
         CU_ASSERT_EQUAL_FATAL(entries[i].space_len, new_entries[i].space_len);
         CU_ASSERT_EQUAL_FATAL(strncmp((const char*)entries[i].space, (const char*)new_entries[i].space, entries[i].space_len), 0);
         CU_ASSERT_EQUAL_FATAL(entries[i].key_len, new_entries[i].key_len);
@@ -212,7 +212,7 @@ TEST("import: import(export(x)) == x") {
     }
 
     /* Clean up. */
-    for (unsigned i = 0; i < new_entry_len; i++) {
+    for (size_t i = 0; i < new_entry_len; i++) {
         free(new_entries[i].space);
         free(new_entries[i].key);
         free(new_entries[i].value);
