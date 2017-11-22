@@ -244,7 +244,7 @@ passwand_error_t passwand_entry_set_mac(const char *master, passwand_entry_t *e)
     assert(master != NULL);
     assert(e != NULL);
 
-    static const unsigned HMAC_SALT_LEN = 8; // bytes
+    static const size_t HMAC_SALT_LEN = 8; // bytes
 
     if (e->hmac != NULL) {
         free(e->hmac);

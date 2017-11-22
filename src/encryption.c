@@ -111,7 +111,7 @@ passwand_error_t aes_decrypt(EVP_CIPHER_CTX *ctx, const ct_t *c, ppt_t *pp) {
     if (EVP_DecryptUpdate(ctx, buffer->data, &len, c->data, c->length) != 1)
         return PW_CRYPTO;
     assert(len >= 0);
-    assert((unsigned)len <= c->length + AES_BLOCK_SIZE);
+    assert((size_t)len <= c->length + AES_BLOCK_SIZE);
     pp->length = len;
 
     /* Copy the internal buffer to the caller's packed plain text struct. We do

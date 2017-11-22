@@ -47,7 +47,7 @@ static master_t *getpassword(const char *prompt) {
         return NULL;
     }
 
-    unsigned index = 0;
+    size_t index = 0;
     for (;;) {
         int c = getchar();
 
