@@ -4,8 +4,12 @@ project (passwand C)
 # This seems to be some magic to get libraries to install correctly.
 include(GNUInstallDirs)
 
-add_compile_options (-std=c11 -W -Wall -Wextra -Wtrampolines -Wwrite-strings -Wmissing-declarations -Wshadow)
+add_compile_options (-std=c11 -W -Wall -Wextra -Wwrite-strings -Wmissing-declarations -Wshadow)
 add_definitions (-D_BSD_SOURCE -D_GNU_SOURCE)
+
+if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+  add_definitions (-Wtrampolines)
+endif()
 
 # Disable __builtin_memset when we need it not to be optimised out.
 set_source_files_properties (src/erase.c PROPERTIES COMPILE_FLAGS -fno-builtin-memset)
