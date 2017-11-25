@@ -7,6 +7,12 @@
 #include <stdlib.h>
 #include "types.h"
 
+#if defined(__linux__) || defined(__OpenBSD__)
+    #include <endian.h>
+#elif defined(__DragonFly__) || defined(__FreeBSD__) || defined(__NetBSD__)
+    #include <sys/endian.h>
+#endif
+
 passwand_error_t pack_data(const pt_t *p, const iv_t iv, ppt_t *pp) {
 
     assert(p != NULL);
