@@ -29,8 +29,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/mman.h>
-#include <sys/prctl.h>
 #include <unistd.h>
+
+#ifdef __linux__
+#include <sys/prctl.h>
+#endif
 
 /* Basic no-init-required spinlock implementation. */
 static atomic_long l;
@@ -132,9 +135,13 @@ static int morecore(void **p) {
  */
 static bool ptrace_disabled;
 static int disable_ptrace(void) {
-    int r = prctl(PR_SET_DUMPABLE, 0, 0, 0, 0);
+    int r = 0;
+#if defined(__linux__)
+    r = prctl(PR_SET_DUMPABLE, 0, 0, 0, 0);
     if (r == 0)
         ptrace_disabled = true;
+#endif
+
     return r;
 }
 
