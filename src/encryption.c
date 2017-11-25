@@ -79,22 +79,22 @@ passwand_error_t aes_decrypt_init(const k_t key, const iv_t iv, EVP_CIPHER_CTX *
     return PW_OK;
 }
 
-passwand_error_t aes_decrypt(EVP_CIPHER_CTX *ctx, const ct_t *c, ppt_t *pp) {
-
-    /* Support for an RAII-erased secure buffer. */
-    typedef struct {
-        uint8_t *data;
-        size_t length;
-    } buffer_t;
-    void auto_erase_buffer(void *p) {
-        assert(p != NULL);
-        buffer_t *b = *(buffer_t**)p;
-        if (b != NULL) {
-            if (b->data != NULL)
-                passwand_secure_free(b->data, b->length);
-            passwand_secure_free(b, sizeof *b);
-        }
+/* Support for an RAII-erased secure buffer. */
+typedef struct {
+    uint8_t *data;
+    size_t length;
+} buffer_t;
+static void auto_erase_buffer(void *p) {
+    assert(p != NULL);
+    buffer_t *b = *(buffer_t**)p;
+    if (b != NULL) {
+        if (b->data != NULL)
+            passwand_secure_free(b->data, b->length);
+        passwand_secure_free(b, sizeof *b);
     }
+}
+
+passwand_error_t aes_decrypt(EVP_CIPHER_CTX *ctx, const ct_t *c, ppt_t *pp) {
 
     /* EVP_DecryptUpdate is documented as writing at most `inl + cipher_block_size`. */
     if (SIZE_MAX - AES_BLOCK_SIZE < c->length)

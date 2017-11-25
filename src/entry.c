@@ -26,6 +26,24 @@ static void unmake_m_t(void *p) {
 }
 #define AUTO_M_T(name, master) m_t *m __attribute__((cleanup(unmake_m_t))) = make_m_t(master)
 
+/* Auto-destruct infrastructure for use below. */
+typedef struct {
+    bool live;
+    EVP_CIPHER_CTX *ctx;
+} ctx_destructor_args_t;
+static void ctx_destructor_encrypt(void *p) {
+    assert(p != NULL);
+    ctx_destructor_args_t *a = p;
+    if (a->live)
+        (void)aes_encrypt_deinit(a->ctx);
+}
+static void ctx_destructor_decrypt(void *p) {
+    assert(p != NULL);
+    ctx_destructor_args_t *a = p;
+    if (a->live)
+        (void)aes_decrypt_deinit(a->ctx);
+}
+
 passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, const char *space,
         const char *key, const char *value, int work_factor) {
 
@@ -71,17 +89,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
         return err;
 
     /* Auto-destruct the context on exit from this scope. */
-    typedef struct {
-        bool live;
-        EVP_CIPHER_CTX *ctx;
-    } ctx_destructor_args_t;
-    void ctx_destructor(void *p) {
-        assert(p != NULL);
-        ctx_destructor_args_t *a = p;
-        if (a->live)
-            (void)aes_encrypt_deinit(a->ctx);
-    }
-    ctx_destructor_args_t ctx_destruct __attribute__((cleanup(ctx_destructor))) = {
+    ctx_destructor_args_t ctx_destruct __attribute__((cleanup(ctx_destructor_encrypt))) = {
         .live = true,
         .ctx = &ctx,
     };
@@ -295,6 +303,14 @@ passwand_error_t passwand_entry_check_mac(const char *master, const passwand_ent
     return r ? PW_OK : PW_BAD_HMAC;
 }
 
+/* Auto-free functionality for use below. */
+static void auto_secure_free(void *p) {
+    assert(p != NULL);
+    char *s = *(char**)p;
+    if (s != NULL)
+        passwand_secure_free(s, strlen(s) + 1);
+}
+
 passwand_error_t passwand_entry_do(const char *master, const passwand_entry_t *e,
         void (*action)(void *state, const char *space, const char *key, const char *value),
         void *state) {
@@ -338,27 +354,11 @@ passwand_error_t passwand_entry_do(const char *master, const passwand_entry_t *e
         return err;
 
     /* Auto-destruct the context on scope exit. */
-    typedef struct {
-        bool live;
-        EVP_CIPHER_CTX *ctx;
-    } ctx_destructor_args_t;
-    void ctx_destructor(void *p) {
-        assert(p != NULL);
-        ctx_destructor_args_t *a = p;
-        if (a->live)
-            (void)aes_decrypt_deinit(a->ctx);
-    }
-    ctx_destructor_args_t ctx_destruct __attribute__((cleanup(ctx_destructor))) = {
+    ctx_destructor_args_t ctx_destruct __attribute__((cleanup(ctx_destructor_decrypt))) = {
         .live = true,
         .ctx = &ctx,
     };
 
-    void auto_secure_free(void *p) {
-        assert(p != NULL);
-        char *s = *(char**)p;
-        if (s != NULL)
-            passwand_secure_free(s, strlen(s) + 1);
-    }
     char *space __attribute__((cleanup(auto_secure_free))) = NULL;
     char *key __attribute__((cleanup(auto_secure_free))) = NULL;
     char *value __attribute__((cleanup(auto_secure_free))) = NULL;
