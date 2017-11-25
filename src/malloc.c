@@ -33,7 +33,7 @@
 #include <unistd.h>
 
 /* Basic no-init-required spinlock implementation. */
-static long l;
+static atomic_long l;
 static void lock(void) {
     long expected;
     do {
