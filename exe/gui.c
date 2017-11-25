@@ -144,8 +144,8 @@ static void send_char(Display *display, Window window, char c) {
 }
 
 typedef struct {
-    bool *done;
-    size_t *index;
+    atomic_bool *done;
+    atomic_size_t *index;
     const passwand_entry_t *entries;
     size_t entry_len;
     const char *master;
@@ -281,8 +281,8 @@ int main(int argc, char **argv) {
     if (threads == NULL)
         DIE("out of memory");
 
-    bool done = false;
-    size_t index = 0;
+    atomic_bool done = false;
+    atomic_size_t index = 0;
 
     /* Initialise and start threads. */
     for (long i = 0; i < cpus; i++) {
