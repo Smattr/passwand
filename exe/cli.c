@@ -290,7 +290,7 @@ static void print(void *state, const char *space, const char *key,
 }
 
 typedef struct {
-    size_t *index;
+    atomic_size_t *index;
     const passwand_entry_t *entries;
     size_t entry_len;
     const char *master;
@@ -341,7 +341,7 @@ static int list(const options_t *options __attribute__((unused)), master_t *mast
          * dealing with pthreads.
          */
 
-        size_t index = 0;
+        atomic_size_t index = 0;
         thread_state_t ts = {
             .index = &index,
             .entries = entries,
@@ -370,7 +370,7 @@ static int list(const options_t *options __attribute__((unused)), master_t *mast
             DIE("out of memory");
 
         /* Initialise and start the threads. */
-        size_t index = 0;
+        atomic_size_t index = 0;
         for (unsigned long i = 0; i < jobs; i++) {
             tses[i].index = &index;
             tses[i].entries = entries;
