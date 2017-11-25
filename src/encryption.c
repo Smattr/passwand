@@ -1,6 +1,5 @@
 #include <assert.h>
 #include "auto.h"
-#include <endian.h>
 #include <fcntl.h>
 #include "internal.h"
 #include <limits.h>
