@@ -213,6 +213,13 @@ static void *search(void *arg) {
     return NULL;
 }
 
+static void autoclear(void *p) {
+    assert(p != NULL);
+    char **s = p;
+    if (*s != NULL)
+        passwand_secure_free(*s, strlen(*s));
+}
+
 int main(int argc, char **argv) {
 
     gtk_init(&argc, &argv);
@@ -237,12 +244,6 @@ int main(int argc, char **argv) {
     if (key == NULL)
         return EXIT_FAILURE;
 
-    void autoclear(void *p) {
-        assert(p != NULL);
-        char **s = p;
-        if (*s != NULL)
-            passwand_secure_free(*s, strlen(*s));
-    }
     char *master __attribute__((cleanup(autoclear))) = get_text("Passwand", "Master passphrase?", NULL, true);
     if (master == NULL)
         return EXIT_FAILURE;
