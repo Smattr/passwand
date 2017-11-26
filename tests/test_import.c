@@ -42,7 +42,7 @@ TEST("import: with a missing field") {
     ssize_t written = write(fd, data, strlen(data));
     if (written != (ssize_t)strlen(data))
         unlink(tmp);
-    CU_ASSERT_EQUAL_FATAL(written, strlen(data));
+    CU_ASSERT_EQUAL_FATAL((size_t)written, strlen(data));
 
     /* Now read in the entries */
     passwand_entry_t *entries;
@@ -65,7 +65,7 @@ TEST("import: basic functionality") {
     ssize_t written = write(fd, data, strlen(data));
     if (written != (ssize_t)strlen(data))
         unlink(tmp);
-    CU_ASSERT_EQUAL_FATAL(written, strlen(data));
+    CU_ASSERT_EQUAL_FATAL((size_t)written, strlen(data));
 
     /* Now read in the entries */
     passwand_entry_t *entries;
@@ -106,7 +106,7 @@ TEST("import: with an extra field") {
     ssize_t written = write(fd, data, strlen(data));
     if (written != (ssize_t)strlen(data))
         unlink(tmp);
-    CU_ASSERT_EQUAL_FATAL(written, strlen(data));
+    CU_ASSERT_EQUAL_FATAL((size_t)written, strlen(data));
 
     /* Now read in the entries */
     passwand_entry_t *entries;
