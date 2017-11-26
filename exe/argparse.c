@@ -27,8 +27,8 @@ int parse(int argc, char **argv, options_t *options) {
             {0, 0, 0, 0},
         };
 
-        int optind;
-        int c = getopt_long(argc, argv, "d:s:k:v:N:", opts, &optind);
+        int index;
+        int c = getopt_long(argc, argv, "d:s:k:v:N:", opts, &index);
 
         if (c == -1)
             break;
