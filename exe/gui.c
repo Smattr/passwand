@@ -329,7 +329,7 @@ int main(int argc, char **argv) {
 
     if (value == NULL)
         DIE("failed to find matching entry");
-    char *clearer __attribute__((cleanup(autoclear))) = value;
+    char *clearer __attribute__((unused, cleanup(autoclear))) = value;
 
     /* Find the current display. */
     const char *display = secure_getenv("DISPLAY");
