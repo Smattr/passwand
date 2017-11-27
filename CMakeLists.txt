@@ -28,6 +28,7 @@ ExternalProject_Add (scrypt
   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/scrypt
   GIT_REPOSITORY https://github.com/Tarsnap/scrypt
   GIT_TAG 1.2.1
+  UPDATE_COMMAND ""
   TLS_VERIFY true
 
   # Despite being structured into library directories, Scrypt's build system
