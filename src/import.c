@@ -117,8 +117,8 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
 
 #define GET(field) \
     do { \
-        json_object *v = json_object_object_get(m, #field); \
-        if (v == NULL || !json_object_is_type(v, json_type_string)) { \
+        json_object *v; \
+        if (!json_object_object_get_ex(m, #field, &v) || !json_object_is_type(v, json_type_string)) { \
             /* The value of this member was not a string. */ \
             FREE_PRECEDING(); \
             return PW_BAD_JSON; \
