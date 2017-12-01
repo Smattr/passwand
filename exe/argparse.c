@@ -1,5 +1,6 @@
 #include "argparse.h"
 #include <assert.h>
+#include "getenv.h"
 #include <getopt.h>
 #include <limits.h>
 #include <stdbool.h>
@@ -99,7 +100,7 @@ int parse(int argc, char **argv, options_t *options) {
 
     if (options->data == NULL) {
         /* Setup default path. */
-        char *home = secure_getenv("HOME");
+        char *home = getenv_("HOME");
         if (home == NULL)
             return -1;
         /* Check for overflow. */

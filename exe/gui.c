@@ -1,5 +1,6 @@
 #include "argparse.h"
 #include <assert.h>
+#include "getenv.h"
 #include <gtk/gtk.h>
 #include <passwand/passwand.h>
 #include <pthread.h>
@@ -332,7 +333,7 @@ int main(int argc, char **argv) {
     char *clearer __attribute__((unused, cleanup(autoclear))) = value;
 
     /* Find the current display. */
-    const char *display = secure_getenv("DISPLAY");
+    const char *display = getenv_("DISPLAY");
     if (display == NULL)
         display = ":0";
     Display *d = XOpenDisplay(display);
