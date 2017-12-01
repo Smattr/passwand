@@ -4,6 +4,13 @@ project (passwand C)
 # This seems to be some magic to get libraries to install correctly.
 include(GNUInstallDirs)
 
+# XXX: CMake documentation claims PkgConfig returns absolute paths to libraries
+# for linking. AFAICT this is false on FreeBSD. Hack around this by teaching it
+# where some of our libraries live.
+if (CMAKE_HOST_SYSTEM_NAME STREQUAL "FreeBSD")
+  link_directories (${LINK_DIRECTORIES} /usr/local/lib)
+endif ()
+
 add_compile_options (-std=c11 -W -Wall -Wextra -Wwrite-strings -Wmissing-declarations -Wshadow)
 add_definitions (-D_BSD_SOURCE -D_GNU_SOURCE)
 
