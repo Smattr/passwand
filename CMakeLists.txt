@@ -4,11 +4,16 @@ project (passwand C)
 # This seems to be some magic to get libraries to install correctly.
 include(GNUInstallDirs)
 
-# XXX: CMake documentation claims PkgConfig returns absolute paths to libraries
-# for linking. AFAICT this is false on FreeBSD. Hack around this by teaching it
-# where some of our libraries live.
+set (CONFIGURE_TWEAK "")
 if (CMAKE_HOST_SYSTEM_NAME STREQUAL "FreeBSD")
+  # XXX: CMake documentation claims PkgConfig returns absolute paths to libraries
+  # for linking. AFAICT this is false on FreeBSD. Hack around this by teaching it
+  # where some of our libraries live.
   link_directories (${LINK_DIRECTORIES} /usr/local/lib)
+elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
+  # Assume we're using Macports and need to tweak paths.
+  set (CONFIGURE_TWEAK env "CFLAGS=-I /opt/local/include")
+  link_directories (${LINK_DIRECTORIES} /opt/local/lib)
 endif ()
 
 add_compile_options (-std=c11 -W -Wall -Wextra -Wwrite-strings -Wmissing-declarations -Wshadow)
@@ -48,7 +53,7 @@ ExternalProject_Add (scrypt
 
   # Build Scrypt.
   SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/scrypt/scrypt
-  CONFIGURE_COMMAND autoreconf -i && ./configure --prefix=${CMAKE_CURRENT_BINARY_DIR}/scrypt/install
+  CONFIGURE_COMMAND autoreconf -i && ${CONFIGURE_TWEAK} ./configure --prefix=${CMAKE_CURRENT_BINARY_DIR}/scrypt/install
   BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/scrypt/scrypt
   BUILD_COMMAND make
   BUILD_BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/scrypt/scrypt/libscrypt_sse2.a ${CMAKE_CURRENT_BINARY_DIR}/scrypt/scrypt/libcrypto_scrypt.a
