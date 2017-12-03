@@ -11,7 +11,25 @@
     #include <endian.h>
 #elif defined(__DragonFly__) || defined(__FreeBSD__) || defined(__NetBSD__)
     #include <sys/endian.h>
+#elif defined(__APPLE__)
+    #include <libkern/OSByteOrder.h>
 #endif
+
+static uint64_t htole64_(uint64_t host_64bits) {
+#if defined(__APPLE__)
+    return OSSwapHostToLittleInt64(host_64bits);
+#else
+    return htole64(host_64bits);
+#endif
+}
+
+static uint64_t le64toh_(uint64_t little_endian_64bits) {
+#if (__APPLE__)
+    return OSSwapLittleToHostInt64(little_endian_64bits);
+#else
+    return le64toh(little_endian_64bits);
+#endif
+}
 
 passwand_error_t pack_data(const pt_t *p, const iv_t iv, ppt_t *pp) {
 
@@ -48,7 +66,7 @@ passwand_error_t pack_data(const pt_t *p, const iv_t iv, ppt_t *pp) {
     offset += strlen(HEADER);
 
     /* Pack the length of the plain text as a little endian 8-byte number. */
-    uint64_t encoded_pt_len = htole64(p->length);
+    uint64_t encoded_pt_len = htole64_(p->length);
     memcpy(pp->data + offset, &encoded_pt_len, sizeof(encoded_pt_len));
     offset += sizeof(encoded_pt_len);
 
@@ -97,7 +115,7 @@ passwand_error_t unpack_data(const ppt_t *pp, const iv_t iv, pt_t *p) {
     if (d.length < sizeof(encoded_pt_len))
         return PW_TRUNCATED;
     memcpy(&encoded_pt_len, d.data, sizeof(encoded_pt_len));
-    p->length = le64toh(encoded_pt_len);
+    p->length = le64toh_(encoded_pt_len);
     d.data += sizeof(encoded_pt_len);
     d.length -= sizeof(encoded_pt_len);
 
