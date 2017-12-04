@@ -40,6 +40,7 @@ retry:;
         return -1;
     }
 
+#ifdef __linux__
     /* Check the thing we opened is actually a character device. */
     struct stat st;
     if (fstat(fd, &st) != 0 || !S_ISCHR(st.st_mode)) {
@@ -55,6 +56,7 @@ retry:;
         close(fd);
         return -1;
     }
+#endif
 
     return fd;
 }
