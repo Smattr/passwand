@@ -15,9 +15,33 @@
 
 static jmp_buf env;
 
+static bool is_expected_signal(int signum) {
+    if (signum == SIGSEGV)
+        return true;
+#if __APPLE__
+    /* On MacOS, accesses to PROT_NONE mmaped regions are reported to userspace
+     * as SIGBUS, not SIGSEGV.
+     */
+    if (signum == SIGBUS)
+        return true;
+#endif
+    return false;
+}
+
 static void handler(int signum) {
-    assert(signum == SIGSEGV);
-    longjmp(env, signum == SIGSEGV ? 1 : -1);
+    assert(is_expected_signal(signum));
+    longjmp(env, is_expected_signal(signum) ? 1 : -1);
+}
+
+static int deregister_handler(void) {
+    const struct sigaction sa = {
+        .sa_handler = SIG_DFL,
+    };
+    int r = sigaction(SIGSEGV, &sa, NULL);
+#ifdef __APPLE__
+    r |= sigaction(SIGBUS, &sa, NULL);
+#endif
+    return r;
 }
 
 static int register_handler(void) {
@@ -25,14 +49,15 @@ static int register_handler(void) {
         .sa_handler = handler,
         .sa_flags = SA_NODEFER,
     };
-    return sigaction(SIGSEGV, &sa, NULL);
-}
-
-static int deregister_handler(void) {
-    const struct sigaction sa = {
-        .sa_handler = SIG_DFL,
-    };
-    return sigaction(SIGSEGV, &sa, NULL);
+    if (sigaction(SIGSEGV, &sa, NULL))
+        return -1;
+#if __APPLE__
+    if (sigaction(SIGBUS, &sa, NULL)) {
+        (void)deregister_handler();
+        return -1;
+    }
+#endif
+    return 0;
 }
 
 TEST("AES128 reads at most 128 bits of a supplied key") {
