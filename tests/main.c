@@ -11,6 +11,14 @@ test_case_t *test_cases;
 
 int main(int argc, char **argv) {
 
+    if (argc == 2 && (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0)) {
+        fprintf(stderr, "usage %s [test prefix]\n\ntest options:\n", argv[0]);
+        for (test_case_t *p = test_cases; p != NULL; p = p->next) {
+            fprintf(stderr, " %s\n", p->description);
+        }
+        return EXIT_FAILURE;
+    }
+
     if (CU_initialize_registry() != CUE_SUCCESS) {
         CU_ErrorCode err = CU_get_error();
         fprintf(stderr, "failed to initialise CUnit registry\n");
