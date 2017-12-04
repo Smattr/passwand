@@ -50,9 +50,9 @@ TEST("malloc: limit") {
         };
     } node_t;
 
-    /* Malloc until we run out of space. */
+    /* Malloc 10000 pages or until we run out of space. */
     node_t *n = NULL;
-    for (;;) {
+    for (unsigned i = 0; i < 10000; i++) {
         node_t *m;
         int err = passwand_secure_malloc((void**)&m, sizeof *m);
         if (err != 0)
