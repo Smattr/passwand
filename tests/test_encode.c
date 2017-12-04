@@ -28,7 +28,7 @@ TEST("encode: basic functionality") {
 
 TEST("encode: == base64") {
     char *output;
-    int r = run("echo -n \"hello world\" | base64", &output);
+    int r = run("printf \"hello world\" | base64", &output);
     CU_ASSERT_EQUAL_FATAL(r, 0);
     CU_ASSERT_STRING_EQUAL(output, "aGVsbG8gd29ybGQ=\n");
     free(output);

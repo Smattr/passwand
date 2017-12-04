@@ -32,7 +32,7 @@ TEST("decode: basic functionality") {
 
 TEST("decode: == base64") {
     char *output;
-    int r = run("echo -n \"aGVsbG8gd29ybGQ=\" | base64 --decode", &output);
+    int r = run("printf \"aGVsbG8gd29ybGQ=\" | base64 --decode", &output);
     CU_ASSERT_EQUAL_FATAL(r, 0);
     CU_ASSERT_STRING_EQUAL(output, "hello world");
     free(output);
