@@ -84,7 +84,7 @@ endif (GTK3_FOUND)
 find_package (Threads)
 
 if ((GTK3_FOUND OR GTK2_FOUND) AND X11_FOUND)
-  add_executable (pw-gui exe/gui.c exe/argparse.c)
+  add_executable (pw-gui exe/gui.c exe/gtk.c exe/argparse.c)
   target_link_libraries (pw-gui passwand ${GTK_LIBRARIES} ${X11_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
   install (TARGETS pw-gui RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif ((GTK3_FOUND OR GTK2_FOUND) AND X11_FOUND)

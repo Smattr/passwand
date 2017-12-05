@@ -1,7 +1,6 @@
 #include "argparse.h"
 #include <assert.h>
-#include "getenv.h"
-#include <gtk/gtk.h>
+#include "gui.h"
 #include <passwand/passwand.h>
 #include <pthread.h>
 #include <stdatomic.h>
@@ -10,139 +9,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <X11/Xlib.h>
 
 #define DIE(args...) \
     do { \
-        GtkWidget *dialog = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, ## args); \
-        gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK); \
-        gtk_widget_show_all(dialog); \
-        gtk_dialog_run(GTK_DIALOG(dialog)); \
+        show_error(args); \
         exit(EXIT_FAILURE); \
     } while (0)
-
-static char *get_text(const char *title, const char *message, const char *initial, bool hidden) {
-
-    assert(title != NULL);
-    assert(message != NULL);
-
-    /* Create dialog box. */
-    GtkWidget *dialog = gtk_dialog_new_with_buttons(title, NULL, 0, "OK", GTK_RESPONSE_OK, "Cancel",
-        GTK_RESPONSE_CANCEL, NULL);
-    gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
-
-    /* Add the text prompt. */
-    GtkWidget *label = gtk_label_new(message);
-    GtkWidget *content = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
-    gtk_container_add(GTK_CONTAINER(content), label);
-
-    /* Add the input field. */
-    GtkWidget *textbox = gtk_entry_new();
-    gtk_entry_set_activates_default(GTK_ENTRY(textbox), true);
-    if (initial != NULL)
-        gtk_entry_set_text(GTK_ENTRY(textbox), initial);
-    if (hidden)
-        gtk_entry_set_visibility(GTK_ENTRY(textbox), false);
-    gtk_container_add(GTK_CONTAINER(content), textbox);
-
-    /* Display the dialog. */
-    gtk_widget_show_all(dialog);
-    gint result = gtk_dialog_run(GTK_DIALOG(dialog));
-
-    char *r;
-    if (result == GTK_RESPONSE_OK) {
-        const char *text = gtk_entry_get_text(GTK_ENTRY(textbox));
-        if (hidden) {
-            if (passwand_secure_malloc((void**)&r, strlen(text) + 1) != PW_OK) {
-                r = NULL;
-            } else {
-                strcpy(r, text);
-            }
-        } else {
-            r = strdup(text);
-        }
-    } else {
-        /* Cancel or dialog was closed. */
-        r = NULL;
-    }
-
-    gtk_widget_destroy(dialog);
-
-    return r;
-}
-
-static bool supported_lower(char c) {
-    switch (c) {
-        case 'a' ... 'z':
-        case '`':
-        case '0' ... '9':
-        case '-':
-        case '=':
-        case '[':
-        case ']':
-        case '\\':
-        case ';':
-        case '\'':
-        case ',':
-        case '.':
-        case '/':
-            return true;
-    }
-    return false;
-}
-
-static bool supported_upper(char c) {
-    switch (c) {
-        case 'A' ... 'Z':
-        case '~':
-        case '!':
-        case '@':
-        case '#':
-        case '$':
-        case '%':
-        case '^':
-        case '&':
-        case '*':
-        case '(':
-        case ')':
-        case '_':
-        case '+':
-        case '{':
-        case '}':
-        case '|':
-        case ':':
-        case '"':
-        case '<':
-        case '>':
-        case '?':
-            return true;
-    }
-    return false;
-}
-
-static void send_char(Display *display, Window window, char c) {
-
-    assert(supported_upper(c) || supported_lower(c));
-
-    XKeyEvent e = {
-        .display = display,
-        .window = window,
-        .root = RootWindow(display, DefaultScreen(display)),
-        .subwindow = None,
-        .time = CurrentTime,
-        .x = 1,
-        .y = 1,
-        .x_root = 1,
-        .y_root = 1,
-        .same_screen = True,
-        .type = KeyPress,
-        .state = supported_upper(c) ? ShiftMask : 0,
-        .keycode = XKeysymToKeycode(display, c),
-    };
-    XSendEvent(display, window, True, KeyPressMask, (XEvent*)&e);
-    e.type = KeyRelease;
-    XSendEvent(display, window, True, KeyReleaseMask, (XEvent*)&e);
-}
 
 typedef struct {
     atomic_bool *done;
@@ -223,8 +95,6 @@ static void autoclear(void *p) {
 
 int main(int argc, char **argv) {
 
-    gtk_init(&argc, &argv);
-
     options_t options;
     if (parse(argc, argv, &options) != 0)
         return EXIT_FAILURE;
@@ -249,11 +119,7 @@ int main(int argc, char **argv) {
     if (master == NULL)
         return EXIT_FAILURE;
 
-    /* Make sure we flush all GTK operations so we don't detect ourselves as the active window
-     * later.
-     */
-    while (gtk_events_pending())
-        gtk_main_iteration();
+    flush_state();
 
     /* Import the database. */
     passwand_entry_t *entries;
@@ -332,30 +198,13 @@ int main(int argc, char **argv) {
         DIE("failed to find matching entry");
     char *clearer __attribute__((unused, cleanup(autoclear))) = value;
 
-    /* Find the current display. */
-    const char *display = getenv_("DISPLAY");
-    if (display == NULL)
-        display = ":0";
-    Display *d = XOpenDisplay(display);
-    if (d == NULL)
-        DIE("failed to open X11 display");
-
-    /* Find the active window. */
-    Window win;
-    int state;
-    XGetInputFocus(d, &win, &state);
-    if (win == None)
-        DIE("no window focused");
-
     for (size_t i = 0; i < strlen(value); i++) {
         if (!(supported_upper(value[i]) || supported_lower(value[i])))
             DIE("unsupported character at index %zu in entry", i);
     }
 
-    for (size_t i = 0; i < strlen(value); i++)
-        send_char(d, win, value[i]);
-
-    XCloseDisplay(d);
+    if (send_text(value) < 0)
+        return EXIT_FAILURE;
 
     return EXIT_SUCCESS;
 }
