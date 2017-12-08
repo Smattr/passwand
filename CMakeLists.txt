@@ -67,8 +67,8 @@ ExternalProject_Add (scrypt
 # Try to find X11.
 pkg_check_modules (X11 x11)
 
-# Try to find GTK3 or, failing that, GTK2. If neither are found, just disable building the GUI
-# client.
+# Try to find a GUI solution. In order of preference: GTK3, GTK2, osascript
+# (MacOS). If none are found, just disable building the GUI client.
 pkg_check_modules (GTK3 gtk+-3.0)
 if (GTK3_FOUND)
   include_directories (${GTK3_INCLUDE_DIRS})
@@ -78,6 +78,8 @@ else (GTK3_FOUND)
   if (GTK2_FOUND)
     include_directories (${GTK2_INCLUDE_DIRS})
     set (GTK_LIBRARIES "${GTK2_LIBRARIES}")
+  else (GTK2_FOUND)
+    find_program (OSASCRIPT osascript)
   endif (GTK2_FOUND)
 endif (GTK3_FOUND)
 
@@ -85,9 +87,14 @@ find_package (Threads)
 
 if ((GTK3_FOUND OR GTK2_FOUND) AND X11_FOUND)
   add_executable (pw-gui exe/gui.c exe/gtk.c exe/argparse.c)
+elseif (OSASCRIPT)
+  add_executable (pw-gui exe/gui.c exe/osascript.c exe/argparse.c)
+endif ()
+
+if (((GTK3_FOUND OR GTK2_FOUND) AND X11_FOUND) OR OSASCRIPT)
   target_link_libraries (pw-gui passwand ${GTK_LIBRARIES} ${X11_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
   install (TARGETS pw-gui RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-endif ((GTK3_FOUND OR GTK2_FOUND) AND X11_FOUND)
+endif ()
 
 add_executable (pw-cli exe/cli.c exe/argparse.c)
 target_link_libraries (pw-cli passwand ${CMAKE_THREAD_LIBS_INIT})
