@@ -150,6 +150,26 @@ static char *osascript(const struct iovec *iov, size_t iovcnt) {
     return buf;
 }
 
+/* Escape a string that is to be passed to osascript. */
+static char *escape(const char *s) {
+
+    assert(s != NULL);
+
+    char *e = malloc(strlen(s) * 2 + 1);
+    if (e == NULL)
+        return NULL;
+
+    for (size_t i = 0, j = 0; ; i++, j++) {
+        if (s[i] == '"' || s[i] == '\\')
+            e[j++] = '\\';
+        e[j] = s[i];
+        if (s[i] == '\0')
+            break;
+    }
+
+    return e;
+}
+
 #define IOV(str) ((struct iovec){ .iov_base = (void*)str, .iov_len = strlen(str) })
 
 char *get_text(const char *title, const char *message, const char *initial, bool hidden) {
@@ -157,27 +177,35 @@ char *get_text(const char *title, const char *message, const char *initial, bool
     assert(title != NULL);
     assert(message != NULL);
 
+    char *t = escape(title);
+    char *m = escape(message);
+    char *i = initial == NULL ? NULL : escape(initial);
+
     struct iovec iov[] = {
         IOV("text returned of (display dialog \""),
-        IOV(message),
+        IOV(m),
         IOV("\" default answer \""),
         { .iov_base = NULL, .iov_len = 0 }, // placeholder
         IOV("\" with title \""),
-        IOV(title),
+        IOV(t),
         IOV("\""),
         { .iov_base = NULL, .iov_len = 0 }, // placeholder
         IOV(")"),
     };
 
     assert(iov[3].iov_base == NULL && iov[3].iov_len == 0);
-    if (initial != NULL)
-        iov[3] = IOV(initial);
+    if (i != NULL)
+        iov[3] = IOV(i);
 
     assert(iov[7].iov_base == NULL && iov[7].iov_len == 0);
     if (hidden)
         iov[7] = IOV(" with hidden answer");
 
     char *result = osascript(iov, sizeof(iov) / sizeof(iov[0]));
+
+    free(i);
+    free(m);
+    free(t);
 
     /* We need to strip the tailing newline to avoid confusing our caller. */
     if (result != NULL) {
@@ -209,14 +237,18 @@ int send_text(const char *text) {
 
     assert(text != NULL);
 
+    char *t = escape(text);
+
     struct iovec iov[] = {
         IOV("tell application \"System Events\"\nkeystroke \""),
-        IOV(text),
+        IOV(t),
         IOV("\"\nend tell"),
     };
 
     char *result = osascript(iov, sizeof(iov) / sizeof(iov[0]));
     free(result);
+
+    free(t);
 
     return result == NULL ? -1 : 0;
 }
@@ -229,12 +261,16 @@ void show_error(const char *message) {
 
     assert(message != NULL);
 
+    char *m = escape(message);
+
     struct iovec iov[] = {
         IOV("display dialog \""),
-        IOV(message),
+        IOV(m),
         IOV("\" with title \"Passwand\" buttons \"OK\" default button 1 with icon stop"),
     };
 
     char *result = osascript(iov, sizeof(iov) / sizeof(iov[0]));
     free(result);
+
+    free(m);
 }
