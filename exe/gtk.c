@@ -139,20 +139,12 @@ int send_text(const char *text) {
     return 0;
 }
 
-void show_error(const char *fmt, ...) {
+void show_error(const char *message) {
 
     if (!inited)
         init();
 
-    va_list ap;
-    va_start(ap, fmt);
-    char *msg;
-    int r = vasprintf(&msg, fmt, ap);
-    va_end(ap);
-    if (r < 0)
-        return;
-    GtkWidget *dialog = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "%s", msg);
-    free(msg);
+    GtkWidget *dialog = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "%s", message);
     gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
     gtk_widget_show_all(dialog);
     gtk_dialog_run(GTK_DIALOG(dialog));

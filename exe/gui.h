@@ -79,6 +79,6 @@ void flush_state(void);
 
 /** Display an error message dialog
  *
- * @param fmt... Message provided in the style of printf
+ * @param message Message to show
  */
-void show_error(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void show_error(const char *message);

@@ -12,7 +12,11 @@
 
 #define DIE(args...) \
     do { \
-        show_error(args); \
+        char *msg; \
+        if (asprintf(&msg, ## args) >= 0) { \
+            show_error(msg); \
+            free(msg); \
+        } \
         exit(EXIT_FAILURE); \
     } while (0)
 
