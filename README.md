@@ -1,6 +1,6 @@
 # passwand
 
-A password manager for Linux.
+A password manager.
 
 This tool is designed for encrypted storage and retrieval of entries consisting of a space, key and
 value. These fields are encrypted using a master passphrase which is required to retrieve any entry.
@@ -8,9 +8,9 @@ The interface is fairly unpolished, but the underlying implementation is intende
 security properties on data both at-rest and in-memory.
 
 Note that you can use this tool to store data that are not passwords, but password storage is the
-most common use case. While this code may run on platforms other than Linux, I would recommend using
-[1Password](https://agilebits.com/onepassword) instead where possible for the reasons discussed
-below.
+most common use case. This code was originally developed for Linux. While it will run on platforms
+other than Linux, I would recommend using [1Password](https://agilebits.com/onepassword) instead
+where possible for the reasons discussed below.
 
 ## Disclaimer
 
