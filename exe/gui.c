@@ -1,6 +1,7 @@
 #include "argparse.h"
 #include <assert.h>
 #include "gui.h"
+#include <limits.h>
 #include <passwand/passwand.h>
 #include <pthread.h>
 #include <stdatomic.h>
@@ -30,6 +31,7 @@ typedef struct {
     const char *key;
 
     const char *err_message;
+    size_t found_index;
 } thread_state_t;
 
 /* State for the search we'll perform. */
@@ -83,6 +85,7 @@ static void *search(void *arg) {
         if (st.value != NULL) {
             /* We found it! */
             atomic_store(ts->done, true);
+            ts->found_index = index;
             return st.value;
         }
     }
@@ -140,6 +143,7 @@ int main(int argc, char **argv) {
      */
 
     char *value = NULL;
+    size_t found_index = SIZE_MAX;
 
     long cpus = sysconf(_SC_NPROCESSORS_ONLN);
     assert(cpus >= 1);
@@ -179,6 +183,7 @@ int main(int argc, char **argv) {
         DIE("error: %s", tses[cpus - 1].err_message);
     } else if (ret != NULL) {
         value = ret;
+        found_index = tses[cpus - 1].found_index;
     }
 
     /* Collect threads. */
@@ -192,6 +197,8 @@ int main(int argc, char **argv) {
         } else if (ret != NULL) {
             assert(value == NULL && "multiple matching entries found");
             value = ret;
+            assert(found_index == SIZE_MAX && "found_index out of sync with value");
+            found_index = tses[i].found_index;
         }
     }
 
@@ -209,6 +216,21 @@ int main(int argc, char **argv) {
 
     if (send_text(value) < 0)
         return EXIT_FAILURE;
+
+    /* Move the entry we just retrieved to the front of the list of entries to
+     * make future look ups for it faster. The idea is that over time this will
+     * result in something like a MRU ordering of entries. Note, we ignore
+     * failures during exporting because this is not critical.
+     */
+    assert(found_index != SIZE_MAX);
+    assert(found_index < entry_len);
+    if (found_index != 0) {
+        passwand_entry_t found = entries[found_index];
+        for (size_t i = found_index; i > 0; i--)
+            entries[i] = entries[i - 1];
+        entries[0] = found;
+    }
+    (void)passwand_export(options.data, entries, entry_len);
 
     return EXIT_SUCCESS;
 }
