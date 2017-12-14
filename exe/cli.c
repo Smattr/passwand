@@ -201,11 +201,15 @@ static int set(const options_t *options, master_t *master, passwand_entry_t *ent
     if (new_entries == NULL)
         DIE("out of memory");
 
-    memcpy(new_entries, entries, sizeof(passwand_entry_t) * st.index);
-    memcpy(new_entries + st.index, &e, sizeof(passwand_entry_t));
-    if (st.found)
-        memcpy(new_entries + st.index + 1, entries + st.index + 1,
-            sizeof(passwand_entry_t) * (entry_len - st.index - 1));
+    /* Insert the new or updated entry at the start of the list, as we assume
+     * we'll be looking it up in the near future.
+     */
+    size_t count_before = st.found ? st.index : entry_len;
+    size_t count_after = st.found ? entry_len - st.index - 1 : 0;
+    new_entries[0] = e;
+    memcpy(new_entries + 1, entries, sizeof(passwand_entry_t) * count_before);
+    memcpy(new_entries + st.index + 1, entries + st.index + 1,
+        sizeof(passwand_entry_t) * count_after);
     size_t new_entry_len = st.found ? entry_len : entry_len + 1;
 
     passwand_error_t err = passwand_export(options->data, new_entries, new_entry_len);
