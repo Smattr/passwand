@@ -156,3 +156,17 @@ void passwand_secure_free(void *p, size_t size);
  * @param f File to print to
  */
 void passwand_secure_heap_print(FILE *f);
+
+/** Read from a file descriptor into a dynamically allocated secure buffer.
+ *
+ * The buffer into which data is written is allocated via passwand_secure_malloc and needs to be
+ * freed by the caller through passwand_secure_free.
+ *
+ * @param[out] p Address of allocated buffer
+ * @param[out] size Number of bytes allocated (this should be later passed to passwand_secure_free)
+ * @param[out] size_read Number of bytes actually written to the buffer
+ * @param fd File descriptor to read from
+ * @param max Maximum number of bytes to read
+ * @return 0 on success
+ */
+int passwand_secure_read(void **p, size_t *size, size_t *size_read, int fd, size_t max);
