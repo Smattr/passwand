@@ -194,7 +194,7 @@ static int set(const options_t *options, master_t *master, passwand_entry_t *ent
             DIE("failed to handle entry %zu", i);
     }
 
-    if (!st.found && entry_len == UINT_MAX)
+    if (!st.found && entry_len == SIZE_MAX)
         DIE("maximum number of entries exceeded");
 
     passwand_entry_t *new_entries = calloc(entry_len + (st.found ? 0 : 1), sizeof(passwand_entry_t));
