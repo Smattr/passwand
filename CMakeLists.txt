@@ -128,7 +128,7 @@ add_executable (passwand-tests
 target_link_libraries (passwand-tests passwand ${CUNIT})
 
 add_executable (pw-gui-test-stub exe/gui.c exe/argparse.c tests/gui-test-stub.c)
-target_link_libraries (pw-gui-test-stub passwand)
+target_link_libraries (pw-gui-test-stub passwand ${CMAKE_THREAD_LIBS_INIT})
 
 enable_testing ()
 add_test (UnitTests passwand-tests)
