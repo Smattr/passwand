@@ -14,6 +14,7 @@
 #include "gui.h"
 #include <passwand/passwand.h>
 #include <spawn.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -107,18 +108,7 @@ done:
     return ret;
 }
 
-static char *osascript(const struct iovec *iov, size_t iovcnt) {
-
-    assert(iov != NULL);
-    assert(iovcnt > 0);
-
-    proc_t proc;
-    if (osascript_pipe(&proc) < 0)
-        return NULL;
-
-    (void)writev(proc.in, iov, iovcnt);
-    close(proc.in);
-
+static char *read_public(int fd) {
     char *buf = NULL;
     size_t size;
     FILE *buffer = open_memstream(&buf, &size);
@@ -127,7 +117,7 @@ static char *osascript(const struct iovec *iov, size_t iovcnt) {
         ssize_t r;
         do {
             char chunk[1024];
-            r = read(proc.out, chunk, sizeof(chunk));
+            r = read(fd, chunk, sizeof(chunk));
             if (r > 0) {
                 size_t w = fwrite(chunk, (size_t)r, 1, buffer);
                 if (w == 0) /* Error */
@@ -144,13 +134,101 @@ static char *osascript(const struct iovec *iov, size_t iovcnt) {
         }
     }
 
+    /* We need to strip the tailing newline to avoid confusing our caller. */
+    if (buf != NULL && strcmp(buf, "") != 0) {
+        assert(buf[strlen(buf) - 1] == '\n');
+        buf[strlen(buf) - 1] = '\0';
+    }
+
+    return buf;
+}
+
+static char *read_private(int fd) {
+    char *result = NULL;
+
+    char *buffer = NULL;
+    size_t buffer_size = 0;
+    size_t buffer_offset = 0;
+
+    for (;;) {
+
+        if (buffer_size - buffer_offset < 1) {
+
+            /* Allocate a new buffer double the size of the old. */
+            void *new_buffer;
+            size_t new_size = buffer_size == 0 ? 128 : buffer_size * 2;
+            if (passwand_secure_malloc(&new_buffer, new_size) != 0)
+                goto done;
+
+            /* Replace the old buffer. */
+            memcpy(new_buffer, buffer, buffer_offset);
+            passwand_secure_free(buffer, buffer_size);
+            buffer = new_buffer;
+            buffer_size = new_size;
+
+        }
+
+        assert(buffer != NULL);
+        assert(buffer_size - buffer_offset > 1);
+
+        size_t to_read = buffer_size - buffer_offset - 1;
+        ssize_t r;
+        do {
+            r = read(fd, buffer + buffer_offset, to_read);
+        } while (r == -1 && errno == EINTR);
+
+        if (r == -1) {
+            goto done;
+        } else if (r == 0) {
+            break;
+        }
+
+        buffer_offset += (size_t)r;
+    }
+
+    assert(buffer != NULL);
+    assert(buffer_offset < buffer_size);
+
+    /* We need to strip the tailing newline to avoid confusing our caller. */
+    if (strncmp(buffer, "", buffer_offset) != 0) {
+        assert(buffer[buffer_offset - 1] == '\n');
+        buffer_offset--;
+    }
+
+    if (passwand_secure_malloc((void**)&result, buffer_offset + 1) != 0)
+        goto done;
+    strncpy(result, buffer, buffer_offset);
+    result[buffer_offset] = '\0';
+
+done:
+    passwand_secure_free(buffer, buffer_size);
+    return result;
+}
+
+static char *osascript(const struct iovec *iov, size_t iovcnt, bool private) {
+
+    assert(iov != NULL);
+    assert(iovcnt > 0);
+
+    proc_t proc;
+    if (osascript_pipe(&proc) < 0)
+        return NULL;
+
+    (void)writev(proc.in, iov, iovcnt);
+    close(proc.in);
+
+    char *buf = private ? read_private(proc.out) : read_public(proc.out);
+
     int status;
     pid_t r;
     do {
         r = waitpid(proc.pid, &status, 0);
     } while (r == -1 && errno == EINTR);
 
-    if (WIFEXITED(status) && WEXITSTATUS(status) == EXIT_SUCCESS)
+    close(proc.in);
+    close(proc.out);
+
+    if (buf != NULL && WIFEXITED(status) && WEXITSTATUS(status) == EXIT_SUCCESS)
         return buf;
 
     /* If we've reached here, we failed. E.g. because the user clicked Cancel. */
@@ -209,30 +287,11 @@ char *get_text(const char *title, const char *message, const char *initial, bool
     if (hidden)
         iov[7] = IOV(" with hidden answer");
 
-    char *result = osascript(iov, sizeof(iov) / sizeof(iov[0]));
+    char *result = osascript(iov, sizeof(iov) / sizeof(iov[0]), hidden);
 
     free(i);
     free(m);
     free(t);
-
-    /* We need to strip the tailing newline to avoid confusing our caller. */
-    if (result != NULL && strcmp(result, "") != 0) {
-        assert(result[strlen(result) - 1] == '\n');
-        result[strlen(result) - 1] = '\0';
-    }
-
-    if (hidden && result != NULL) {
-        char *r;
-        if (passwand_secure_malloc((void**)&r, strlen(result) + 1) != PW_OK) {
-            free(result);
-            result = NULL;
-            show_error("failed to allocate secure memory");
-        } else {
-            strcpy(r, result);
-            free(result);
-            result = r;
-        }
-    }
 
     return result;
 }
@@ -249,7 +308,7 @@ int send_text(const char *text) {
         IOV("\"\nend tell"),
     };
 
-    char *result = osascript(iov, sizeof(iov) / sizeof(iov[0]));
+    char *result = osascript(iov, sizeof(iov) / sizeof(iov[0]), false);
     free(result);
 
     free(t);
@@ -273,7 +332,7 @@ void show_error(const char *message) {
         IOV("\" with title \"Passwand\" buttons \"OK\" default button 1 with icon stop"),
     };
 
-    char *result = osascript(iov, sizeof(iov) / sizeof(iov[0]));
+    char *result = osascript(iov, sizeof(iov) / sizeof(iov[0]), false);
     free(result);
 
     free(m);

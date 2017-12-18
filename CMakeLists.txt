@@ -103,8 +103,7 @@ install (TARGETS pw-cli RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_library (passwand src/encoding.c src/erase.c src/encryption.c src/entry.c src/error.c
-    src/export.c src/hmac.c src/import.c src/make_key.c src/malloc.c src/pack.c src/random.c
-    src/read.c)
+    src/export.c src/hmac.c src/import.c src/make_key.c src/malloc.c src/pack.c src/random.c)
 add_dependencies (passwand scrypt)
 target_include_directories (passwand PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/scrypt/scrypt/lib)
 target_link_libraries (passwand ${OPENSSL_LIBRARIES} ${JSON_LIBRARIES}
