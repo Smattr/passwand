@@ -55,6 +55,7 @@ char *get_text(const char *title, const char *message, const char *initial, bool
         if (hidden) {
             if (passwand_secure_malloc((void**)&r, strlen(text) + 1) != PW_OK) {
                 r = NULL;
+                show_error("failed to allocate secure memory");
             } else {
                 strcpy(r, text);
             }

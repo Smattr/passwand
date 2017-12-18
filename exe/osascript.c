@@ -223,6 +223,7 @@ char *get_text(const char *title, const char *message, const char *initial, bool
         if (passwand_secure_malloc((void**)&r, strlen(result) + 1) != PW_OK) {
             free(result);
             result = NULL;
+            show_error("failed to allocate secure memory");
         } else {
             strcpy(r, result);
             free(result);
