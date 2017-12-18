@@ -216,14 +216,9 @@ char *get_text(const char *title, const char *message, const char *initial, bool
     free(t);
 
     /* We need to strip the tailing newline to avoid confusing our caller. */
-    if (result != NULL) {
-        if (strcmp(result, "") == 0) {
-            free(result);
-            result = NULL;
-        } else {
-            assert(result[strlen(result) - 1] == '\n');
-            result[strlen(result) - 1] = '\0';
-        }
+    if (result != NULL && strcmp(result, "") != 0) {
+        assert(result[strlen(result) - 1] == '\n');
+        result[strlen(result) - 1] = '\0';
     }
 
     if (hidden && result != NULL) {
