@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
     else
         space = get_text("Passwand", "Name space?", NULL, false);
     if (space == NULL)
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
 
     char *key;
     if (options.key != NULL)
@@ -120,11 +120,11 @@ int main(int argc, char **argv) {
     else
         key = get_text("Passwand", "Key?", "password", false);
     if (key == NULL)
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
 
     char *master __attribute__((cleanup(autoclear))) = get_text("Passwand", "Master passphrase?", NULL, true);
     if (master == NULL)
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
 
     flush_state();
 
