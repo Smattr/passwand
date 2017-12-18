@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 int parse(int argc, char **argv, options_t *options) {
 
@@ -114,6 +115,28 @@ int parse(int argc, char **argv, options_t *options) {
         strcpy(path, home);
         strcat(path, "/.passwand.json");
         options->data = path;
+    }
+
+    /* Try to resolve the path to its ultimate target if it is a symbolic link. The purpose of this
+     * is so our caller can update the database by creating a temporary file and renaming it to the
+     * target. Without resolving symlinks, the temporary file may end up on a different partition to
+     * the target and the rename will fail.
+     */
+    for (;;) {
+        char *target = malloc(PATH_MAX + 1);
+        if (target == NULL)
+            return -1;
+        ssize_t r = readlink(options->data, target, PATH_MAX + 1);
+        if (r == -1) {
+            /* If we fail for any reason, just bail out and let our caller deal with having a
+            * symlink database.
+            */
+           free(target);
+           break;
+        }
+        target[r] = '\0';
+        free(options->data);
+        options->data = target;
     }
 
     return 0;
