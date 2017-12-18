@@ -145,9 +145,17 @@ static char *osascript(const struct iovec *iov, size_t iovcnt) {
     }
 
     int status;
-    (void)waitpid(proc.pid, &status, 0);
+    pid_t r;
+    do {
+        r = waitpid(proc.pid, &status, 0);
+    } while (r == -1 && errno == EINTR);
 
-    return buf;
+    if (WIFEXITED(status) && WEXITSTATUS(status) == EXIT_SUCCESS)
+        return buf;
+
+    /* If we've reached here, we failed. E.g. because the user clicked Cancel. */
+    free(buf);
+    return NULL;
 }
 
 /* Escape a string that is to be passed to osascript. */
