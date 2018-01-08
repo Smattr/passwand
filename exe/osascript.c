@@ -126,7 +126,7 @@ static char *osascript(const struct iovec *iov, size_t iovcnt) {
         /* open_memstream succeeded. */
         ssize_t r;
         do {
-            char chunk[1024];
+            char chunk[BUFSIZ];
             r = read(proc.out, chunk, sizeof(chunk));
             if (r > 0) {
                 size_t w = fwrite(chunk, (size_t)r, 1, buffer);

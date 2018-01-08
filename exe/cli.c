@@ -25,12 +25,10 @@ typedef struct {
 
 static master_t *getpassword(const char *prompt) {
 
-    static const size_t CHUNK = 128;
-
     char *m;
-    if (passwand_secure_malloc((void**)&m, CHUNK) != 0)
+    if (passwand_secure_malloc((void**)&m, BUFSIZ) != 0)
         return NULL;
-    size_t size = CHUNK;
+    size_t size = BUFSIZ;
 
     printf("%s", prompt == NULL ? "master password: " : prompt);
     fflush(stdout);
@@ -65,7 +63,7 @@ static master_t *getpassword(const char *prompt) {
         index++;
         if (index >= size) {
             char *n;
-            if (passwand_secure_malloc((void**)&n, size + CHUNK) != 0) {
+            if (passwand_secure_malloc((void**)&n, size + BUFSIZ) != 0) {
                 fflush(stdout);
                 tcsetattr(STDOUT_FILENO, 0, &old);
                 passwand_secure_free(m, size);
@@ -74,7 +72,7 @@ static master_t *getpassword(const char *prompt) {
             strncpy(n, m, size);
             passwand_secure_free(m, size);
             m = n;
-            size += CHUNK;
+            size += BUFSIZ;
         }
     }
 
