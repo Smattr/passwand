@@ -500,6 +500,7 @@ int main(int argc, char **argv) {
                "\n"
                "common options:\n"
                " --data DATA            Path to data file (default ~/.passwand.json)\n"
+               " --jobs THREADS         Number of threads to use\n"
                " --work-factor FACTOR   Scrypt work factor (default 14)\n",
                argv[0], argv[0], argv[0], argv[0], argv[0]);
         return EXIT_SUCCESS;
