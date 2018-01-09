@@ -132,3 +132,4 @@ target_link_libraries (pw-gui-test-stub passwand ${CMAKE_THREAD_LIBS_INIT})
 
 enable_testing ()
 add_test (UnitTests passwand-tests)
+add_test (IntegrationTests ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration-tests.py)
