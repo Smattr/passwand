@@ -96,7 +96,7 @@ if (((GTK3_FOUND OR GTK2_FOUND) AND X11_FOUND) OR OSASCRIPT)
   install (TARGETS pw-gui RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif ()
 
-add_executable (pw-cli cli/main.c common/argparse.c)
+add_executable (pw-cli cli/change-master.c cli/delete.c cli/get.c cli/list.c cli/main.c cli/set.c common/argparse.c)
 target_link_libraries (pw-cli passwand ${CMAKE_THREAD_LIBS_INIT})
 install (TARGETS pw-cli RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
