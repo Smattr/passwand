@@ -1,7 +1,7 @@
 /* Implementation of the API described in gui.h using GTK 2/3. */
 
 #include <assert.h>
-#include "getenv.h"
+#include "../common/getenv.h"
 #include <gtk/gtk.h>
 #include "gui.h"
 #include <passwand/passwand.h>

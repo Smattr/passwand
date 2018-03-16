@@ -1,7 +1,7 @@
 /* Implementation of the ../exe/gui.h API for the purposes of command line testing. */
 
 #include <assert.h>
-#include "../exe/gui.h"
+#include "../gui/gui.h"
 #include <passwand/passwand.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -86,9 +86,9 @@ endif (GTK3_FOUND)
 find_package (Threads)
 
 if ((GTK3_FOUND OR GTK2_FOUND) AND X11_FOUND)
-  add_executable (pw-gui exe/gui.c exe/gtk.c exe/argparse.c)
+  add_executable (pw-gui gui/main.c gui/gtk.c common/argparse.c)
 elseif (OSASCRIPT)
-  add_executable (pw-gui exe/gui.c exe/osascript.c exe/argparse.c)
+  add_executable (pw-gui gui/main.c gui/osascript.c common/argparse.c)
 endif ()
 
 if (((GTK3_FOUND OR GTK2_FOUND) AND X11_FOUND) OR OSASCRIPT)
@@ -96,7 +96,7 @@ if (((GTK3_FOUND OR GTK2_FOUND) AND X11_FOUND) OR OSASCRIPT)
   install (TARGETS pw-gui RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif ()
 
-add_executable (pw-cli exe/cli.c exe/argparse.c)
+add_executable (pw-cli cli/main.c common/argparse.c)
 target_link_libraries (pw-cli passwand ${CMAKE_THREAD_LIBS_INIT})
 install (TARGETS pw-cli RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
@@ -127,7 +127,7 @@ add_executable (passwand-tests
     tests/util.c)
 target_link_libraries (passwand-tests passwand ${CUNIT})
 
-add_executable (pw-gui-test-stub exe/gui.c exe/argparse.c tests/gui-test-stub.c)
+add_executable (pw-gui-test-stub gui/main.c common/argparse.c tests/gui-test-stub.c)
 target_link_libraries (pw-gui-test-stub passwand ${CMAKE_THREAD_LIBS_INIT})
 
 enable_testing ()

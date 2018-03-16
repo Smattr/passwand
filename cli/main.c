@@ -1,4 +1,4 @@
-#include "argparse.h"
+#include "../common/argparse.h"
 #include <assert.h>
 #include <limits.h>
 #include <passwand/passwand.h>
