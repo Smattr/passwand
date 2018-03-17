@@ -15,8 +15,7 @@ void discard_master(master_t *m);
 
 #define DIE(format, args...) \
     do { \
-        discard_master(master); \
         fprintf(stderr, format "\n", ## args); \
-        exit(EXIT_FAILURE); \
+        return EXIT_FAILURE; \
     } while (0)
 

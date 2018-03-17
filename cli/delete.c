@@ -57,6 +57,5 @@ int delete(const options_t *options __attribute__((unused)), master_t *master,
     if (err != PW_OK)
         DIE("failed to export entries: %s", passwand_error(err));
 
-    discard_master(master);
     return EXIT_SUCCESS;
 }

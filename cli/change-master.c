@@ -73,6 +73,5 @@ int change_master(const options_t *options, master_t *master, passwand_entry_t *
     if (err != PW_OK)
         DIE("failed to export entries");
 
-    discard_master(master);
     return EXIT_SUCCESS;
 }

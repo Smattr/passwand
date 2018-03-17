@@ -84,6 +84,5 @@ int set(const options_t *options, master_t *master, passwand_entry_t *entries,
     if (err != PW_OK)
         DIE("failed to export entries: %s", passwand_error(err));
 
-    discard_master(master);
     return EXIT_SUCCESS;
 }

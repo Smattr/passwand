@@ -42,6 +42,5 @@ int get(const options_t *options, master_t *master, passwand_entry_t *entries,
     if (!st.found)
         DIE("not found");
 
-    discard_master(master);
     return EXIT_SUCCESS;
 }

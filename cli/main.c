@@ -179,5 +179,7 @@ int main(int argc, char **argv) {
     if (master == NULL)
         DIE("failed to read master password");
 
-    return action(&options, master, entries, entry_len);
+    int ret = action(&options, master, entries, entry_len);
+    discard_master(master);
+    return ret;
 }

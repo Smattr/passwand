@@ -147,6 +147,5 @@ int list(const options_t *options __attribute__((unused)), master_t *master,
         (void)pthread_mutex_destroy(&printf_lock);
     }
 
-    discard_master(master);
     return EXIT_SUCCESS;
 }
