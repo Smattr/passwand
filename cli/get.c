@@ -27,7 +27,7 @@ static void get_body(void *state, const char *space, const char *key, const char
     }
 }
 
-int get(const options_t *options, master_t *master, passwand_entry_t *entries,
+int get(const options_t *options, const master_t *master, passwand_entry_t *entries,
         size_t entry_len) {
 
     find_state_t st = {

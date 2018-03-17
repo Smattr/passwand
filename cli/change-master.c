@@ -21,7 +21,7 @@ static void change_master_body(void *state, const char *space, const char *key,
     st->index++;
 }
 
-int change_master(const options_t *options, master_t *master, passwand_entry_t *entries,
+int change_master(const options_t *options, const master_t *master, passwand_entry_t *entries,
         size_t entry_len) {
 
     master_t *new_master = getpassword("new master password: ");

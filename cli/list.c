@@ -65,7 +65,7 @@ static void *list_loop(void *arg) {
     return (void*)PW_OK;
 }
 
-int list(const options_t *options __attribute__((unused)), master_t *master,
+int list(const options_t *options __attribute__((unused)), const master_t *master,
         passwand_entry_t *entries, size_t entry_len) {
 
     unsigned long jobs = options->jobs;

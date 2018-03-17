@@ -91,7 +91,7 @@ void discard_master(master_t *m) {
 
 int main(int argc, char **argv) {
 
-    int (*action)(const options_t *options, master_t *master, passwand_entry_t *entries,
+    int (*action)(const options_t *options, const master_t *master, passwand_entry_t *entries,
         size_t entry_len);
 
     if (argc < 2 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-?") == 0) {
