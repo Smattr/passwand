@@ -36,6 +36,7 @@ typedef struct {
     const char *master;
     pthread_mutex_t *printf_lock;
     size_t err_index;
+    bool created;
 } thread_state_t;
 
 static void *list_loop(void *arg) {
@@ -68,6 +69,12 @@ static void *list_loop(void *arg) {
 int list(const options_t *options __attribute__((unused)), const master_t *master,
         passwand_entry_t *entries, size_t entry_len) {
 
+    pthread_mutex_t printf_lock;
+    bool printf_lock_initialized = false;
+    thread_state_t *tses = NULL;
+    pthread_t *threads = NULL;
+    int ret = 0;
+
     unsigned long jobs = options->jobs;
     if (jobs == 0) { // automatic
         long cpus = sysconf(_SC_NPROCESSORS_ONLN);
@@ -91,23 +98,33 @@ int list(const options_t *options __attribute__((unused)), const master_t *maste
         };
 
         passwand_error_t err = (passwand_error_t)list_loop(&ts);
-        if (err != PW_OK)
-            DIE("failed to handle entry %zu: %s", ts.err_index, passwand_error(err));
+        if (err != PW_OK) {
+            fprintf(stderr, "failed to handle entry %zu: %s\n", ts.err_index, passwand_error(err));
+            return -1;
+        }
 
     } else {
 
         /* A lock that we'll use to synchronise access to stdout. */
-        pthread_mutex_t printf_lock;
-        if (pthread_mutex_init(&printf_lock, NULL) != 0)
-            DIE("failed to create mutex");
+        if (pthread_mutex_init(&printf_lock, NULL) != 0) {
+            fprintf(stderr, "failed to create mutex\n");
+            return -1;
+        }
+        printf_lock_initialized = true;
 
-        thread_state_t *tses = calloc(jobs, sizeof(*tses));
-        if (tses == NULL)
-            DIE("out of memory");
+        tses = calloc(jobs, sizeof(*tses));
+        if (tses == NULL) {
+            fprintf(stderr, "out of memory\n");
+            ret = -1;
+            goto done;
+        }
 
-        pthread_t *threads = calloc(jobs - 1, sizeof(*threads));
-        if (threads == NULL)
-            DIE("out of memory");
+        threads = calloc(jobs - 1, sizeof(*threads));
+        if (threads == NULL) {
+            fprintf(stderr, "out of memory\n");
+            ret = -1;
+            goto done;
+        }
 
         /* Initialise and start the threads. */
         atomic_size_t index = 0;
@@ -117,35 +134,49 @@ int list(const options_t *options __attribute__((unused)), const master_t *maste
             tses[i].entry_len = entry_len;
             tses[i].master = master->master;
             tses[i].printf_lock = &printf_lock;
+            tses[i].created = false;
 
             if (i < jobs - 1) {
                 int r = pthread_create(&threads[i], NULL, list_loop, &tses[i]);
-                if (r != 0)
-                    DIE("failed to create thread %lu", i + 1);
+                if (r == 0) {
+                    tses[i].created = true;
+                } else {
+                    fprintf(stderr, "warning: failed to create thread %lu\n", i + 1);
+                }
+
             }
         }
 
         /* Join the other threads in printing. */
         passwand_error_t err = (passwand_error_t)list_loop(&tses[jobs - 1]);
-        if (err != PW_OK)
-            DIE("failed to handle entry %zu: %s", tses[jobs - 1].err_index, passwand_error(err));
+        if (err != PW_OK) {
+            fprintf(stderr, "failed to handle entry %zu: %s\n", tses[jobs - 1].err_index, passwand_error(err));
+            ret = -1;
+        }
 
         /* Collect threads */
         for (unsigned long i = 0; i < jobs - 1; i++) {
-            void *ret;
-            int r = pthread_join(threads[i], &ret);
-            if (r != 0)
-                DIE("failed to join thread %lu", i + 1);
-            err = (passwand_error_t)ret;
-            if (err != PW_OK)
-                DIE("failed to handle entry %zu: %s", tses[i].err_index, passwand_error(err));
+            if (tses[i].created) {
+                void *retu;
+                int r = pthread_join(threads[i], &retu);
+                if (r != 0) {
+                    fprintf(stderr, "failed to join thread %lu\n", i + 1);
+                    ret = -1;
+                } else {
+                    err = (passwand_error_t)retu;
+                    if (err != PW_OK) {
+                        fprintf(stderr, "failed to handle entry %zu: %s\n", tses[i].err_index, passwand_error(err));
+                        ret = -1;
+                    }
+                }
+            }
         }
-
-        free(threads);
-        free(tses);
-
-        (void)pthread_mutex_destroy(&printf_lock);
     }
 
-    return EXIT_SUCCESS;
+done:
+    free(threads);
+    free(tses);
+    if (printf_lock_initialized)
+        (void)pthread_mutex_destroy(&printf_lock);
+    return ret;
 }

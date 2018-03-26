@@ -3,6 +3,7 @@
 #include "cli.h"
 #include <passwand/passwand.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 typedef struct {
@@ -24,28 +25,38 @@ static void change_master_body(void *state, const char *space, const char *key,
 int change_master(const options_t *options, const master_t *master, passwand_entry_t *entries,
         size_t entry_len) {
 
-    master_t *new_master = getpassword("new master password: ");
-    if (new_master == NULL)
-        DIE("failed to read new password");
+    master_t *new_master = NULL;
+    master_t *confirm_new = NULL;
+    passwand_entry_t *new_entries = NULL;
+    int ret = 0;
 
-    master_t *confirm_new = getpassword("confirm new master password: ");
+    new_master = getpassword("new master password: ");
+    if (new_master == NULL) {
+        fprintf(stderr, "failed to read new password\n");
+        return -1;
+    }
+
+    confirm_new = getpassword("confirm new master password: ");
     if (confirm_new == NULL) {
-        discard_master(new_master);
-        DIE("failed to read confirmation of new password");
+        fprintf(stderr, "failed to read confirmation of new password\n");
+        ret = -1;
+        goto done;
     }
 
     if (strcmp(new_master->master, confirm_new->master) != 0) {
-        discard_master(confirm_new);
-        discard_master(new_master);
-        DIE("passwords do not match");
+        fprintf(stderr, "passwords do not match\n");
+        ret = -1;
+        goto done;
     }
 
     discard_master(confirm_new);
+    confirm_new = NULL;
 
-    passwand_entry_t *new_entries = calloc(entry_len, sizeof *new_entries);
+    new_entries = calloc(entry_len, sizeof *new_entries);
     if (new_entries == NULL) {
-        discard_master(new_master);
-        DIE("out of memory");
+        fprintf(stderr, "out of memory\n");
+        ret = -1;
+        goto done;
     }
 
     change_master_state_t st = {
@@ -59,19 +70,31 @@ int change_master(const options_t *options, const master_t *master, passwand_ent
         passwand_error_t err = passwand_entry_do(master->master, &entries[i], change_master_body,
             &st);
         if (err != PW_OK) {
-            discard_master(new_master);
-            DIE("failed to process entry %zu: %s\n", i, passwand_error(err));
+            fprintf(stderr, "failed to process entry %zu: %s\n", i, passwand_error(err));
+            ret = -1;
+            goto done;
         }
         if (st.err != PW_OK) {
-            discard_master(new_master);
-            DIE("failed to process entry %zu: %s\n", i, passwand_error(st.err));
+            fprintf(stderr, "failed to process entry %zu: %s\n", i, passwand_error(st.err));
+            ret = -1;
+            goto done;
         }
     }
     discard_master(new_master);
+    new_master = NULL;
 
     passwand_error_t err = passwand_export(options->data, new_entries, entry_len);
-    if (err != PW_OK)
-        DIE("failed to export entries");
+    if (err != PW_OK) {
+        fprintf(stderr, "failed to export entries\n");
+        ret = -1;
+        goto done;
+    }
 
-    return EXIT_SUCCESS;
+done:
+    free(new_entries);
+    if (confirm_new != NULL)
+        discard_master(confirm_new);
+    if (new_master != NULL)
+        discard_master(new_master);
+    return ret;
 }

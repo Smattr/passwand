@@ -36,17 +36,23 @@ int set(const options_t *options, const master_t *master, passwand_entry_t *entr
         size_t entry_len) {
 
     master_t *confirm = getpassword("confirm master password: ");
-    if (confirm == NULL)
-        DIE("out of memory");
+    if (confirm == NULL) {
+        fprintf(stderr, "out of memory\n");
+        return -1;
+    }
     bool r = strcmp(master->master, confirm->master) == 0;
     discard_master(confirm);
-    if (!r)
-        DIE("passwords do not match");
+    if (!r) {
+        fprintf(stderr, "passwords do not match\n");
+        return -1;
+    }
 
     passwand_entry_t e;
     if (passwand_entry_new(&e, master->master, options->space, options->key, options->value,
-            options->work_factor) != PW_OK)
-        DIE("failed to create new entry");
+            options->work_factor) != PW_OK) {
+        fprintf(stderr, "failed to create new entry\n");
+        return -1;
+    }
 
     /* Figure out if the entry we've just created collides with (and overwrites) an existing one.
      */
@@ -58,16 +64,22 @@ int set(const options_t *options, const master_t *master, passwand_entry_t *entr
         .key = options->key,
     };
     for (size_t i = 0; !st.found && i < entry_len; i++) {
-        if (passwand_entry_do(master->master, &entries[i], set_body, &st) != PW_OK)
-            DIE("failed to handle entry %zu", i);
+        if (passwand_entry_do(master->master, &entries[i], set_body, &st) != PW_OK) {
+            fprintf(stderr, "failed to handle entry %zu\n", i);
+            return -1;
+        }
     }
 
-    if (!st.found && entry_len == SIZE_MAX)
-        DIE("maximum number of entries exceeded");
+    if (!st.found && entry_len == SIZE_MAX) {
+        fprintf(stderr, "maximum number of entries exceeded\n");
+        return -1;
+    }
 
     passwand_entry_t *new_entries = calloc(entry_len + (st.found ? 0 : 1), sizeof(passwand_entry_t));
-    if (new_entries == NULL)
-        DIE("out of memory");
+    if (new_entries == NULL) {
+        fprintf(stderr, "out of memory\n");
+        return -1;
+    }
 
     /* Insert the new or updated entry at the start of the list, as we assume
      * we'll be looking it up in the near future.
@@ -81,8 +93,11 @@ int set(const options_t *options, const master_t *master, passwand_entry_t *entr
     size_t new_entry_len = st.found ? entry_len : entry_len + 1;
 
     passwand_error_t err = passwand_export(options->data, new_entries, new_entry_len);
-    if (err != PW_OK)
-        DIE("failed to export entries: %s", passwand_error(err));
+    free(new_entries);
+    if (err != PW_OK) {
+        fprintf(stderr, "failed to export entries: %s\n", passwand_error(err));
+        return -1;
+    }
 
-    return EXIT_SUCCESS;
+    return 0;
 }

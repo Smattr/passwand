@@ -40,22 +40,28 @@ int delete(const options_t *options __attribute__((unused)), const master_t *mas
     /* Try to find the entry to delete. */
     size_t i;
     for (i = 0; i < entry_len; i++) {
-        if (passwand_entry_do(master->master, &entries[i], check, &st) != PW_OK)
-            DIE("failed to handle entry %zu", i);
+        if (passwand_entry_do(master->master, &entries[i], check, &st) != PW_OK) {
+            fprintf(stderr, "failed to handle entry %zu\n", i);
+            return -1;
+        }
         if (st.found)
             break;
     }
 
-    if (!st.found)
-        DIE("failed to find entry");
+    if (!st.found) {
+        fprintf(stderr, "failed to find entry\n");
+        return -1;
+    }
 
     /* Shuffle entries following the one to be deleted, to remove the deleted one. */
     for (size_t j = i; j < entry_len - 1; j++)
         entries[j] = entries[j + 1];
 
     passwand_error_t err = passwand_export(options->data, entries, entry_len - 1);
-    if (err != PW_OK)
-        DIE("failed to export entries: %s", passwand_error(err));
+    if (err != PW_OK) {
+        fprintf(stderr, "failed to export entries: %s\n", passwand_error(err));
+        return -1;
+    }
 
-    return EXIT_SUCCESS;
+    return 0;
 }

@@ -35,12 +35,16 @@ int get(const options_t *options, const master_t *master, passwand_entry_t *entr
         .found = false,
     };
     for (size_t i = 0; !st.found && i < entry_len; i++) {
-        if (passwand_entry_do(master->master, &entries[i], get_body, &st) != PW_OK)
-            DIE("failed to handle entry %zu", i);
+        if (passwand_entry_do(master->master, &entries[i], get_body, &st) != PW_OK) {
+            fprintf(stderr, "failed to handle entry %zu\n", i);
+            return -1;
+        }
     }
 
-    if (!st.found)
-        DIE("not found");
+    if (!st.found) {
+        fprintf(stderr, "not found\n");
+        return -1;
+    }
 
-    return EXIT_SUCCESS;
+    return 0;
 }
