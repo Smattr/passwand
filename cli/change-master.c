@@ -2,8 +2,8 @@
 #include "change-master.h"
 #include "cli.h"
 #include <passwand/passwand.h>
+#include "print.h"
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 
 typedef struct {
@@ -32,19 +32,19 @@ int change_master(const options_t *options, const master_t *master, passwand_ent
 
     new_master = getpassword("new master password: ");
     if (new_master == NULL) {
-        fprintf(stderr, "failed to read new password\n");
+        eprint("failed to read new password\n");
         return -1;
     }
 
     confirm_new = getpassword("confirm new master password: ");
     if (confirm_new == NULL) {
-        fprintf(stderr, "failed to read confirmation of new password\n");
+        eprint("failed to read confirmation of new password\n");
         ret = -1;
         goto done;
     }
 
     if (strcmp(new_master->master, confirm_new->master) != 0) {
-        fprintf(stderr, "passwords do not match\n");
+        eprint("passwords do not match\n");
         ret = -1;
         goto done;
     }
@@ -54,7 +54,7 @@ int change_master(const options_t *options, const master_t *master, passwand_ent
 
     new_entries = calloc(entry_len, sizeof *new_entries);
     if (new_entries == NULL) {
-        fprintf(stderr, "out of memory\n");
+        eprint("out of memory\n");
         ret = -1;
         goto done;
     }
@@ -70,12 +70,12 @@ int change_master(const options_t *options, const master_t *master, passwand_ent
         passwand_error_t err = passwand_entry_do(master->master, &entries[i], change_master_body,
             &st);
         if (err != PW_OK) {
-            fprintf(stderr, "failed to process entry %zu: %s\n", i, passwand_error(err));
+            eprint("failed to process entry %zu: %s\n", i, passwand_error(err));
             ret = -1;
             goto done;
         }
         if (st.err != PW_OK) {
-            fprintf(stderr, "failed to process entry %zu: %s\n", i, passwand_error(st.err));
+            eprint("failed to process entry %zu: %s\n", i, passwand_error(st.err));
             ret = -1;
             goto done;
         }
@@ -85,7 +85,7 @@ int change_master(const options_t *options, const master_t *master, passwand_ent
 
     passwand_error_t err = passwand_export(options->data, new_entries, entry_len);
     if (err != PW_OK) {
-        fprintf(stderr, "failed to export entries\n");
+        eprint("failed to export entries\n");
         ret = -1;
         goto done;
     }

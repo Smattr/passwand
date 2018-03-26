@@ -3,6 +3,7 @@
 #include "cli.h"
 #include "delete.h"
 #include <passwand/passwand.h>
+#include "print.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,7 +42,7 @@ int delete(const options_t *options __attribute__((unused)), const master_t *mas
     size_t i;
     for (i = 0; i < entry_len; i++) {
         if (passwand_entry_do(master->master, &entries[i], check, &st) != PW_OK) {
-            fprintf(stderr, "failed to handle entry %zu\n", i);
+            eprint("failed to handle entry %zu\n", i);
             return -1;
         }
         if (st.found)
@@ -49,7 +50,7 @@ int delete(const options_t *options __attribute__((unused)), const master_t *mas
     }
 
     if (!st.found) {
-        fprintf(stderr, "failed to find entry\n");
+        eprint("failed to find entry\n");
         return -1;
     }
 
@@ -59,7 +60,7 @@ int delete(const options_t *options __attribute__((unused)), const master_t *mas
 
     passwand_error_t err = passwand_export(options->data, entries, entry_len - 1);
     if (err != PW_OK) {
-        fprintf(stderr, "failed to export entries: %s\n", passwand_error(err));
+        eprint("failed to export entries: %s\n", passwand_error(err));
         return -1;
     }
 

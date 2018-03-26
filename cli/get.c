@@ -3,8 +3,8 @@
 #include "cli.h"
 #include "get.h"
 #include <passwand/passwand.h>
+#include "print.h"
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -36,13 +36,13 @@ int get(const options_t *options, const master_t *master, passwand_entry_t *entr
     };
     for (size_t i = 0; !st.found && i < entry_len; i++) {
         if (passwand_entry_do(master->master, &entries[i], get_body, &st) != PW_OK) {
-            fprintf(stderr, "failed to handle entry %zu\n", i);
+            eprint("failed to handle entry %zu\n", i);
             return -1;
         }
     }
 
     if (!st.found) {
-        fprintf(stderr, "not found\n");
+        eprint("not found\n");
         return -1;
     }
 

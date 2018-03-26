@@ -3,6 +3,7 @@
 #include "cli.h"
 #include <limits.h>
 #include <passwand/passwand.h>
+#include "print.h"
 #include "set.h"
 #include <stdbool.h>
 #include <stdlib.h>
@@ -37,20 +38,20 @@ int set(const options_t *options, const master_t *master, passwand_entry_t *entr
 
     master_t *confirm = getpassword("confirm master password: ");
     if (confirm == NULL) {
-        fprintf(stderr, "out of memory\n");
+        eprint("out of memory\n");
         return -1;
     }
     bool r = strcmp(master->master, confirm->master) == 0;
     discard_master(confirm);
     if (!r) {
-        fprintf(stderr, "passwords do not match\n");
+        eprint("passwords do not match\n");
         return -1;
     }
 
     passwand_entry_t e;
     if (passwand_entry_new(&e, master->master, options->space, options->key, options->value,
             options->work_factor) != PW_OK) {
-        fprintf(stderr, "failed to create new entry\n");
+        eprint("failed to create new entry\n");
         return -1;
     }
 
@@ -65,19 +66,19 @@ int set(const options_t *options, const master_t *master, passwand_entry_t *entr
     };
     for (size_t i = 0; !st.found && i < entry_len; i++) {
         if (passwand_entry_do(master->master, &entries[i], set_body, &st) != PW_OK) {
-            fprintf(stderr, "failed to handle entry %zu\n", i);
+            eprint("failed to handle entry %zu\n", i);
             return -1;
         }
     }
 
     if (!st.found && entry_len == SIZE_MAX) {
-        fprintf(stderr, "maximum number of entries exceeded\n");
+        eprint("maximum number of entries exceeded\n");
         return -1;
     }
 
     passwand_entry_t *new_entries = calloc(entry_len + (st.found ? 0 : 1), sizeof(passwand_entry_t));
     if (new_entries == NULL) {
-        fprintf(stderr, "out of memory\n");
+        eprint("out of memory\n");
         return -1;
     }
 
@@ -95,7 +96,7 @@ int set(const options_t *options, const master_t *master, passwand_entry_t *entr
     passwand_error_t err = passwand_export(options->data, new_entries, new_entry_len);
     free(new_entries);
     if (err != PW_OK) {
-        fprintf(stderr, "failed to export entries: %s\n", passwand_error(err));
+        print("failed to export entries: %s\n", passwand_error(err));
         return -1;
     }
 
