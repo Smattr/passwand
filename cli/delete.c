@@ -29,7 +29,7 @@ static void check(void *state, const char *space, const char *key,
     st->found = strcmp(st->space, space) == 0 && strcmp(st->key, key) == 0;
 }
 
-int delete(const options_t *options __attribute__((unused)), const master_t *master,
+static int delete(void **state __attribute__((unused)), const options_t *options __attribute__((unused)), const master_t *master,
         passwand_entry_t *entries, size_t entry_len) {
 
     delete_state_t st = {
@@ -66,3 +66,10 @@ int delete(const options_t *options __attribute__((unused)), const master_t *mas
 
     return 0;
 }
+
+const command_t delete_command = {
+    .need_space = true,
+    .need_key = true,
+    .need_value = false,
+    .initialize = delete,
+};

@@ -139,5 +139,11 @@ int parse(int argc, char **argv, options_t *options) {
         options->data = target;
     }
 
+    if (options->jobs == 0) { // automatic
+        long cpus = sysconf(_SC_NPROCESSORS_ONLN);
+        assert(cpus >= 1);
+        options->jobs = (unsigned long)cpus;
+    }
+
     return 0;
 }

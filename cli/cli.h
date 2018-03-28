@@ -1,6 +1,7 @@
 #pragma once
 
 #include <passwand/passwand.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -13,9 +14,25 @@ master_t *getpassword(const char *prompt);
 
 void discard_master(master_t *m);
 
-#define DIE(format, args...) \
-    do { \
-        fprintf(stderr, format "\n", ## args); \
-        return EXIT_FAILURE; \
-    } while (0)
+/* A subcommand of this tool. */
+typedef struct {
+    bool need_space; /* Whether the command uses the --space argument. */
+    bool need_key;   /* Whether the command uses the --key argument. */
+    bool need_value; /* Whether the command uses the --value argument. */
 
+    /* Constructor. */
+    int (*initialize)(void **state, const options_t *options, const master_t *master,
+        passwand_entry_t *entries, size_t entry_len);
+
+    /* Prepare to run 'loop_body' on an entry. */
+    void (*loop_notify)(void *state, size_t thread_index, size_t entry_index);
+
+    /* Indicate whether iteration should continue. */
+    bool (*loop_condition)(void *state);
+
+    /* Action of this command. Note, this may be called by multiple threads in parallel. */
+    void (*loop_body)(void *state, const char *space, const char *key, const char *value);
+
+    /* Destructor. */
+    int (*finalize)(void *state);
+} command_t;

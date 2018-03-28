@@ -5,5 +5,4 @@
 #include <passwand/passwand.h>
 #include <stddef.h>
 
-int get(const options_t *options, const master_t *master, passwand_entry_t *entries,
-    size_t entry_len);
+extern const command_t get_command;

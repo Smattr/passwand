@@ -33,7 +33,7 @@ static void set_body(void *state, const char *space, const char *key,
     }
 }
 
-int set(const options_t *options, const master_t *master, passwand_entry_t *entries,
+static int set(void **state __attribute__((unused)), const options_t *options, const master_t *master, passwand_entry_t *entries,
         size_t entry_len) {
 
     master_t *confirm = getpassword("confirm master password: ");
@@ -102,3 +102,10 @@ int set(const options_t *options, const master_t *master, passwand_entry_t *entr
 
     return 0;
 }
+
+const command_t set_command = {
+    .need_space = true,
+    .need_key = true,
+    .need_value = true,
+    .initialize = set,
+};

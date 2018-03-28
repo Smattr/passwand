@@ -22,7 +22,7 @@ static void change_master_body(void *state, const char *space, const char *key,
     st->index++;
 }
 
-int change_master(const options_t *options, const master_t *master, passwand_entry_t *entries,
+static int change_master(void **state __attribute__((unused)), const options_t *options, const master_t *master, passwand_entry_t *entries,
         size_t entry_len) {
 
     master_t *new_master = NULL;
@@ -98,3 +98,10 @@ done:
         discard_master(new_master);
     return ret;
 }
+
+const command_t change_master_command = {
+    .need_space = false,
+    .need_key = false,
+    .need_value = false,
+    .initialize = change_master,
+};

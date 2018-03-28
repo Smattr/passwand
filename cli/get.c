@@ -27,7 +27,7 @@ static void get_body(void *state, const char *space, const char *key, const char
     }
 }
 
-int get(const options_t *options, const master_t *master, passwand_entry_t *entries,
+static int get(void **state __attribute__((unused)), const options_t *options, const master_t *master, passwand_entry_t *entries,
         size_t entry_len) {
 
     find_state_t st = {
@@ -48,3 +48,10 @@ int get(const options_t *options, const master_t *master, passwand_entry_t *entr
 
     return 0;
 }
+
+const command_t get_command = {
+    .need_space = true,
+    .need_key = true,
+    .need_value = false,
+    .initialize = get,
+};

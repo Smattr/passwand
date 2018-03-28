@@ -53,7 +53,7 @@ static void *list_loop(void *arg) {
     return (void*)PW_OK;
 }
 
-int list(const options_t *options __attribute__((unused)), const master_t *master,
+static int list(void **state __attribute__((unused)), const options_t *options __attribute__((unused)), const master_t *master,
         passwand_entry_t *entries, size_t entry_len) {
 
     thread_state_t *tses = NULL;
@@ -154,3 +154,10 @@ done:
     free(tses);
     return ret;
 }
+
+const command_t list_command = {
+    .need_space = false,
+    .need_key = false,
+    .need_value = false,
+    .initialize = list,
+};
