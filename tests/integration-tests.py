@@ -80,6 +80,79 @@ class Cli(unittest.TestCase):
         self.assertIn('key', j[0].keys())
         self.assertIn('value', j[0].keys())
 
+    def test_get_basic(self):
+        '''
+        Test basic functionality of getting an entry from a small data file.
+        Note that if test_set_basic* fails, you should expect this to fail as
+        well.
+        '''
+        data = os.path.join(self.tmp, 'test_get_basic.json')
+        self.get_basic(True, data)
+
+    def test_get_basic_single_threaded(self):
+        '''
+        Same as test_get_basic, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_get_basic_single_threaded.json')
+        self.get_basic(False, data)
+
+    def get_basic(self, multithreaded: bool, data: str):
+
+        # Request to save a key and value.
+        p = pexpect.spawn('./pw-cli', ['set', '--data', data, '--space', 'space',
+          '--key', 'key', '--value', 'value'])
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Confirm the master pasword.
+        try:
+            p.expect('confirm master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Try to read the value back.
+        args = ['get', '--data', data, '--space', 'space', '--key', 'key']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # If everything's working, we should get the value.
+        try:
+            p.expect('value\r\n')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for value')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for value')
+
+        # And passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
     def tearDown(self):
         if hasattr(self, 'tmp') and os.path.exists(self.tmp):
             shutil.rmtree(self.tmp)
