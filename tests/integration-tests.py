@@ -27,11 +27,24 @@ class Cli(unittest.TestCase):
         '''
         Test basic functionality of setting an entry in a blank data file.
         '''
+        data = os.path.join(self.tmp, 'test_set_basic.json')
+        self.set_basic(True, data)
+
+    def test_set_basic_single_threaded(self):
+        '''
+        Same as test_set_basic, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_set_basic_single_threaded.json')
+        self.set_basic(False, data)
+
+    def set_basic(self, multithreaded: bool, data: str):
 
         # Request to save a key and value.
-        data = os.path.join(self.tmp, 'test_set_basic.json')
-        p = pexpect.spawn('./pw-cli', ['set', '--data', data, '--space',
-          'space', '--key', 'key', '--value', 'value'])
+        args = ['set', '--data', data, '--space', 'space', '--key', 'key',
+          '--value', 'value']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
 
         # Enter the master password.
         try:
