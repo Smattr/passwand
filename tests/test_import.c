@@ -171,7 +171,7 @@ TEST("import: import(export(x)) == x") {
             .work_factor = 15,
         },
     };
-    size_t entry_len = sizeof entries / sizeof entries[0];
+    size_t entry_len = sizeof(entries) / sizeof(entries[0]);
 
     /* Create a temporary file to export to. */
     char tmp[] = "/tmp/tmp.XXXXXX";

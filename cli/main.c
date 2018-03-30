@@ -95,7 +95,7 @@ master_t *getpassword(const char *prompt) {
     m[index] = '\0';
 
     master_t *master;
-    if (passwand_secure_malloc((void**)&master, sizeof *master) != 0) {
+    if (passwand_secure_malloc((void**)&master, sizeof(*master)) != 0) {
         passwand_secure_free(m, size);
         return NULL;
     }
@@ -109,7 +109,7 @@ void discard_master(master_t *m) {
     if (m == NULL)
         return;
     passwand_secure_free(m->master, m->master_len);
-    passwand_secure_free(m, sizeof *m);
+    passwand_secure_free(m, sizeof(*m));
 }
 
 typedef struct {

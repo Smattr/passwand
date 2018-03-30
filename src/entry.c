@@ -11,7 +11,7 @@
 
 static m_t *make_m_t(const char *master) {
     m_t *m;
-    if (passwand_secure_malloc((void**)&m, sizeof *m) != 0)
+    if (passwand_secure_malloc((void**)&m, sizeof(*m)) != 0)
         return NULL;
     m->data = (uint8_t*)master;
     m->length = strlen(master);
@@ -22,7 +22,7 @@ static void unmake_m_t(void *p) {
     assert(p != NULL);
     m_t *m = *(m_t**)p;
     if (m != NULL)
-        passwand_secure_free(m, sizeof *m);
+        passwand_secure_free(m, sizeof(*m));
 }
 #define AUTO_M_T(name, master) m_t *m __attribute__((cleanup(unmake_m_t))) = make_m_t(master)
 
@@ -53,16 +53,16 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
     assert(key != NULL);
     assert(value != NULL);
 
-    memset(e, 0, sizeof *e);
+    memset(e, 0, sizeof(*e));
 
     /* Generate a random 8-byte salt. */
     uint8_t _salt[PW_SALT_LEN];
-    passwand_error_t err = random_bytes(_salt, sizeof _salt);
+    passwand_error_t err = random_bytes(_salt, sizeof(_salt));
     if (err != PW_OK)
         return err;
     const salt_t salt = {
         .data = _salt,
-        .length = sizeof _salt,
+        .length = sizeof(_salt),
     };
 
     /* Make an encryption key. */
@@ -78,7 +78,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
 
     /* Generate a random 16-byte initialisation vector. */
     iv_t iv;
-    err = random_bytes(iv, sizeof iv);
+    err = random_bytes(iv, sizeof(iv));
     if (err != PW_OK)
         return err;
 
@@ -115,29 +115,29 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
 #define ENC(field) \
     do { \
         pt_t *p; \
-        if (passwand_secure_malloc((void**)&p, sizeof *p) != 0) { \
+        if (passwand_secure_malloc((void**)&p, sizeof(*p)) != 0) { \
             CLEANUP(); \
             return PW_NO_MEM; \
         } \
         p->data = (uint8_t*)field; \
         p->length = strlen(field); \
         ppt_t *pp; \
-        if (passwand_secure_malloc((void**)&pp, sizeof *pp) != 0) { \
-            passwand_secure_free(p, sizeof *p); \
+        if (passwand_secure_malloc((void**)&pp, sizeof(*pp)) != 0) { \
+            passwand_secure_free(p, sizeof(*p)); \
             CLEANUP(); \
             return PW_NO_MEM; \
         } \
         err = pack_data(p, iv, pp); \
-        passwand_secure_free(p, sizeof *p); \
+        passwand_secure_free(p, sizeof(*p)); \
         if (err != PW_OK) { \
-            passwand_secure_free(pp, sizeof *pp); \
+            passwand_secure_free(pp, sizeof(*pp)); \
             CLEANUP(); \
             return err; \
         } \
         ct_t c; \
         err = aes_encrypt(&ctx, pp, &c); \
         passwand_secure_free(pp->data, pp->length); \
-        passwand_secure_free(pp, sizeof *pp); \
+        passwand_secure_free(pp, sizeof(*pp)); \
         if (err != PW_OK) { \
             CLEANUP(); \
             return err; \
@@ -167,22 +167,22 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
     e->work_factor = work_factor;
 
     /* Save the salt. */
-    e->salt = malloc(sizeof _salt);
+    e->salt = malloc(sizeof(_salt));
     if (e->salt == NULL) {
         CLEANUP();
         return PW_NO_MEM;
     }
-    memcpy(e->salt, &_salt, sizeof _salt);
-    e->salt_len = sizeof _salt;
+    memcpy(e->salt, &_salt, sizeof(_salt));
+    e->salt_len = sizeof(_salt);
 
     /* Save the IV. */
-    e->iv = malloc(sizeof iv);
+    e->iv = malloc(sizeof(iv));
     if (e->iv == NULL) {
         CLEANUP();
         return PW_NO_MEM;
     }
-    memcpy(e->iv, iv, sizeof iv);
-    e->iv_len = sizeof iv;
+    memcpy(e->iv, iv, sizeof(iv));
+    e->iv_len = sizeof(iv);
 
     /* Set the HMAC. */
     err = passwand_entry_set_mac(master, e);
@@ -370,25 +370,25 @@ passwand_error_t passwand_entry_do(const char *master, const passwand_entry_t *e
             .length = e->field##_len, \
         }; \
         ppt_t *pp; \
-        if (passwand_secure_malloc((void**)&pp, sizeof *pp) != 0) { \
+        if (passwand_secure_malloc((void**)&pp, sizeof(*pp)) != 0) { \
             return PW_NO_MEM; \
         } \
         err = aes_decrypt(&ctx, &c, pp); \
         if (err != PW_OK) { \
-            passwand_secure_free(pp, sizeof *pp); \
+            passwand_secure_free(pp, sizeof(*pp)); \
             return err; \
         } \
         pt_t *p; \
-        if (passwand_secure_malloc((void**)&p, sizeof *p) != 0) { \
+        if (passwand_secure_malloc((void**)&p, sizeof(*p)) != 0) { \
             passwand_secure_free(pp->data, pp->length); \
-            passwand_secure_free(pp, sizeof *pp); \
+            passwand_secure_free(pp, sizeof(*pp)); \
             return PW_NO_MEM; \
         } \
         err = unpack_data(pp, iv, p); \
         passwand_secure_free(pp->data, pp->length); \
-        passwand_secure_free(pp, sizeof *pp); \
+        passwand_secure_free(pp, sizeof(*pp)); \
         if (err != PW_OK) { \
-            passwand_secure_free(p, sizeof *p); \
+            passwand_secure_free(p, sizeof(*p)); \
             return err; \
         } \
         if (memchr(p->data, 0, p->length) != NULL) { \
@@ -396,23 +396,23 @@ passwand_error_t passwand_entry_do(const char *master, const passwand_entry_t *e
              * later.
              */ \
             passwand_secure_free(p->data, p->length); \
-            passwand_secure_free(p, sizeof *p); \
+            passwand_secure_free(p, sizeof(*p)); \
             return PW_TRUNCATED; \
         } \
         if (SIZE_MAX - p->length < 1) { \
             passwand_secure_free(p->data, p->length); \
-            passwand_secure_free(p, sizeof *p); \
+            passwand_secure_free(p, sizeof(*p)); \
             return PW_OVERFLOW; \
         } \
         if (passwand_secure_malloc((void**)&field, p->length + 1) != 0) { \
             passwand_secure_free(p->data, p->length); \
-            passwand_secure_free(p, sizeof *p); \
+            passwand_secure_free(p, sizeof(*p)); \
             return PW_NO_MEM; \
         } \
         memcpy(field, p->data, p->length); \
         field[p->length] = '\0'; \
         passwand_secure_free(p->data, p->length); \
-        passwand_secure_free(p, sizeof *p); \
+        passwand_secure_free(p, sizeof(*p)); \
     } while (0)
 
     DEC(space);

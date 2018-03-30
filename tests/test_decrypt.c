@@ -18,7 +18,7 @@ TEST("decrypt: decrypt(encrypt(x)) == x") {
     uint8_t _pp[] = { 'h', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 0, 0, 0, 0, 0 };
     const ppt_t pp = {
         .data = _pp,
-        .length = sizeof _pp,
+        .length = sizeof(_pp),
     };
 
     ct_t c;
@@ -64,7 +64,7 @@ TEST("decrypt: with bad key") {
     uint8_t _pp[] = { 'h', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 0, 0, 0, 0, 0 };
     const ppt_t pp = {
         .data = _pp,
-        .length = sizeof _pp,
+        .length = sizeof(_pp),
     };
 
     ct_t c;
@@ -116,7 +116,7 @@ TEST("decrypt: with bad initialisation vector") {
     uint8_t _pp[] = { 'h', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 0, 0, 0, 0, 0 };
     const ppt_t pp = {
         .data = _pp,
-        .length = sizeof _pp,
+        .length = sizeof(_pp),
     };
 
     ct_t c;

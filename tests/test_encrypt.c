@@ -105,7 +105,7 @@ TEST("AES128 reads at most 128 bits of a supplied key") {
         r = EVP_EncryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key, iv);
         CU_ASSERT_EQUAL_FATAL(r, 1);
 
-        unsigned char in[sizeof "hello world"];
+        unsigned char in[sizeof("hello world")];
         strcpy((char*)in, "hello world");
 
         unsigned char out[sizeof(in) + 16 - 1];
@@ -177,7 +177,7 @@ TEST("AES128 reads at least 128 bits of a supplied key") {
         r = EVP_EncryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key, iv);
         CU_ASSERT_EQUAL_FATAL(r, 1);
 
-        unsigned char in[sizeof "hello world"];
+        unsigned char in[sizeof("hello world")];
         strcpy((char*)in, "hello world");
 
         unsigned char out[sizeof(in) + 16 - 1];
@@ -250,7 +250,7 @@ TEST("AES128 reads at most 16 bytes of a supplied initialisation vector") {
         r = EVP_EncryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key, iv);
         CU_ASSERT_EQUAL_FATAL(r, 1);
 
-        unsigned char in[sizeof "hello world"];
+        unsigned char in[sizeof("hello world")];
         strcpy((char*)in, "hello world");
 
         unsigned char out[sizeof(in) + 16 - 1];
@@ -319,7 +319,7 @@ TEST("AES128 reads at least 16 bytes of a supplied initialisation vector") {
         r = EVP_EncryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key, iv);
         CU_ASSERT_EQUAL_FATAL(r, 1);
 
-        unsigned char in[sizeof "hello world"];
+        unsigned char in[sizeof("hello world")];
         strcpy((char*)in, "hello world");
 
         unsigned char out[sizeof(in) + 16 - 1];
@@ -391,7 +391,7 @@ TEST("AES256 reads at most 256 bits of a supplied key") {
         r = EVP_EncryptInit_ex(ctx, EVP_aes_256_ctr(), NULL, key, iv);
         CU_ASSERT_EQUAL_FATAL(r, 1);
 
-        unsigned char in[sizeof "hello world"];
+        unsigned char in[sizeof("hello world")];
         strcpy((char*)in, "hello world");
 
         unsigned char out[sizeof(in) + 16 - 1];
@@ -459,7 +459,7 @@ TEST("AES256 reads at least 256 bits of a supplied key") {
         r = EVP_EncryptInit_ex(ctx, EVP_aes_256_ctr(), NULL, key, iv);
         CU_ASSERT_EQUAL_FATAL(r, 1);
 
-        unsigned char in[sizeof "hello world"];
+        unsigned char in[sizeof("hello world")];
         strcpy((char*)in, "hello world");
 
         unsigned char out[sizeof(in) + 16 - 1];
@@ -532,7 +532,7 @@ TEST("AES256 reads at most 16 bytes of a supplied initialisation vector") {
         r = EVP_EncryptInit_ex(ctx, EVP_aes_256_ctr(), NULL, key, iv);
         CU_ASSERT_EQUAL_FATAL(r, 1);
 
-        unsigned char in[sizeof "hello world"];
+        unsigned char in[sizeof("hello world")];
         strcpy((char*)in, "hello world");
 
         unsigned char out[sizeof(in) + 16 - 1];
@@ -601,7 +601,7 @@ TEST("AES256 reads at least 16 bytes of a supplied initialisation vector") {
         r = EVP_EncryptInit_ex(ctx, EVP_aes_256_ctr(), NULL, key, iv);
         CU_ASSERT_EQUAL_FATAL(r, 1);
 
-        unsigned char in[sizeof "hello world"];
+        unsigned char in[sizeof("hello world")];
         strcpy((char*)in, "hello world");
 
         unsigned char out[sizeof(in) + 16 - 1];
@@ -662,7 +662,7 @@ TEST("encrypt: basic functionality") {
     uint8_t _pp[16] = { 0 };
     ppt_t pp = {
         .data = _pp,
-        .length = sizeof _pp,
+        .length = sizeof(_pp),
     };
     memcpy(pp.data, "hello world", strlen("hello world"));
 

@@ -89,7 +89,7 @@ static void auto_erase_buffer(void *p) {
     if (b != NULL) {
         if (b->data != NULL)
             passwand_secure_free(b->data, b->length);
-        passwand_secure_free(b, sizeof *b);
+        passwand_secure_free(b, sizeof(*b));
     }
 }
 
@@ -99,7 +99,7 @@ passwand_error_t aes_decrypt(EVP_CIPHER_CTX *ctx, const ct_t *c, ppt_t *pp) {
     if (SIZE_MAX - AES_BLOCK_SIZE < c->length)
         return PW_OVERFLOW;
     buffer_t *buffer __attribute__((cleanup(auto_erase_buffer))) = NULL;
-    if (passwand_secure_malloc((void**)&buffer, sizeof *buffer) != 0)
+    if (passwand_secure_malloc((void**)&buffer, sizeof(*buffer)) != 0)
         return PW_NO_MEM;
     buffer->data = NULL;
     if (passwand_secure_malloc((void**)&buffer->data, c->length + AES_BLOCK_SIZE) != 0)

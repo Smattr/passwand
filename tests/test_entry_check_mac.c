@@ -6,7 +6,7 @@
 #include "test.h"
 
 static void create_maced_entry(passwand_entry_t *e) {
-    memset(e, 0, sizeof *e);
+    memset(e, 0, sizeof(*e));
     e->space = (uint8_t*)"hello world";
     e->space_len = strlen("hello world");
     e->key = (uint8_t*)"hello world";

@@ -14,7 +14,7 @@ TEST("pack: basic functionality") {
     char _pt[] = "hello world";
     const pt_t p = {
         .data = (uint8_t*)_pt,
-        .length = sizeof _pt,
+        .length = sizeof(_pt),
     };
     const iv_t iv = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 
@@ -30,10 +30,10 @@ TEST("pack: basic functionality") {
 TEST("pack: is aligned") {
 
     char _pt[] = "Deliberately not 16-byte aligned text";
-    assert(sizeof _pt % 16 != 0);
+    assert(sizeof(_pt) % 16 != 0);
     pt_t p = {
         .data = (uint8_t*)_pt,
-        .length = sizeof _pt,
+        .length = sizeof(_pt),
     };
     const iv_t iv = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 

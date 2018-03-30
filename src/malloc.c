@@ -229,7 +229,7 @@ retry:;
         return -1;
 
     /* Fill this allocation using the end of the memory just acquired. */
-    chunk_t *c = calloc(1, sizeof *c);
+    chunk_t *c = calloc(1, sizeof(*c));
     if (c == NULL) {
         int r __attribute__((unused)) = munlock(q, EXPECTED_PAGE_SIZE);
         assert(r == 0 && "munlock unexpectedly failed");

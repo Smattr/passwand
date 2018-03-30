@@ -14,7 +14,7 @@ int parse(int argc, char **argv, options_t *options) {
 
     assert(options != NULL);
 
-    memset(options, 0, sizeof *options);
+    memset(options, 0, sizeof(*options));
     options->work_factor = 14;
     options->jobs = 0; // == "number of CPUs"
 

@@ -14,7 +14,7 @@ TEST("unpack: unpack(pack(x)) == x") {
     char _pt[] = "hello world";
     pt_t p = {
         .data = (uint8_t*)_pt,
-        .length = sizeof _pt,
+        .length = sizeof(_pt),
     };
     const iv_t iv = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 

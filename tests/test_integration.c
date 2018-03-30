@@ -66,7 +66,7 @@ TEST("integration: basic lifecycle") {
     const char *master = "hello world";
 
     size_t entry_len = 4;
-    passwand_entry_t *entries = calloc(entry_len, sizeof entries[0]);
+    passwand_entry_t *entries = calloc(entry_len, sizeof(entries[0]));
 
     const int work_factor = 14;
 

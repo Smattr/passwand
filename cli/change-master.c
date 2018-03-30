@@ -52,7 +52,7 @@ static int change_master(void **state __attribute__((unused)), const options_t *
     discard_master(confirm_new);
     confirm_new = NULL;
 
-    new_entries = calloc(entry_len, sizeof *new_entries);
+    new_entries = calloc(entry_len, sizeof(*new_entries));
     if (new_entries == NULL) {
         eprint("out of memory\n");
         ret = -1;
