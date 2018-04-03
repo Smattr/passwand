@@ -304,7 +304,7 @@ int main(int argc, char **argv) {
     }
 
     /* Join the other threads. */
-    r = (int)thread_loop(&tses[0]);
+    r = (int)(intptr_t)thread_loop(&tses[0]);
     if (r != 0) {
         eprint("failed to handle entry %zu: %s\n", tses[0].error_index,
             passwand_error(tses[0].error));
@@ -320,7 +320,7 @@ int main(int argc, char **argv) {
                 eprint("failed to join thread %zu\n", i);
                 ret = EXIT_FAILURE;
             } else {
-                if ((int)retu != 0) {
+                if ((int)(intptr_t)retu != 0) {
                     eprint("failed to handle entry %zu: %s\n", tses[i].error_index,
                         passwand_error(tses[i].error));
                     ret = EXIT_FAILURE;
