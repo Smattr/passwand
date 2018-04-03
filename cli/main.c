@@ -45,20 +45,24 @@ master_t *getpassword(const char *prompt) {
     size_t size = BUFSIZ > EXPECTED_PAGE_SIZE ? EXPECTED_PAGE_SIZE : BUFSIZ;
 
     char *m;
-    if (passwand_secure_malloc((void**)&m, size) != 0)
+    if (passwand_secure_malloc((void**)&m, size) != 0) {
+        eprint("failed to allocate secure memory\n");
         return NULL;
+    }
 
     print("%s", prompt == NULL ? "master password: " : prompt);
     fflush(stdout);
 
     struct termios old;
     if (tcgetattr(STDOUT_FILENO, &old) != 0) {
+        eprint("failed to get stdout attributes\n");
         passwand_secure_free(m, size);
         return NULL;
     }
     struct termios new = old;
     cfmakeraw(&new);
     if (tcsetattr(STDOUT_FILENO, 0, &new) != 0) {
+        eprint("failed to set stdout attributes\n");
         passwand_secure_free(m, size);
         return NULL;
     }
@@ -70,6 +74,7 @@ master_t *getpassword(const char *prompt) {
         if (c == EOF) {
             fflush(stdout);
             tcsetattr(STDOUT_FILENO, 0, &old);
+            eprint("truncated input\n");
             passwand_secure_free(m, size);
             return NULL;
         }
@@ -90,6 +95,7 @@ master_t *getpassword(const char *prompt) {
             if (passwand_secure_malloc((void**)&n, new_size) != 0) {
                 fflush(stdout);
                 tcsetattr(STDOUT_FILENO, 0, &old);
+                eprint("failed to reallocate secure memory\n");
                 passwand_secure_free(m, size);
                 return NULL;
             }
@@ -108,6 +114,7 @@ master_t *getpassword(const char *prompt) {
 
     master_t *master;
     if (passwand_secure_malloc((void**)&master, sizeof(*master)) != 0) {
+        eprint("failed to reallocate secure memory\n");
         passwand_secure_free(m, size);
         return NULL;
     }
