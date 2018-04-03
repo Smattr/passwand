@@ -77,7 +77,7 @@ matrix:
 
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y libcunit1-dev libjson-c-dev ${GTK}
+  - sudo apt-get install -y libcunit1-dev libjson-c-dev python3-pexpect ${GTK}
   - eval "${MATRIX_EVAL}"
 
 script:

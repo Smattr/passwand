@@ -37,10 +37,16 @@ static const command_t *command_for(const char *name) {
 
 master_t *getpassword(const char *prompt) {
 
+    static const size_t EXPECTED_PAGE_SIZE = 4096;
+
+    /* Initial allocation size. We only support allocating a page, so clamp it
+     * at the expected page size if necessary.
+     */
+    size_t size = BUFSIZ > EXPECTED_PAGE_SIZE ? EXPECTED_PAGE_SIZE : BUFSIZ;
+
     char *m;
-    if (passwand_secure_malloc((void**)&m, BUFSIZ) != 0)
+    if (passwand_secure_malloc((void**)&m, size) != 0)
         return NULL;
-    size_t size = BUFSIZ;
 
     print("%s", prompt == NULL ? "master password: " : prompt);
     fflush(stdout);
@@ -74,8 +80,14 @@ master_t *getpassword(const char *prompt) {
         m[index] = c;
         index++;
         if (index >= size) {
+            size_t new_size = size + BUFSIZ;
+            /* If we're increasing our allocation to more than one page, first
+             * clamp to one page for the reasons described above.
+             */
+            if (size < EXPECTED_PAGE_SIZE && new_size > EXPECTED_PAGE_SIZE)
+                new_size = EXPECTED_PAGE_SIZE;
             char *n;
-            if (passwand_secure_malloc((void**)&n, size + BUFSIZ) != 0) {
+            if (passwand_secure_malloc((void**)&n, new_size) != 0) {
                 fflush(stdout);
                 tcsetattr(STDOUT_FILENO, 0, &old);
                 passwand_secure_free(m, size);
@@ -84,7 +96,7 @@ master_t *getpassword(const char *prompt) {
             strncpy(n, m, size);
             passwand_secure_free(m, size);
             m = n;
-            size += BUFSIZ;
+            size = new_size;
         }
     }
 
