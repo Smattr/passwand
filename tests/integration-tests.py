@@ -4,7 +4,7 @@
 Framework for writing integration tests.
 '''
 
-import json, os, pexpect, shutil, subprocess, tempfile, unittest
+import json, os, pexpect, shutil, subprocess, sys, tempfile, unittest
 
 class DummyTest(unittest.TestCase):
     def test_dummy(self):
@@ -180,7 +180,10 @@ class Gui(unittest.TestCase):
                                        'world\n') # Key "world"
         self.assertEqual(stdout, '')
         self.assertEqual(stderr, 'failed to find matching entry\n')
-        self.assertNotEqual(p.returncode, 0)
+        if sys.platform == 'darwin':
+            self.assertEqual(p.returncode, 0)
+        else:
+            self.assertNotEqual(p.returncode, 0)
 
     def test_cancel_master(self):
         '''

@@ -11,6 +11,17 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef __APPLE__
+    /* On macOS, assume we are being called by Automator that treats a non-zero
+     * exit status as something that warrants a further error dialog. Because
+     * we will have already told the user about the error, suppress Automator's
+     * warning.
+     */
+    #define FAILURE_CODE EXIT_SUCCESS
+#else
+    #define FAILURE_CODE EXIT_FAILURE
+#endif
+
 #define DIE(args...) \
     do { \
         char *msg; \
@@ -18,7 +29,7 @@
             show_error(msg); \
             free(msg); \
         } \
-        exit(EXIT_FAILURE); \
+        exit(FAILURE_CODE); \
     } while (0)
 
 typedef struct {
