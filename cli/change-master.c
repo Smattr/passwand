@@ -28,7 +28,7 @@ static int change_master(void **state __attribute__((unused)), const options_t *
     master_t *new_master = NULL;
     master_t *confirm_new = NULL;
     passwand_entry_t *new_entries = NULL;
-    int ret = 0;
+    int ret = -1;
 
     new_master = getpassword("new master password: ");
     if (new_master == NULL) {
@@ -39,13 +39,11 @@ static int change_master(void **state __attribute__((unused)), const options_t *
     confirm_new = getpassword("confirm new master password: ");
     if (confirm_new == NULL) {
         eprint("failed to read confirmation of new password\n");
-        ret = -1;
         goto done;
     }
 
     if (strcmp(new_master->master, confirm_new->master) != 0) {
         eprint("passwords do not match\n");
-        ret = -1;
         goto done;
     }
 
@@ -55,7 +53,6 @@ static int change_master(void **state __attribute__((unused)), const options_t *
     new_entries = calloc(entry_len, sizeof(*new_entries));
     if (new_entries == NULL) {
         eprint("out of memory\n");
-        ret = -1;
         goto done;
     }
 
@@ -71,12 +68,10 @@ static int change_master(void **state __attribute__((unused)), const options_t *
             &st);
         if (err != PW_OK) {
             eprint("failed to process entry %zu: %s\n", i, passwand_error(err));
-            ret = -1;
             goto done;
         }
         if (st.err != PW_OK) {
             eprint("failed to process entry %zu: %s\n", i, passwand_error(st.err));
-            ret = -1;
             goto done;
         }
     }
@@ -86,9 +81,10 @@ static int change_master(void **state __attribute__((unused)), const options_t *
     passwand_error_t err = passwand_export(options->data, new_entries, entry_len);
     if (err != PW_OK) {
         eprint("failed to export entries\n");
-        ret = -1;
         goto done;
     }
+
+    ret = 0;
 
 done:
     free(new_entries);

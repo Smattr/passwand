@@ -58,7 +58,8 @@ static int list(void **state __attribute__((unused)), const options_t *options _
 
     thread_state_t *tses = NULL;
     pthread_t *threads = NULL;
-    int ret = 0;
+    int ret = -1;
+    unsigned errors = 0;
 
     unsigned long jobs = options->jobs;
     if (jobs == 0) { // automatic
@@ -92,14 +93,12 @@ static int list(void **state __attribute__((unused)), const options_t *options _
         tses = calloc(jobs, sizeof(*tses));
         if (tses == NULL) {
             eprint("out of memory\n");
-            ret = -1;
             goto done;
         }
 
         threads = calloc(jobs - 1, sizeof(*threads));
         if (threads == NULL) {
             eprint("out of memory\n");
-            ret = -1;
             goto done;
         }
 
@@ -127,7 +126,7 @@ static int list(void **state __attribute__((unused)), const options_t *options _
         passwand_error_t err = (passwand_error_t)list_loop(&tses[jobs - 1]);
         if (err != PW_OK) {
             eprint("failed to handle entry %zu: %s\n", tses[jobs - 1].err_index, passwand_error(err));
-            ret = -1;
+            errors++;
         }
 
         /* Collect threads */
@@ -137,17 +136,19 @@ static int list(void **state __attribute__((unused)), const options_t *options _
                 int r = pthread_join(threads[i], &retu);
                 if (r != 0) {
                     eprint("failed to join thread %lu\n", i + 1);
-                    ret = -1;
+                    errors++;
                 } else {
                     err = (passwand_error_t)retu;
                     if (err != PW_OK) {
                         eprint("failed to handle entry %zu: %s\n", tses[i].err_index, passwand_error(err));
-                        ret = -1;
+                        errors++;
                     }
                 }
             }
         }
     }
+
+    ret = errors > 0 ? EXIT_FAILURE : EXIT_SUCCESS;
 
 done:
     free(threads);

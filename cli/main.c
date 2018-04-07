@@ -205,28 +205,25 @@ int main(int argc, char **argv) {
     bool command_initialized = false;
     thread_state_t *tses = NULL;
     pthread_t *threads = NULL;
-    int ret = EXIT_SUCCESS;
+    int ret = EXIT_FAILURE;
+    unsigned errors = 0;
 
     /* Figure out which command to run. */
     command = command_for(argv[1]);
     if (command == NULL) {
         eprint("invalid action: %s\n", argv[1]);
-        ret = EXIT_FAILURE;
         goto done;
     }
 
     options_t options;
-    if (parse(argc - 1, argv + 1, &options) != 0) {
-        ret = EXIT_FAILURE;
+    if (parse(argc - 1, argv + 1, &options) != 0)
         goto done;
-    }
 
     size_t entry_len = 0;
     if (access(options.data, F_OK) == 0) {
         passwand_error_t err = passwand_import(options.data, &entries, &entry_len);
         if (err != PW_OK) {
             eprint("failed to load database: %s\n", passwand_error(err));
-            ret = EXIT_FAILURE;
             goto done;
         }
     }
@@ -239,11 +236,9 @@ int main(int argc, char **argv) {
     do { \
         if (command->need_ ## field && options.field == NULL) { \
             eprint("missing required argument --" #field "\n"); \
-            ret = EXIT_FAILURE; \
             goto done; \
         } else if (!command->need_ ## field && options.field != NULL) { \
             eprint("irrelevant argument --" #field "\n"); \
-            ret = EXIT_FAILURE; \
             goto done; \
         } \
     } while (0)
@@ -255,24 +250,20 @@ int main(int argc, char **argv) {
     master = getpassword(NULL);
     if (master == NULL) {
         eprint("failed to read master password\n");
-        ret = EXIT_FAILURE;
         goto done;
     }
 
     /* Setup command. */
     assert(command->initialize != NULL);
     int r = command->initialize(&command_state, &options, master, entries, entry_len);
-    if (r != 0) {
-        ret = EXIT_FAILURE;
+    if (r != 0)
         goto done;
-    }
     command_initialized = true;
 
     /* Allocate thread data */
     tses = calloc(options.jobs, sizeof(tses[0]));
     if (tses == NULL) {
         eprint("out of memory\n");
-        ret = EXIT_FAILURE;
         goto done;
     }
 
@@ -296,7 +287,6 @@ int main(int argc, char **argv) {
     threads = calloc(options.jobs - 1, sizeof(threads[0]));
     if (threads == NULL) {
         eprint("out of memory\n");
-        ret = EXIT_FAILURE;
         goto done;
     }
 
@@ -315,7 +305,7 @@ int main(int argc, char **argv) {
     if (r != 0) {
         eprint("failed to handle entry %zu: %s\n", tses[0].error_index,
             passwand_error(tses[0].error));
-        ret = EXIT_FAILURE;
+        errors++;
     }
 
     /* Collect the secondary threads. */
@@ -325,16 +315,18 @@ int main(int argc, char **argv) {
             r = pthread_join(threads[i - 1], &retu);
             if (r != 0) {
                 eprint("failed to join thread %zu\n", i);
-                ret = EXIT_FAILURE;
+                errors++;
             } else {
                 if ((int)(intptr_t)retu != 0) {
                     eprint("failed to handle entry %zu: %s\n", tses[i].error_index,
                         passwand_error(tses[i].error));
-                    ret = EXIT_FAILURE;
+                    errors++;
                 }
             }
         }
     }
+
+    ret = errors > 0 ? EXIT_FAILURE : EXIT_SUCCESS;
 
 done:
     free(threads);
