@@ -247,6 +247,110 @@ class Cli(unittest.TestCase):
         self.assertIsInstance(j[0], dict)
         self.assertNotEqual(value, j[0]['value'])
 
+    def test_set_append(self):
+        '''
+        Test setting an entry in existing database appends.
+        '''
+        data = os.path.join(self.tmp, 'test_set_append.json')
+        self.set_append(True, data)
+
+    def test_set_append_single_threaded(self):
+        '''
+        Same as test_set_append, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_set_append_single_threaded.json')
+        self.set_append(False, data)
+
+    def set_append(self, multithreaded: bool, data: str):
+
+        # Request to save a key and value.
+        args = ['set', '--data', data, '--space', 'space', '--key', 'key',
+          '--value', 'value']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Confirm the master pasword.
+        try:
+            p.expect('confirm master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Retrieve the (encrypted) value set.
+        self.assertTrue(os.path.exists(data))
+        with open(data, 'rt') as f:
+            j = json.load(f)
+        self.assertIsInstance(j, list)
+        self.assertEqual(len(j), 1)
+        self.assertIsInstance(j[0], dict)
+        value = j[0]['value']
+
+        # Now set another value.
+        args = ['set', '--data', data, '--space', 'space', '--key', 'key2',
+          '--value', 'value2']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Confirm the master pasword.
+        try:
+            p.expect('confirm master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Confirm that we now have two entries.
+        self.assertTrue(os.path.exists(data))
+        with open(data, 'rt') as f:
+            j = json.load(f)
+        self.assertIsInstance(j, list)
+        self.assertEqual(len(j), 2)
+        self.assertIsInstance(j[0], dict)
+        self.assertIsInstance(j[1], dict)
+
+        # We used different values, so their encrypted forms should be
+        # different.
+        self.assertNotEqual(j[1]['value'], j[0]['value'])
+
+        # One of them should be the (unaltered) encrypted version of the first
+        # value. Note that we don't guarantee the preservation of the ordering
+        # of entries.
+        if j[0]['value'] != value:
+            self.assertEqual(j[1]['value'], value)
+
     def tearDown(self):
         if hasattr(self, 'tmp') and os.path.exists(self.tmp):
             shutil.rmtree(self.tmp)
