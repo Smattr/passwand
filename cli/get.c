@@ -4,54 +4,78 @@
 #include "get.h"
 #include <passwand/passwand.h>
 #include "print.h"
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
 typedef struct {
     const options_t *options;
-    bool found;
-} find_state_t;
+    atomic_bool found;
+} get_state_t;
 
-static void get_body(void *state, const char *space, const char *key, const char *value) {
+static int initialize(void **state, const options_t *options,
+  const master_t *master __attribute__((unused)),
+  passwand_entry_t *entries __attribute__((unused)), size_t entry_len __attribute__((unused))) {
 
+    assert(state != NULL);
+    assert(options != NULL);
+
+    get_state_t *st = calloc(1, sizeof(*st));
+    if (st == NULL) {
+        eprint("out of memory\n");
+        return -1;
+    }
+
+    st->options = options;
+    st->found = false;
+
+    *state = st;
+    return 0;
+}
+
+static bool loop_condition(void *state) {
+    assert(state != NULL);
+
+    get_state_t *st = state;
+    return !st->found;
+}
+
+static void loop_body(void *state, const char *space, const char *key, const char *value) {
     assert(state != NULL);
     assert(space != NULL);
     assert(key != NULL);
     assert(value != NULL);
 
-    find_state_t *st = state;
+    get_state_t *st = state;
     if (strcmp(st->options->space, space) == 0 && strcmp(st->options->key, key) == 0) {
-        puts(value);
+        print("%s\n", value);
         st->found = true;
     }
 }
 
-static int get(void **state __attribute__((unused)), const options_t *options, const master_t *master, passwand_entry_t *entries,
-        size_t entry_len) {
+static int finalize(void *state) {
+    assert(state != NULL);
 
-    find_state_t st = {
-        .options = options,
-        .found = false,
-    };
-    for (size_t i = 0; !st.found && i < entry_len; i++) {
-        if (passwand_entry_do(master->master, &entries[i], get_body, &st) != PW_OK) {
-            eprint("failed to handle entry %zu\n", i);
-            return -1;
-        }
-    }
+    int ret = -1;
 
-    if (!st.found) {
+    get_state_t *st = state;
+    if (!st->found) {
         eprint("not found\n");
-        return -1;
+    } else {
+        ret = 0;
     }
 
-    return 0;
+    free(state);
+    return ret;
 }
 
-const command_t get_command = {
+const command_t get = {
     .need_space = true,
     .need_key = true,
     .need_value = false,
-    .initialize = get,
+    .initialize = initialize,
+    .loop_condition = loop_condition,
+    .loop_body = loop_body,
+    .finalize = finalize,
 };

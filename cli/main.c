@@ -22,7 +22,7 @@ static const struct {
 } COMMANDS[] = {
     { "change-master", &change_master_command },
     { "delete", &delete_command },
-    { "get", &get_command },
+    { "get", &get },
     { "list", &list_command },
     { "set", &set_command },
 };

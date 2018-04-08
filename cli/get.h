@@ -5,4 +5,4 @@
 #include <passwand/passwand.h>
 #include <stddef.h>
 
-extern const command_t get_command;
+extern const command_t get;
