@@ -61,14 +61,7 @@ static int list(void **state __attribute__((unused)), const master_t *master,
     int ret = -1;
     unsigned errors = 0;
 
-    unsigned long jobs = options.jobs;
-    if (jobs == 0) { // automatic
-        long cpus = sysconf(_SC_NPROCESSORS_ONLN);
-        assert(cpus >= 1);
-        jobs = (unsigned long)cpus;
-    }
-
-    if (jobs == 1) {
+    if (options.jobs == 1) {
 
         /* If we're only using a single job, we can just process the list of entries ourself without
          * dealing with pthreads.
@@ -90,13 +83,13 @@ static int list(void **state __attribute__((unused)), const master_t *master,
 
     } else {
 
-        tses = calloc(jobs, sizeof(*tses));
+        tses = calloc(options.jobs, sizeof(*tses));
         if (tses == NULL) {
             eprint("out of memory\n");
             goto done;
         }
 
-        threads = calloc(jobs - 1, sizeof(*threads));
+        threads = calloc(options.jobs - 1, sizeof(*threads));
         if (threads == NULL) {
             eprint("out of memory\n");
             goto done;
@@ -104,14 +97,14 @@ static int list(void **state __attribute__((unused)), const master_t *master,
 
         /* Initialise and start the threads. */
         atomic_size_t index = 0;
-        for (unsigned long i = 0; i < jobs; i++) {
+        for (unsigned long i = 0; i < options.jobs; i++) {
             tses[i].index = &index;
             tses[i].entries = entries;
             tses[i].entry_len = entry_len;
             tses[i].master = master->master;
             tses[i].created = false;
 
-            if (i < jobs - 1) {
+            if (i < options.jobs - 1) {
                 int r = pthread_create(&threads[i], NULL, list_loop, &tses[i]);
                 if (r == 0) {
                     tses[i].created = true;
@@ -123,14 +116,14 @@ static int list(void **state __attribute__((unused)), const master_t *master,
         }
 
         /* Join the other threads in printing. */
-        passwand_error_t err = (passwand_error_t)list_loop(&tses[jobs - 1]);
+        passwand_error_t err = (passwand_error_t)list_loop(&tses[options.jobs - 1]);
         if (err != PW_OK) {
-            eprint("failed to handle entry %zu: %s\n", tses[jobs - 1].err_index, passwand_error(err));
+            eprint("failed to handle entry %zu: %s\n", tses[options.jobs - 1].err_index, passwand_error(err));
             errors++;
         }
 
         /* Collect threads */
-        for (unsigned long i = 0; i < jobs - 1; i++) {
+        for (unsigned long i = 0; i < options.jobs - 1; i++) {
             if (tses[i].created) {
                 void *retu;
                 int r = pthread_join(threads[i], &retu);
