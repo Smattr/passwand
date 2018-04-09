@@ -34,8 +34,8 @@ static int delete(void **state __attribute__((unused)), const options_t *opts __
 
     delete_state_t st = {
         .found = false,
-        .space = opts->space,
-        .key = opts->key,
+        .space = options.space,
+        .key = options.key,
     };
 
     /* Try to find the entry to delete. */
@@ -58,7 +58,7 @@ static int delete(void **state __attribute__((unused)), const options_t *opts __
     for (size_t j = i; j < entry_len - 1; j++)
         entries[j] = entries[j + 1];
 
-    passwand_error_t err = passwand_export(opts->data, entries, entry_len - 1);
+    passwand_error_t err = passwand_export(options.data, entries, entry_len - 1);
     if (err != PW_OK) {
         eprint("failed to export entries: %s\n", passwand_error(err));
         return -1;

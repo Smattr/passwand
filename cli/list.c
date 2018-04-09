@@ -61,7 +61,7 @@ static int list(void **state __attribute__((unused)), const options_t *opts __at
     int ret = -1;
     unsigned errors = 0;
 
-    unsigned long jobs = opts->jobs;
+    unsigned long jobs = options.jobs;
     if (jobs == 0) { // automatic
         long cpus = sysconf(_SC_NPROCESSORS_ONLN);
         assert(cpus >= 1);

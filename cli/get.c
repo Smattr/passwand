@@ -10,16 +10,14 @@
 #include <string.h>
 
 typedef struct {
-    const options_t *options;
     atomic_bool found;
 } get_state_t;
 
-static int initialize(void **state, const options_t *opts,
+static int initialize(void **state, const options_t *opts __attribute__((unused)),
   const master_t *master __attribute__((unused)),
   passwand_entry_t *entries __attribute__((unused)), size_t entry_len __attribute__((unused))) {
 
     assert(state != NULL);
-    assert(opts != NULL);
 
     get_state_t *st = calloc(1, sizeof(*st));
     if (st == NULL) {
@@ -27,7 +25,6 @@ static int initialize(void **state, const options_t *opts,
         return -1;
     }
 
-    st->options = opts;
     st->found = false;
 
     *state = st;
@@ -48,7 +45,7 @@ static void loop_body(void *state, const char *space, const char *key, const cha
     assert(value != NULL);
 
     get_state_t *st = state;
-    if (strcmp(st->options->space, space) == 0 && strcmp(st->options->key, key) == 0) {
+    if (strcmp(options.space, space) == 0 && strcmp(options.key, key) == 0) {
         print("%s\n", value);
         st->found = true;
     }
