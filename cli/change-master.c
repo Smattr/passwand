@@ -11,14 +11,13 @@ typedef struct {
     passwand_entry_t *entries;
     size_t index;
     passwand_error_t err;
-    int work_factor;
 } change_master_state_t;
 
 static void change_master_body(void *state, const char *space, const char *key,
         const char *value) {
     change_master_state_t *st = state;
     st->err = passwand_entry_new(&st->entries[st->index], st->master->master, space, key, value,
-        st->work_factor);
+        options.work_factor);
     st->index++;
 }
 
@@ -61,7 +60,6 @@ static int change_master(void **state __attribute__((unused)), const master_t *m
         .entries = new_entries,
         .index = 0,
         .err = PW_OK,
-        .work_factor = options.work_factor,
     };
     for (size_t i = 0; i < entry_len; i++) {
         passwand_error_t err = passwand_entry_do(master->master, &entries[i], change_master_body,

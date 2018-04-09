@@ -10,8 +10,6 @@
 
 typedef struct {
     bool found;
-    const char *space;
-    const char *key;
 } delete_state_t;
 
 static void check(void *state, const char *space, const char *key,
@@ -22,11 +20,11 @@ static void check(void *state, const char *space, const char *key,
     assert(key != NULL);
 
     delete_state_t *st = state;
-    assert(st->space != NULL);
-    assert(st->key != NULL);
+    assert(options.space != NULL);
+    assert(options.key != NULL);
 
     assert(!st->found);
-    st->found = strcmp(st->space, space) == 0 && strcmp(st->key, key) == 0;
+    st->found = strcmp(options.space, space) == 0 && strcmp(options.key, key) == 0;
 }
 
 static int delete(void **state __attribute__((unused)), const master_t *master,
@@ -34,8 +32,6 @@ static int delete(void **state __attribute__((unused)), const master_t *master,
 
     delete_state_t st = {
         .found = false,
-        .space = options.space,
-        .key = options.key,
     };
 
     /* Try to find the entry to delete. */

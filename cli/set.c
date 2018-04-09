@@ -12,8 +12,6 @@
 typedef struct {
     bool found;
     size_t index;
-    const char *space;
-    const char *key;
 } set_state_t;
 
 static void set_body(void *state, const char *space, const char *key,
@@ -25,7 +23,7 @@ static void set_body(void *state, const char *space, const char *key,
     assert(value != NULL);
 
     set_state_t *st = state;
-    if (strcmp(st->space, space) == 0 && strcmp(st->key, key) == 0) {
+    if (strcmp(options.space, space) == 0 && strcmp(options.key, key) == 0) {
         /* This entry matches the one we just set. Mark it. */
         st->found = true;
     } else {
@@ -61,8 +59,6 @@ static int set(void **state __attribute__((unused)), const master_t *master, pas
     set_state_t st = {
         .found = false,
         .index = 0,
-        .space = options.space,
-        .key = options.key,
     };
     for (size_t i = 0; !st.found && i < entry_len; i++) {
         if (passwand_entry_do(master->master, &entries[i], set_body, &st) != PW_OK) {
