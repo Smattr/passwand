@@ -9,61 +9,36 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct {
-    atomic_bool found;
-} get_state_t;
+static atomic_bool found;
 
-static int initialize(void **state, const master_t *master __attribute__((unused)),
+static int initialize(void **state __attribute__((unused)), const master_t *master __attribute__((unused)),
   passwand_entry_t *entries __attribute__((unused)), size_t entry_len __attribute__((unused))) {
 
-    assert(state != NULL);
-
-    get_state_t *st = calloc(1, sizeof(*st));
-    if (st == NULL) {
-        eprint("out of memory\n");
-        return -1;
-    }
-
-    st->found = false;
-
-    *state = st;
+    found = false;
     return 0;
 }
 
-static bool loop_condition(void *state) {
-    assert(state != NULL);
+static bool loop_condition(void *state __attribute__((unused))) {
 
-    get_state_t *st = state;
-    return !st->found;
+    return !found;
 }
 
-static void loop_body(void *state, const char *space, const char *key, const char *value) {
-    assert(state != NULL);
+static void loop_body(void *state __attribute__((unused)), const char *space, const char *key, const char *value) {
     assert(space != NULL);
     assert(key != NULL);
     assert(value != NULL);
 
-    get_state_t *st = state;
     if (strcmp(options.space, space) == 0 && strcmp(options.key, key) == 0) {
         print("%s\n", value);
-        st->found = true;
+        found = true;
     }
 }
 
-static int finalize(void *state) {
-    assert(state != NULL);
-
-    int ret = -1;
-
-    get_state_t *st = state;
-    if (!st->found) {
+static int finalize(void *state __attribute__((unused))) {
+    if (!found)
         eprint("not found\n");
-    } else {
-        ret = 0;
-    }
 
-    free(state);
-    return ret;
+    return found ? 0 : -1;
 }
 
 const command_t get = {
