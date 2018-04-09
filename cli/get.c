@@ -14,12 +14,12 @@ typedef struct {
     atomic_bool found;
 } get_state_t;
 
-static int initialize(void **state, const options_t *options,
+static int initialize(void **state, const options_t *opts,
   const master_t *master __attribute__((unused)),
   passwand_entry_t *entries __attribute__((unused)), size_t entry_len __attribute__((unused))) {
 
     assert(state != NULL);
-    assert(options != NULL);
+    assert(opts != NULL);
 
     get_state_t *st = calloc(1, sizeof(*st));
     if (st == NULL) {
@@ -27,7 +27,7 @@ static int initialize(void **state, const options_t *options,
         return -1;
     }
 
-    st->options = options;
+    st->options = opts;
     st->found = false;
 
     *state = st;

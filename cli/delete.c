@@ -29,13 +29,13 @@ static void check(void *state, const char *space, const char *key,
     st->found = strcmp(st->space, space) == 0 && strcmp(st->key, key) == 0;
 }
 
-static int delete(void **state __attribute__((unused)), const options_t *options __attribute__((unused)), const master_t *master,
+static int delete(void **state __attribute__((unused)), const options_t *opts __attribute__((unused)), const master_t *master,
         passwand_entry_t *entries, size_t entry_len) {
 
     delete_state_t st = {
         .found = false,
-        .space = options->space,
-        .key = options->key,
+        .space = opts->space,
+        .key = opts->key,
     };
 
     /* Try to find the entry to delete. */
@@ -58,7 +58,7 @@ static int delete(void **state __attribute__((unused)), const options_t *options
     for (size_t j = i; j < entry_len - 1; j++)
         entries[j] = entries[j + 1];
 
-    passwand_error_t err = passwand_export(options->data, entries, entry_len - 1);
+    passwand_error_t err = passwand_export(opts->data, entries, entry_len - 1);
     if (err != PW_OK) {
         eprint("failed to export entries: %s\n", passwand_error(err));
         return -1;

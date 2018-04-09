@@ -113,8 +113,7 @@ static void autoclear(void *p) {
 
 int main(int argc, char **argv) {
 
-    options_t options;
-    if (parse(argc, argv, &options) != 0)
+    if (parse(argc, argv) != 0)
         return EXIT_FAILURE;
 
     char *space;

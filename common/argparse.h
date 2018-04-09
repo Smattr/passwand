@@ -9,4 +9,6 @@ typedef struct {
     unsigned long jobs;
 } options_t;
 
-int parse(int argc, char **argv, options_t *options);
+extern options_t options;
+
+int parse(int argc, char **argv);

@@ -53,7 +53,7 @@ static void *list_loop(void *arg) {
     return (void*)PW_OK;
 }
 
-static int list(void **state __attribute__((unused)), const options_t *options __attribute__((unused)), const master_t *master,
+static int list(void **state __attribute__((unused)), const options_t *opts __attribute__((unused)), const master_t *master,
         passwand_entry_t *entries, size_t entry_len) {
 
     thread_state_t *tses = NULL;
@@ -61,7 +61,7 @@ static int list(void **state __attribute__((unused)), const options_t *options _
     int ret = -1;
     unsigned errors = 0;
 
-    unsigned long jobs = options->jobs;
+    unsigned long jobs = opts->jobs;
     if (jobs == 0) { // automatic
         long cpus = sysconf(_SC_NPROCESSORS_ONLN);
         assert(cpus >= 1);

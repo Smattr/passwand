@@ -33,7 +33,7 @@ static void set_body(void *state, const char *space, const char *key,
     }
 }
 
-static int set(void **state __attribute__((unused)), const options_t *options, const master_t *master, passwand_entry_t *entries,
+static int set(void **state __attribute__((unused)), const options_t *opts, const master_t *master, passwand_entry_t *entries,
         size_t entry_len) {
 
     master_t *confirm = getpassword("confirm master password: ");
@@ -49,8 +49,8 @@ static int set(void **state __attribute__((unused)), const options_t *options, c
     }
 
     passwand_entry_t e;
-    if (passwand_entry_new(&e, master->master, options->space, options->key, options->value,
-            options->work_factor) != PW_OK) {
+    if (passwand_entry_new(&e, master->master, opts->space, opts->key, opts->value,
+            opts->work_factor) != PW_OK) {
         eprint("failed to create new entry\n");
         return -1;
     }
@@ -61,8 +61,8 @@ static int set(void **state __attribute__((unused)), const options_t *options, c
     set_state_t st = {
         .found = false,
         .index = 0,
-        .space = options->space,
-        .key = options->key,
+        .space = opts->space,
+        .key = opts->key,
     };
     for (size_t i = 0; !st.found && i < entry_len; i++) {
         if (passwand_entry_do(master->master, &entries[i], set_body, &st) != PW_OK) {
@@ -93,7 +93,7 @@ static int set(void **state __attribute__((unused)), const options_t *options, c
         sizeof(passwand_entry_t) * count_after);
     size_t new_entry_len = st.found ? entry_len : entry_len + 1;
 
-    passwand_error_t err = passwand_export(options->data, new_entries, new_entry_len);
+    passwand_error_t err = passwand_export(opts->data, new_entries, new_entry_len);
     free(new_entries);
     if (err != PW_OK) {
         print("failed to export entries: %s\n", passwand_error(err));

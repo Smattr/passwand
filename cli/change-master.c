@@ -22,7 +22,7 @@ static void change_master_body(void *state, const char *space, const char *key,
     st->index++;
 }
 
-static int change_master(void **state __attribute__((unused)), const options_t *options, const master_t *master, passwand_entry_t *entries,
+static int change_master(void **state __attribute__((unused)), const options_t *opts, const master_t *master, passwand_entry_t *entries,
         size_t entry_len) {
 
     master_t *new_master = NULL;
@@ -61,7 +61,7 @@ static int change_master(void **state __attribute__((unused)), const options_t *
         .entries = new_entries,
         .index = 0,
         .err = PW_OK,
-        .work_factor = options->work_factor,
+        .work_factor = opts->work_factor,
     };
     for (size_t i = 0; i < entry_len; i++) {
         passwand_error_t err = passwand_entry_do(master->master, &entries[i], change_master_body,
@@ -78,7 +78,7 @@ static int change_master(void **state __attribute__((unused)), const options_t *
     discard_master(new_master);
     new_master = NULL;
 
-    passwand_error_t err = passwand_export(options->data, new_entries, entry_len);
+    passwand_error_t err = passwand_export(opts->data, new_entries, entry_len);
     if (err != PW_OK) {
         eprint("failed to export entries\n");
         goto done;

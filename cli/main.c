@@ -215,8 +215,7 @@ int main(int argc, char **argv) {
         goto done;
     }
 
-    options_t options;
-    if (parse(argc - 1, argv + 1, &options) != 0)
+    if (parse(argc - 1, argv + 1) != 0)
         goto done;
 
     size_t entry_len = 0;
