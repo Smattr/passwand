@@ -416,6 +416,71 @@ class Cli(unittest.TestCase):
         self.assertIsInstance(j, list)
         self.assertEqual(len(j), 0)
 
+    def test_change_master_mismatch(self):
+        '''
+        Test changing the master password but failing to confirm it fails.
+        '''
+        data = os.path.join(self.tmp, 'test_change_master_mismatch.json')
+        self.change_master_mismatch(True, data)
+
+    def test_change_master_mismatch_single_threaded(self):
+        '''
+        Same as test_change_master_mismatch, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_change_master_mismatch_single_threaded.json')
+        self.change_master_mismatch(False, data)
+
+    def change_master_mismatch(self, multithreaded: bool, data: str):
+
+        # Setup an empty database.
+        with open(data, 'wt') as f:
+            json.dump([], f)
+
+        # Request to change the master password.
+        args = ['change-master', '--data', data]
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Set a new master pasword.
+        try:
+            p.expect('new master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test2')
+
+        # Enter an incorrect confirmation.
+        try:
+            p.expect('confirm new master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Now passwand should exit with failure.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertNotEqual(p.exitstatus, 0)
+
+        # The database should still exist and be empty.
+        self.assertTrue(os.path.exists(data))
+        with open(data, 'rt') as f:
+            j = json.load(f)
+        self.assertIsInstance(j, list)
+        self.assertEqual(len(j), 0)
+
     def tearDown(self):
         if hasattr(self, 'tmp') and os.path.exists(self.tmp):
             shutil.rmtree(self.tmp)
