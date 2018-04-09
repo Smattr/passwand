@@ -481,6 +481,163 @@ class Cli(unittest.TestCase):
         self.assertIsInstance(j, list)
         self.assertEqual(len(j), 0)
 
+    def test_change_master_basic(self):
+        '''
+        Test changing the master password does what it says on the box.
+        '''
+        data = os.path.join(self.tmp, 'test_change_master_basic.json')
+        self.change_master_basic(True, data)
+
+    def test_change_master_basic_single_threaded(self):
+        '''
+        Same as test_change_master_basic, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_change_master_basic_single_threaded.json')
+        self.change_master_basic(False, data)
+
+    def change_master_basic(self, multithreaded: bool, data: str):
+
+        # Request to save a key and value.
+        args = ['set', '--data', data, '--space', 'space', '--key', 'key',
+          '--value', 'value']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Confirm the master pasword.
+        try:
+            p.expect('confirm master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Retrieve the (encrypted) value that was written.
+        self.assertTrue(os.path.exists(data))
+        with open(data, 'rt') as f:
+            j = json.load(f)
+        self.assertIsInstance(j, list)
+        self.assertEqual(len(j), 1)
+        self.assertIsInstance(j[0], dict)
+        self.assertIn('space', j[0].keys())
+        self.assertIn('key', j[0].keys())
+        self.assertIn('value', j[0].keys())
+        space = j[0]['space']
+        key = j[0]['key']
+        value = j[0]['value']
+
+        # Request to change the master password.
+        args = ['change-master', '--data', data]
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Set a new master pasword.
+        try:
+            p.expect('new master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test2')
+
+        # Confirm the new master pasword.
+        try:
+            p.expect('confirm new master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test2')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Now the encrypted fields in the database should have changed because
+        # the encryption key has changed.
+        self.assertTrue(os.path.exists(data))
+        with open(data, 'rt') as f:
+            j = json.load(f)
+        self.assertIsInstance(j, list)
+        self.assertEqual(len(j), 1)
+        self.assertIsInstance(j[0], dict)
+        self.assertIn('space', j[0].keys())
+        self.assertIn('key', j[0].keys())
+        self.assertIn('value', j[0].keys())
+        self.assertNotEqual(space, j[0]['space'])
+        self.assertNotEqual(key, j[0]['key'])
+        self.assertNotEqual(value, j[0]['value'])
+
+        # Request retrieval of the entry.
+        args = ['get', '--data', data, '--space', 'space', '--key', 'key']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the old master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Now passwand should exit with failure.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertNotEqual(p.exitstatus, 0)
+
+        # Request retrieval of the entry again.
+        args = ['get', '--data', data, '--space', 'space', '--key', 'key']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Now enter the new master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test2')
+
+        # Now passwand should output the value and exit with success.
+        v = p.read()
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # We should have received the correct value we originally set.
+        self.assertEqual(v.decode('utf-8', 'replace').strip(), 'value')
+
     def tearDown(self):
         if hasattr(self, 'tmp') and os.path.exists(self.tmp):
             shutil.rmtree(self.tmp)
