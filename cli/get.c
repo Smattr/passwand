@@ -19,7 +19,6 @@ static int initialize(void **state __attribute__((unused)), const master_t *mast
 }
 
 static bool loop_condition(void *state __attribute__((unused))) {
-
     return !found;
 }
 

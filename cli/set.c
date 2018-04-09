@@ -9,30 +9,29 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct {
-    bool found;
-    size_t index;
-} set_state_t;
+static bool found;
+static size_t entry_index;
 
-static void set_body(void *state, const char *space, const char *key,
+static void set_body(void *state __attribute__((unused)), const char *space, const char *key,
         const char *value __attribute__((unused))) {
 
-    assert(state != NULL);
     assert(space != NULL);
     assert(key != NULL);
     assert(value != NULL);
 
-    set_state_t *st = state;
     if (strcmp(options.space, space) == 0 && strcmp(options.key, key) == 0) {
         /* This entry matches the one we just set. Mark it. */
-        st->found = true;
+        found = true;
     } else {
-        st->index++;
+        entry_index++;
     }
 }
 
 static int set(void **state __attribute__((unused)), const master_t *master, passwand_entry_t *entries,
         size_t entry_len) {
+
+    found = false;
+    entry_index = 0;
 
     master_t *confirm = getpassword("confirm master password: ");
     if (confirm == NULL) {
@@ -56,23 +55,19 @@ static int set(void **state __attribute__((unused)), const master_t *master, pas
     /* Figure out if the entry we've just created collides with (and overwrites) an existing one.
      */
 
-    set_state_t st = {
-        .found = false,
-        .index = 0,
-    };
-    for (size_t i = 0; !st.found && i < entry_len; i++) {
-        if (passwand_entry_do(master->master, &entries[i], set_body, &st) != PW_OK) {
+    for (size_t i = 0; !found && i < entry_len; i++) {
+        if (passwand_entry_do(master->master, &entries[i], set_body, NULL) != PW_OK) {
             eprint("failed to handle entry %zu\n", i);
             return -1;
         }
     }
 
-    if (!st.found && entry_len == SIZE_MAX) {
+    if (!found && entry_len == SIZE_MAX) {
         eprint("maximum number of entries exceeded\n");
         return -1;
     }
 
-    passwand_entry_t *new_entries = calloc(entry_len + (st.found ? 0 : 1), sizeof(passwand_entry_t));
+    passwand_entry_t *new_entries = calloc(entry_len + (found ? 0 : 1), sizeof(passwand_entry_t));
     if (new_entries == NULL) {
         eprint("out of memory\n");
         return -1;
@@ -81,13 +76,13 @@ static int set(void **state __attribute__((unused)), const master_t *master, pas
     /* Insert the new or updated entry at the start of the list, as we assume
      * we'll be looking it up in the near future.
      */
-    size_t count_before = st.found ? st.index : entry_len;
-    size_t count_after = st.found ? entry_len - st.index - 1 : 0;
+    size_t count_before = found ? entry_index : entry_len;
+    size_t count_after = found ? entry_len - entry_index - 1 : 0;
     new_entries[0] = e;
     memcpy(new_entries + 1, entries, sizeof(passwand_entry_t) * count_before);
-    memcpy(new_entries + st.index + 1, entries + st.index + 1,
+    memcpy(new_entries + entry_index + 1, entries + entry_index + 1,
         sizeof(passwand_entry_t) * count_after);
-    size_t new_entry_len = st.found ? entry_len : entry_len + 1;
+    size_t new_entry_len = found ? entry_len : entry_len + 1;
 
     passwand_error_t err = passwand_export(options.data, new_entries, new_entry_len);
     free(new_entries);

@@ -6,27 +6,26 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct {
-    master_t *master;
-    passwand_entry_t *entries;
-    size_t index;
-    passwand_error_t err;
-} change_master_state_t;
+static master_t *new_master;
+static passwand_entry_t *new_entries;
+static size_t entry_index;
+static passwand_error_t err;
 
-static void change_master_body(void *state, const char *space, const char *key,
+static void change_master_body(void *state __attribute__((unused)), const char *space, const char *key,
         const char *value) {
-    change_master_state_t *st = state;
-    st->err = passwand_entry_new(&st->entries[st->index], st->master->master, space, key, value,
+    err = passwand_entry_new(&new_entries[entry_index], new_master->master, space, key, value,
         options.work_factor);
-    st->index++;
+    entry_index++;
 }
 
 static int change_master(void **state __attribute__((unused)), const master_t *master, passwand_entry_t *entries,
         size_t entry_len) {
 
-    master_t *new_master = NULL;
+    new_master = NULL;
     master_t *confirm_new = NULL;
-    passwand_entry_t *new_entries = NULL;
+    new_entries = NULL;
+    entry_index = 0;
+    err = PW_OK;
     int ret = -1;
 
     new_master = getpassword("new master password: ");
@@ -55,29 +54,23 @@ static int change_master(void **state __attribute__((unused)), const master_t *m
         goto done;
     }
 
-    change_master_state_t st = {
-        .master = new_master,
-        .entries = new_entries,
-        .index = 0,
-        .err = PW_OK,
-    };
     for (size_t i = 0; i < entry_len; i++) {
-        passwand_error_t err = passwand_entry_do(master->master, &entries[i], change_master_body,
-            &st);
-        if (err != PW_OK) {
-            eprint("failed to process entry %zu: %s\n", i, passwand_error(err));
+        passwand_error_t e = passwand_entry_do(master->master, &entries[i], change_master_body,
+            NULL);
+        if (e != PW_OK) {
+            eprint("failed to process entry %zu: %s\n", i, passwand_error(e));
             goto done;
         }
-        if (st.err != PW_OK) {
-            eprint("failed to process entry %zu: %s\n", i, passwand_error(st.err));
+        if (err != PW_OK) {
+            eprint("failed to process entry %zu: %s\n", i, passwand_error(err));
             goto done;
         }
     }
     discard_master(new_master);
     new_master = NULL;
 
-    passwand_error_t err = passwand_export(options.data, new_entries, entry_len);
-    if (err != PW_OK) {
+    passwand_error_t e = passwand_export(options.data, new_entries, entry_len);
+    if (e != PW_OK) {
         eprint("failed to export entries\n");
         goto done;
     }

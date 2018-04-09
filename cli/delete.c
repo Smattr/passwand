@@ -8,44 +8,38 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct {
-    bool found;
-} delete_state_t;
+static bool found;
 
-static void check(void *state, const char *space, const char *key,
+static void check(void *state __attribute__((unused)), const char *space, const char *key,
         const char *value __attribute__((unused))) {
 
-    assert(state != NULL);
     assert(space != NULL);
     assert(key != NULL);
 
-    delete_state_t *st = state;
     assert(options.space != NULL);
     assert(options.key != NULL);
 
-    assert(!st->found);
-    st->found = strcmp(options.space, space) == 0 && strcmp(options.key, key) == 0;
+    assert(!found);
+    found = strcmp(options.space, space) == 0 && strcmp(options.key, key) == 0;
 }
 
 static int delete(void **state __attribute__((unused)), const master_t *master,
         passwand_entry_t *entries, size_t entry_len) {
 
-    delete_state_t st = {
-        .found = false,
-    };
+    found = false;
 
     /* Try to find the entry to delete. */
     size_t i;
     for (i = 0; i < entry_len; i++) {
-        if (passwand_entry_do(master->master, &entries[i], check, &st) != PW_OK) {
+        if (passwand_entry_do(master->master, &entries[i], check, NULL) != PW_OK) {
             eprint("failed to handle entry %zu\n", i);
             return -1;
         }
-        if (st.found)
+        if (found)
             break;
     }
 
-    if (!st.found) {
+    if (!found) {
         eprint("failed to find entry\n");
         return -1;
     }
