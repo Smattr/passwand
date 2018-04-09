@@ -22,7 +22,7 @@ static void change_master_body(void *state, const char *space, const char *key,
     st->index++;
 }
 
-static int change_master(void **state __attribute__((unused)), const options_t *opts __attribute__((unused)), const master_t *master, passwand_entry_t *entries,
+static int change_master(void **state __attribute__((unused)), const master_t *master, passwand_entry_t *entries,
         size_t entry_len) {
 
     master_t *new_master = NULL;

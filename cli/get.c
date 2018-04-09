@@ -13,8 +13,7 @@ typedef struct {
     atomic_bool found;
 } get_state_t;
 
-static int initialize(void **state, const options_t *opts __attribute__((unused)),
-  const master_t *master __attribute__((unused)),
+static int initialize(void **state, const master_t *master __attribute__((unused)),
   passwand_entry_t *entries __attribute__((unused)), size_t entry_len __attribute__((unused))) {
 
     assert(state != NULL);

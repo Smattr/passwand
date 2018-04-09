@@ -21,8 +21,8 @@ typedef struct {
     bool need_value; /* Whether the command uses the --value argument. */
 
     /* Constructor. */
-    int (*initialize)(void **state, const options_t *options, const master_t *master,
-        passwand_entry_t *entries, size_t entry_len);
+    int (*initialize)(void **state, const master_t *master, passwand_entry_t *entries,
+      size_t entry_len);
 
     /* Prepare to run 'loop_body' on an entry. */
     void (*loop_notify)(void *state, size_t thread_index, size_t entry_index);

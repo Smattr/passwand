@@ -33,7 +33,7 @@ static void set_body(void *state, const char *space, const char *key,
     }
 }
 
-static int set(void **state __attribute__((unused)), const options_t *opts __attribute__((unused)), const master_t *master, passwand_entry_t *entries,
+static int set(void **state __attribute__((unused)), const master_t *master, passwand_entry_t *entries,
         size_t entry_len) {
 
     master_t *confirm = getpassword("confirm master password: ");

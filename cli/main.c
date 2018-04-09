@@ -254,7 +254,7 @@ int main(int argc, char **argv) {
 
     /* Setup command. */
     assert(command->initialize != NULL);
-    int r = command->initialize(&command_state, &options, master, entries, entry_len);
+    int r = command->initialize(&command_state, master, entries, entry_len);
     if (r != 0)
         goto done;
     command_initialized = true;
