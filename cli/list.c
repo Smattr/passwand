@@ -53,8 +53,7 @@ static void *list_loop(void *arg) {
     return (void*)PW_OK;
 }
 
-static int list(void **state __attribute__((unused)), const master_t *master,
-        passwand_entry_t *entries, size_t entry_len) {
+static int list(const master_t *master, passwand_entry_t *entries, size_t entry_len) {
 
     thread_state_t *tses = NULL;
     pthread_t *threads = NULL;

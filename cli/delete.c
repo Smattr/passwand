@@ -23,8 +23,7 @@ static void check(void *state __attribute__((unused)), const char *space, const 
     found = strcmp(options.space, space) == 0 && strcmp(options.key, key) == 0;
 }
 
-static int delete(void **state __attribute__((unused)), const master_t *master,
-        passwand_entry_t *entries, size_t entry_len) {
+static int delete(const master_t *master, passwand_entry_t *entries, size_t entry_len) {
 
     found = false;
 

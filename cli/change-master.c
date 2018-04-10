@@ -15,13 +15,11 @@ static _Thread_local size_t new_entry_index;
 
 static _Atomic passwand_error_t err;
 
-static void loop_notify(void *state __attribute__((unused)),
-  size_t thread_index __attribute__((unused)), size_t entry_index) {
-
+static void loop_notify(size_t thread_index __attribute__((unused)), size_t entry_index) {
     new_entry_index = entry_index;
 }
 
-static bool loop_condition(void *state __attribute__((unused))) {
+static bool loop_condition(void) {
     return err == PW_OK;
 }
 
@@ -37,9 +35,8 @@ static void loop_body(void *state __attribute__((unused)), const char *space, co
     }
 }
 
-static int initialize(void **state __attribute__((unused)),
-  const master_t *master __attribute__((unused)), passwand_entry_t *entries __attribute__((unused)),
-  size_t entry_len) {
+static int initialize(const master_t *master __attribute__((unused)),
+  passwand_entry_t *entries __attribute__((unused)), size_t entry_len) {
 
     new_master = NULL;
     master_t *confirm_new = NULL;
@@ -86,7 +83,7 @@ done:
     return ret;
 }
 
-static int finalize(void *state __attribute__((unused))) {
+static int finalize(void) {
 
     discard_master(new_master);
     new_master = NULL;

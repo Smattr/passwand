@@ -11,14 +11,14 @@
 
 static atomic_bool found;
 
-static int initialize(void **state __attribute__((unused)), const master_t *master __attribute__((unused)),
+static int initialize(const master_t *master __attribute__((unused)),
   passwand_entry_t *entries __attribute__((unused)), size_t entry_len __attribute__((unused))) {
 
     found = false;
     return 0;
 }
 
-static bool loop_condition(void *state __attribute__((unused))) {
+static bool loop_condition(void) {
     return !found;
 }
 
@@ -33,7 +33,7 @@ static void loop_body(void *state __attribute__((unused)), const char *space, co
     }
 }
 
-static int finalize(void *state __attribute__((unused))) {
+static int finalize(void) {
     if (!found)
         eprint("not found\n");
 

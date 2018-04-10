@@ -139,7 +139,6 @@ typedef struct {
     const char *master;
 
     const command_t *command;
-    void *command_state;
 
     passwand_error_t error;
     size_t error_index;
@@ -162,14 +161,14 @@ static void *thread_loop(void *arg) {
             break;
 
         if (command->loop_notify != NULL)
-            command->loop_notify(ts->command_state, ts->thread_index, index);
+            command->loop_notify(ts->thread_index, index);
 
-        if (command->loop_condition != NULL && !command->loop_condition(ts->command_state))
+        if (command->loop_condition != NULL && !command->loop_condition())
             break;
 
         if (command->loop_body != NULL) {
             passwand_error_t err = passwand_entry_do(ts->master, &ts->entries[index],
-                command->loop_body, ts->command_state);
+                command->loop_body, NULL);
             if (err != PW_OK) {
                 ts->error = err;
                 ts->error_index = index;
@@ -201,7 +200,6 @@ int main(int argc, char **argv) {
     master_t *master = NULL;
     passwand_entry_t *entries = NULL;
     const command_t *command = NULL;
-    void *command_state = NULL;
     bool command_initialized = false;
     thread_state_t *tses = NULL;
     pthread_t *threads = NULL;
@@ -254,7 +252,7 @@ int main(int argc, char **argv) {
 
     /* Setup command. */
     assert(command->initialize != NULL);
-    int r = command->initialize(&command_state, master, entries, entry_len);
+    int r = command->initialize(master, entries, entry_len);
     if (r != 0)
         goto done;
     command_initialized = true;
@@ -275,7 +273,6 @@ int main(int argc, char **argv) {
         tses[i].entry_len = entry_len;
         tses[i].master = master->master;
         tses[i].command = command;
-        tses[i].command_state = command_state;
         tses[i].error = PW_OK;
         tses[i].error_index = SIZE_MAX;
         tses[i].created = false;
@@ -331,7 +328,7 @@ done:
     free(threads);
     free(tses);
     if (command_initialized && command->finalize != NULL) {
-        r = command->finalize(command_state);
+        r = command->finalize();
         if (r != 0)
             ret = EXIT_FAILURE;
     }

@@ -27,8 +27,7 @@ static void set_body(void *state __attribute__((unused)), const char *space, con
     }
 }
 
-static int set(void **state __attribute__((unused)), const master_t *master, passwand_entry_t *entries,
-        size_t entry_len) {
+static int set(const master_t *master, passwand_entry_t *entries, size_t entry_len) {
 
     found = false;
     entry_index = 0;
