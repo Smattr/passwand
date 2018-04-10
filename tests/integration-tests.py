@@ -689,6 +689,72 @@ class Cli(unittest.TestCase):
         self.assertIsInstance(j, list)
         self.assertEqual(len(j), 0)
 
+    def test_list_wrong_password(self):
+        '''
+        Test entering the wrong password during list.
+        '''
+        data = os.path.join(self.tmp, 'test_list_wrong_password.json')
+        self.list_wrong_password(True, data)
+
+    def test_list_wrong_password_single_threaded(self):
+        '''
+        Same as test_list_wrong_password, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_list_wrong_password_single_threaded.json')
+        self.list_wrong_password(False, data)
+
+    def list_wrong_password(self, multithreaded: bool, data: str):
+
+        # Request to save a key and value.
+        args = ['set', '--data', data, '--space', 'space', '--key', 'key',
+          '--value', 'value']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Confirm the master pasword.
+        try:
+            p.expect('confirm master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Now request to list the database.
+        args = ['list', '--data', data]
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the wrong master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test2')
+
+        # Now passwand should exit with failure.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertNotEqual(p.exitstatus, 0)
+
     def tearDown(self):
         if hasattr(self, 'tmp') and os.path.exists(self.tmp):
             shutil.rmtree(self.tmp)
