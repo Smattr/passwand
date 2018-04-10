@@ -638,6 +638,57 @@ class Cli(unittest.TestCase):
         # We should have received the correct value we originally set.
         self.assertEqual(v.decode('utf-8', 'replace').strip(), 'value')
 
+    def test_list_empty(self):
+        '''
+        Test listing an empty database.
+        '''
+        data = os.path.join(self.tmp, 'test_list_empty.json')
+        self.list_empty(True, data)
+
+    def test_list_empty_single_threaded(self):
+        '''
+        Same as test_list_empty, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_list_empty_single_threaded.json')
+        self.list_empty(False, data)
+
+    def list_empty(self, multithreaded: bool, data: str):
+
+        # Setup an empty database.
+        with open(data, 'wt') as f:
+            json.dump([], f)
+
+        # Request to list the database.
+        args = ['list', '--data', data]
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Now passwand should exit with success.
+        output = p.read()
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Check we got no entries listed.
+        self.assertEqual(output.decode('utf-8', 'replace').strip(), '')
+
+        # Check the database was not changed.
+        self.assertTrue(os.path.exists(data))
+        with open(data, 'rt') as f:
+            j = json.load(f)
+        self.assertIsInstance(j, list)
+        self.assertEqual(len(j), 0)
+
     def tearDown(self):
         if hasattr(self, 'tmp') and os.path.exists(self.tmp):
             shutil.rmtree(self.tmp)
