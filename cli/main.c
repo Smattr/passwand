@@ -20,7 +20,7 @@ static const struct {
     const char *name;
     const command_t *action;
 } COMMANDS[] = {
-    { "change-master", &change_master_command },
+    { "change-master", &change_master },
     { "delete", &delete_command },
     { "get", &get },
     { "list", &list_command },

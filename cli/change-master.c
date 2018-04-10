@@ -3,35 +3,55 @@
 #include "cli.h"
 #include <passwand/passwand.h>
 #include "print.h"
+#include <stdatomic.h>
 #include <stdlib.h>
 #include <string.h>
 
 static master_t *new_master;
-static passwand_entry_t *new_entries;
-static size_t entry_index;
-static passwand_error_t err;
 
-static void change_master_body(void *state __attribute__((unused)), const char *space, const char *key,
-        const char *value) {
-    err = passwand_entry_new(&new_entries[entry_index], new_master->master, space, key, value,
-        options.work_factor);
-    entry_index++;
+static passwand_entry_t *new_entries;
+static size_t new_entries_len;
+static _Thread_local size_t new_entry_index;
+
+static _Atomic passwand_error_t err;
+
+static void loop_notify(void *state __attribute__((unused)),
+  size_t thread_index __attribute__((unused)), size_t entry_index) {
+
+    new_entry_index = entry_index;
 }
 
-static int change_master(void **state __attribute__((unused)), const master_t *master, passwand_entry_t *entries,
-        size_t entry_len) {
+static bool loop_condition(void *state __attribute__((unused))) {
+    return err == PW_OK;
+}
+
+static void loop_body(void *state __attribute__((unused)), const char *space, const char *key,
+  const char *value) {
+
+    passwand_error_t e = passwand_entry_new(&new_entries[new_entry_index], new_master->master,
+      space, key, value, options.work_factor);
+    if (e != PW_OK) {
+        passwand_error_t none = PW_OK;
+        if (atomic_compare_exchange_strong(&err, &none, e))
+            eprint("failed to process entry %zu: %s\n", new_entry_index, passwand_error(e));
+    }
+}
+
+static int initialize(void **state __attribute__((unused)),
+  const master_t *master __attribute__((unused)), passwand_entry_t *entries __attribute__((unused)),
+  size_t entry_len) {
 
     new_master = NULL;
     master_t *confirm_new = NULL;
     new_entries = NULL;
-    entry_index = 0;
+    new_entries_len = entry_len;
     err = PW_OK;
     int ret = -1;
 
     new_master = getpassword("new master password: ");
     if (new_master == NULL) {
         eprint("failed to read new password\n");
-        return -1;
+        goto done;
     }
 
     confirm_new = getpassword("confirm new master password: ");
@@ -54,41 +74,41 @@ static int change_master(void **state __attribute__((unused)), const master_t *m
         goto done;
     }
 
-    for (size_t i = 0; i < entry_len; i++) {
-        passwand_error_t e = passwand_entry_do(master->master, &entries[i], change_master_body,
-            NULL);
-        if (e != PW_OK) {
-            eprint("failed to process entry %zu: %s\n", i, passwand_error(e));
-            goto done;
-        }
-        if (err != PW_OK) {
-            eprint("failed to process entry %zu: %s\n", i, passwand_error(err));
-            goto done;
-        }
-    }
-    discard_master(new_master);
-    new_master = NULL;
-
-    passwand_error_t e = passwand_export(options.data, new_entries, entry_len);
-    if (e != PW_OK) {
-        eprint("failed to export entries\n");
-        goto done;
-    }
-
     ret = 0;
 
 done:
-    free(new_entries);
+    if (ret != 0)
+        free(new_entries);
     if (confirm_new != NULL)
         discard_master(confirm_new);
-    if (new_master != NULL)
+    if (ret != 0 && new_master != NULL)
         discard_master(new_master);
     return ret;
 }
 
-const command_t change_master_command = {
+static int finalize(void *state __attribute__((unused))) {
+
+    discard_master(new_master);
+    new_master = NULL;
+
+    if (err == PW_OK) {
+        err = passwand_export(options.data, new_entries, new_entries_len);
+        if (err != PW_OK)
+            eprint("failed to export entries: %s\n", passwand_error(err));
+    }
+
+    free(new_entries);
+
+    return err != PW_OK;
+}
+
+const command_t change_master = {
     .need_space = false,
     .need_key = false,
     .need_value = false,
-    .initialize = change_master,
+    .initialize = initialize,
+    .loop_notify = loop_notify,
+    .loop_condition = loop_condition,
+    .loop_body = loop_body,
+    .finalize = finalize,
 };
