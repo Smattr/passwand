@@ -78,7 +78,8 @@ static int finalize(void) {
      * instead of creating a new entry.
      */
 
-    passwand_entry_t *new_entries = calloc(saved_entry_len + (found ? 0 : 1), sizeof(new_entries[0]));
+    size_t new_entry_len = saved_entry_len + (found ? 0 : 1);
+    passwand_entry_t *new_entries = calloc(new_entry_len, sizeof(new_entries[0]));
     if (new_entries == NULL) {
         eprint("out of memory\n");
         return -1;
@@ -87,13 +88,14 @@ static int finalize(void) {
     /* Insert the new or updated entry at the start of the list, as we assume we'll be looking it up
      * in the near future.
      */
-    size_t count_before = found ? found_index : saved_entry_len;
-    size_t count_after = found ? saved_entry_len - found_index - 1 : 0;
     new_entries[0] = e;
-    memcpy(new_entries + 1, saved_entries, sizeof(passwand_entry_t) * count_before);
-    memcpy(new_entries + found_index + 1, saved_entries + found_index + 1,
-        sizeof(passwand_entry_t) * count_after);
-    size_t new_entry_len = found ? saved_entry_len : saved_entry_len + 1;
+    for (size_t src_index = 0, dst_index = 1; src_index < saved_entry_len; src_index++) {
+        if (!found || src_index != found_index) {
+            assert(dst_index < new_entry_len);
+            new_entries[dst_index] = saved_entries[src_index];
+            dst_index++;
+        }
+    }
 
     passwand_error_t err = passwand_export(options.data, new_entries, new_entry_len);
     free(new_entries);
