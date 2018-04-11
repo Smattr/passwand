@@ -823,6 +823,146 @@ class Cli(unittest.TestCase):
         self.assertEqual(p.exitstatus, 0)
         self.assertEqual(output.decode('utf-8', 'replace').strip(), 'space/key')
 
+    def test_set_xoo(self):
+        '''
+        Test overwriting the first of a set of three entries.
+        '''
+        data = os.path.join(self.tmp, 'test_set_xoo.json')
+        self.set_xxx(True, data, 0)
+
+    def test_set_xoo_single_threaded(self):
+        '''
+        Same as test_set_xoo, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_set_xoo_single_threaded.json')
+        self.set_xxx(False, data, 0)
+
+    def test_set_oxo(self):
+        '''
+        Test overwriting the second of a set of three entries.
+        '''
+        data = os.path.join(self.tmp, 'test_set_oxo.json')
+        self.set_xxx(True, data, 1)
+
+    def test_set_oxo_single_threaded(self):
+        '''
+        Same as test_set_oxo, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_set_oxo_single_threaded.json')
+        self.set_xxx(False, data, 1)
+
+    def test_set_oox(self):
+        '''
+        Test overwriting the third of a set of three entries.
+        '''
+        data = os.path.join(self.tmp, 'test_set_oox.json')
+        self.set_xxx(True, data, 2)
+
+    def test_set_oox_single_threaded(self):
+        '''
+        Same as test_set_oox, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_set_oox_single_threaded.json')
+        self.set_xxx(False, data, 2)
+
+    def set_xxx(self, multithreaded: bool, data: str, target: int):
+
+        # Setup a database with three entries.
+        for i in range(3):
+
+            # Request to save a key and value.
+            args = ['set', '--data', data, '--space', 'space{}'.format(i),
+              '--key', 'key{}'.format(i), '--value', 'value{}'.format(i)]
+            if not multithreaded:
+                args += ['--jobs', '1']
+            p = pexpect.spawn('./pw-cli', args)
+
+            # Enter the master password.
+            try:
+                p.expect('master password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('test')
+
+            # Confirm the master pasword.
+            try:
+                p.expect('confirm master password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('test')
+
+            # Now passwand should exit with success.
+            p.expect(pexpect.EOF)
+            p.close()
+            self.assertEqual(p.exitstatus, 0)
+
+        # Now overwrite the 'target'-th entry.
+        args = ['set', '--data', data, '--space', 'space{}'.format(target),
+          '--key', 'key{}'.format(target), '--value', 'valuenew']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Confirm the master pasword.
+        try:
+            p.expect('confirm master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Now retrieve each value.
+        for i in range(3):
+
+            args = ['get', '--data', data, '--space', 'space{}'.format(i),
+              '--key', 'key{}'.format(i)]
+            if not multithreaded:
+                args += ['--jobs', '1']
+            p = pexpect.spawn('./pw-cli', args)
+
+            # Enter the master password.
+            try:
+                p.expect('master password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('test')
+
+            # We should get the original value for everything except the entry
+            # we changed.
+            try:
+                expected = 'value{}'.format('new' if i == target else i)
+                p.expect('{}\r\n'.format(expected))
+            except pexpect.EOF:
+                self.fail('EOF while waiting for {}'.format(expected))
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for {}'.format(expected))
+
+            # And passwand should exit with success.
+            p.expect(pexpect.EOF)
+            p.close()
+            self.assertEqual(p.exitstatus, 0)
+
     def tearDown(self):
         if hasattr(self, 'tmp') and os.path.exists(self.tmp):
             shutil.rmtree(self.tmp)
