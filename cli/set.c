@@ -5,32 +5,25 @@
 #include <passwand/passwand.h>
 #include "print.h"
 #include "set.h"
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
-static bool found;
-static size_t entry_index;
+const master_t *saved_master;
+static passwand_entry_t *saved_entries;
+static size_t saved_entry_len;
+static atomic_bool found;
+static size_t found_index;
+static _Thread_local size_t candidate_index;
 
-static void set_body(void *state __attribute__((unused)), const char *space, const char *key,
-        const char *value __attribute__((unused))) {
+static int initialize(const master_t *master, passwand_entry_t *entries, size_t entry_len) {
 
-    assert(space != NULL);
-    assert(key != NULL);
-    assert(value != NULL);
-
-    if (strcmp(options.space, space) == 0 && strcmp(options.key, key) == 0) {
-        /* This entry matches the one we just set. Mark it. */
-        found = true;
-    } else {
-        entry_index++;
-    }
-}
-
-static int set(const master_t *master, passwand_entry_t *entries, size_t entry_len) {
-
+    saved_master = master;
+    saved_entries = entries;
+    saved_entry_len = entry_len;
     found = false;
-    entry_index = 0;
+    found_index = 0;
 
     master_t *confirm = getpassword("confirm master password: ");
     if (confirm == NULL) {
@@ -44,44 +37,63 @@ static int set(const master_t *master, passwand_entry_t *entries, size_t entry_l
         return -1;
     }
 
+    return 0;
+}
+
+static void loop_notify(size_t thread_index __attribute__((unused)), size_t entry_index) {
+    candidate_index = entry_index;
+}
+
+static bool loop_condition(void) {
+    return !found;
+}
+
+static void loop_body(void *state __attribute__((unused)), const char *space, const char *key,
+        const char *value __attribute__((unused))) {
+
+    assert(space != NULL);
+    assert(key != NULL);
+
+    if (strcmp(options.space, space) == 0 && strcmp(options.key, key) == 0) {
+        /* This entry matches the one we just set. Mark it. This cmpxchg should never fail because
+         * there should only ever be a single matching entry (this one) but maybe we're operating
+         * on a tampered with or corrupted database.
+         */
+        bool expected = false;
+        if (atomic_compare_exchange_strong(&found, &expected, true))
+            found_index = candidate_index;
+    }
+}
+
+static int finalize(void) {
+
     passwand_entry_t e;
-    if (passwand_entry_new(&e, master->master, options.space, options.key, options.value,
+    if (passwand_entry_new(&e, saved_master->master, options.space, options.key, options.value,
             options.work_factor) != PW_OK) {
         eprint("failed to create new entry\n");
         return -1;
     }
 
-    /* Figure out if the entry we've just created collides with (and overwrites) an existing one.
+    /* If we found an existing entry for this combination of space and key, we want to overwrite it
+     * instead of creating a new entry.
      */
 
-    for (size_t i = 0; !found && i < entry_len; i++) {
-        if (passwand_entry_do(master->master, &entries[i], set_body, NULL) != PW_OK) {
-            eprint("failed to handle entry %zu\n", i);
-            return -1;
-        }
-    }
-
-    if (!found && entry_len == SIZE_MAX) {
-        eprint("maximum number of entries exceeded\n");
-        return -1;
-    }
-
-    passwand_entry_t *new_entries = calloc(entry_len + (found ? 0 : 1), sizeof(passwand_entry_t));
+    passwand_entry_t *new_entries = calloc(saved_entry_len + (found ? 0 : 1), sizeof(new_entries[0]));
     if (new_entries == NULL) {
         eprint("out of memory\n");
         return -1;
     }
 
-    /* Insert the new or updated entry at the start of the list, as we assume
-     * we'll be looking it up in the near future.
+    /* Insert the new or updated entry at the start of the list, as we assume we'll be looking it up
+     * in the near future.
      */
-    size_t count_before = found ? entry_index : entry_len;
-    size_t count_after = found ? entry_len - entry_index - 1 : 0;
+    size_t count_before = found ? found_index : saved_entry_len;
+    size_t count_after = found ? saved_entry_len - found_index - 1 : 0;
     new_entries[0] = e;
-    memcpy(new_entries + 1, entries, sizeof(passwand_entry_t) * count_before);
-    memcpy(new_entries + entry_index + 1, entries + entry_index + 1,
+    memcpy(new_entries + 1, saved_entries, sizeof(passwand_entry_t) * count_before);
+    memcpy(new_entries + found_index + 1, saved_entries + found_index + 1,
         sizeof(passwand_entry_t) * count_after);
-    size_t new_entry_len = found ? entry_len : entry_len + 1;
+    size_t new_entry_len = found ? saved_entry_len : saved_entry_len + 1;
 
     passwand_error_t err = passwand_export(options.data, new_entries, new_entry_len);
     free(new_entries);
@@ -93,9 +105,13 @@ static int set(const master_t *master, passwand_entry_t *entries, size_t entry_l
     return 0;
 }
 
-const command_t set_command = {
+const command_t set = {
     .need_space = true,
     .need_key = true,
     .need_value = true,
-    .initialize = set,
+    .initialize = initialize,
+    .loop_notify = loop_notify,
+    .loop_condition = loop_condition,
+    .loop_body = loop_body,
+    .finalize = finalize,
 };

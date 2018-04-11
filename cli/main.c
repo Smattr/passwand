@@ -24,7 +24,7 @@ static const struct {
     { "delete", &delete_command },
     { "get", &get },
     { "list", &list_command },
-    { "set", &set_command },
+    { "set", &set },
 };
 
 static const command_t *command_for(const char *name) {
