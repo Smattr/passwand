@@ -4,7 +4,7 @@
 Framework for writing integration tests.
 '''
 
-import json, os, pexpect, shutil, subprocess, sys, tempfile, unittest
+import json, os, pexpect, re, shutil, subprocess, sys, tempfile, unittest
 
 class DummyTest(unittest.TestCase):
     def test_dummy(self):
@@ -962,6 +962,84 @@ class Cli(unittest.TestCase):
             p.expect(pexpect.EOF)
             p.close()
             self.assertEqual(p.exitstatus, 0)
+
+    def test_list_standard(self):
+        '''
+        Test list of ten entries.
+        '''
+        data = os.path.join(self.tmp, 'test_list_standard.json')
+        self.list_standard(True, data)
+
+    def test_list_standard_single_threaded(self):
+        '''
+        Same as test_list_standard, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_list_standard_single_threaded.json')
+        self.list_standard(False, data)
+
+    def list_standard(self, multithreaded: bool, data: str):
+
+        # Request to save 10 keys and values.
+        for i in range(10):
+            args = ['set', '--data', data, '--space', 'space{}'.format(i),
+              '--key', 'key{}'.format(i), '--value', 'value{}'.format(i)]
+            if not multithreaded:
+                args += ['--jobs', '1']
+            p = pexpect.spawn('./pw-cli', args)
+
+            # Enter the master password.
+            try:
+                p.expect('master password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('test')
+
+            # Confirm the master pasword.
+            try:
+                p.expect('confirm master password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('test')
+
+            # Now passwand should exit with success.
+            p.expect(pexpect.EOF)
+            p.close()
+            self.assertEqual(p.exitstatus, 0)
+
+        # Now request to list the database.
+        args = ['list', '--data', data]
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Scan the entries we get.
+        output = p.read()
+        seen = set()
+        for line in output.decode('utf-8', 'replace').strip().splitlines():
+            m = re.match(r'^space(\d+)/key\1', line)
+            self.assertIsNotNone(m, 'unexpected entry received from \'list\'')
+            i = int(m.group(1))
+            self.assertNotIn(i, seen, 'duplicate entry in list')
+            seen.add(i)
+        self.assertEqual(seen, set(range(10)), 'incorrect list of entries')
+
+        # List should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
 
     def tearDown(self):
         if hasattr(self, 'tmp') and os.path.exists(self.tmp):
