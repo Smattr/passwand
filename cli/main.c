@@ -23,7 +23,7 @@ static const struct {
     { "change-master", &change_master },
     { "delete", &delete_command },
     { "get", &get },
-    { "list", &list_command },
+    { "list", &list },
     { "set", &set },
 };
 
