@@ -21,7 +21,7 @@ static const struct {
     const command_t *action;
 } COMMANDS[] = {
     { "change-master", &change_master },
-    { "delete", &delete_command },
+    { "delete", &delete },
     { "get", &get },
     { "list", &list },
     { "set", &set },

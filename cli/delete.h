@@ -2,4 +2,4 @@
 
 #include "cli.h"
 
-extern const command_t delete_command;
+extern const command_t delete;
