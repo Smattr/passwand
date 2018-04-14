@@ -24,7 +24,7 @@ typedef struct {
     int (*initialize)(const master_t *master, passwand_entry_t *entries, size_t entry_len);
 
     /* Prepare to run 'loop_body' on an entry. */
-    void (*loop_notify)(size_t thread_index, size_t entry_index);
+    void (*loop_notify)(size_t entry_index);
 
     /* Indicate whether iteration should continue. */
     bool (*loop_condition)(void);

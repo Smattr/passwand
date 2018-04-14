@@ -132,7 +132,6 @@ void discard_master(master_t *m) {
 }
 
 typedef struct {
-    size_t thread_index;
     atomic_size_t *index;
     passwand_entry_t *entries;
     size_t entry_len;
@@ -161,7 +160,7 @@ static void *thread_loop(void *arg) {
             break;
 
         if (command->loop_notify != NULL)
-            command->loop_notify(ts->thread_index, index);
+            command->loop_notify(index);
 
         if (command->loop_condition != NULL && !command->loop_condition())
             break;
@@ -267,7 +266,6 @@ int main(int argc, char **argv) {
     /* Setup thread data. */
     atomic_size_t index = 0;
     for (size_t i = 0; i < options.jobs; i++) {
-        tses[i].thread_index = i;
         tses[i].index = &index;
         tses[i].entries = entries;
         tses[i].entry_len = entry_len;

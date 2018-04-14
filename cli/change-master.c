@@ -15,7 +15,7 @@ static _Thread_local size_t new_entry_index;
 
 static _Atomic passwand_error_t err;
 
-static void loop_notify(size_t thread_index __attribute__((unused)), size_t entry_index) {
+static void loop_notify(size_t entry_index) {
     new_entry_index = entry_index;
 }
 

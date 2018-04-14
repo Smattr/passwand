@@ -40,7 +40,7 @@ static int initialize(const master_t *master, passwand_entry_t *entries, size_t 
     return 0;
 }
 
-static void loop_notify(size_t thread_index __attribute__((unused)), size_t entry_index) {
+static void loop_notify(size_t entry_index) {
     candidate_index = entry_index;
 }
 

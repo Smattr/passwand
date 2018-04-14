@@ -26,7 +26,7 @@ static int initialize(const master_t *master __attribute__((unused)), passwand_e
     return 0;
 }
 
-static void loop_notify(size_t thread_index __attribute__((unused)), size_t entry_index) {
+static void loop_notify(size_t entry_index) {
     current_index = entry_index;
 }
 
