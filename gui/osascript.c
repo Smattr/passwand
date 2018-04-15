@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include "gui.h"
 #include <passwand/passwand.h>
+#include <pthread.h>
 #include <spawn.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -109,12 +110,23 @@ done:
 
 static char *osascript(const struct iovec *iov, size_t iovcnt) {
 
+    /* Lock that we use to prevent multiple concurrent osascript tasks. It is OK
+     * to run osascript multiple times, but the effect may confuse the user.
+     */
+    static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
     assert(iov != NULL);
     assert(iovcnt > 0);
 
+    int err __attribute__((unused)) = pthread_mutex_lock(&mutex);
+    assert(err == 0);
+
     proc_t proc;
-    if (osascript_pipe(&proc) < 0)
+    if (osascript_pipe(&proc) < 0) {
+        err = pthread_mutex_unlock(&mutex);
+        assert(err == 0);
         return NULL;
+    }
 
     (void)writev(proc.in, iov, iovcnt);
     close(proc.in);
@@ -149,6 +161,9 @@ static char *osascript(const struct iovec *iov, size_t iovcnt) {
     do {
         r = waitpid(proc.pid, &status, 0);
     } while (r == -1 && errno == EINTR);
+
+    err = pthread_mutex_unlock(&mutex);
+    assert(err == 0);
 
     if (WIFEXITED(status) && WEXITSTATUS(status) == EXIT_SUCCESS)
         return buf;
