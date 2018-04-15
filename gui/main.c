@@ -32,18 +32,12 @@
         exit(FAILURE_CODE); \
     } while (0)
 
-typedef struct {
-    atomic_bool *done;
-    atomic_size_t *index;
-    const passwand_entry_t *entries;
-    size_t entry_len;
-    const char *master;
-    const char *space;
-    const char *key;
-
-    const char *err_message;
-    size_t found_index;
-} thread_state_t;
+static atomic_bool done;
+static atomic_size_t entry_index;
+static passwand_entry_t *entries;
+static size_t entry_len;
+static const char *master;
+static size_t found_index;
 
 static void check(void *state, const char *space, const char *key, const char *value) {
     char *found_value = state;
@@ -53,42 +47,40 @@ static void check(void *state, const char *space, const char *key, const char *v
     }
 }
 
-static void *search(void *arg) {
-    assert(arg != NULL);
-
-    thread_state_t *ts = arg;
-    assert(ts->done != NULL);
-    assert(ts->index != NULL);
-    assert(ts->entries != NULL);
-    assert(ts->master != NULL);
-    assert(ts->space != NULL);
-    assert(ts->key != NULL);
-    assert(ts->err_message == NULL);
+static void *search(void *arg __attribute__((unused))) {
 
     char *found_value = NULL;
 
     for (;;) {
 
-        if (atomic_load(ts->done))
+        if (done)
             break;
 
         /* Get the next entry to check */
-        size_t index = atomic_fetch_add(ts->index, 1);
-        if (index >= ts->entry_len)
+        size_t i = atomic_fetch_add(&entry_index, 1);
+        if (i >= entry_len)
             break;
 
-        passwand_error_t err = passwand_entry_do(ts->master, &ts->entries[index], check,
-          &found_value);
+        passwand_error_t err = passwand_entry_do(master, &entries[i], check, &found_value);
         if (err != PW_OK) {
-            ts->err_message = passwand_error(err);
-            return (void*)-1;
+            char *msg;
+            if (asprintf(&msg, "error: %s", passwand_error(err)) >= 0) {
+                show_error(msg);
+                free(msg);
+            }
+            return NULL;
         }
 
         if (found_value != NULL) {
             /* We found it! */
-            atomic_store(ts->done, true);
-            ts->found_index = index;
-            return found_value;
+            bool expected = false;
+            if (atomic_compare_exchange_strong(&done, &expected, true)) {
+                found_index = i;
+                return found_value;
+            } else {
+                passwand_secure_free(found_value, strlen(found_value) + 1);
+            }
+            return NULL;
         }
     }
 
@@ -107,31 +99,23 @@ int main(int argc, char **argv) {
     if (parse(argc, argv) != 0)
         return EXIT_FAILURE;
 
-    char *space;
-    if (options.space != NULL)
-        space = options.space;
-    else
-        space = get_text("Passwand", "Name space?", NULL, false);
-    if (space == NULL)
+    if (options.space == NULL)
+        options.space = get_text("Passwand", "Name space?", NULL, false);
+    if (options.space == NULL)
         return EXIT_SUCCESS;
 
-    char *key;
-    if (options.key != NULL)
-        key = options.key;
-    else
-        key = get_text("Passwand", "Key?", "password", false);
-    if (key == NULL)
+    if (options.key == NULL)
+        options.key = get_text("Passwand", "Key?", "password", false);
+    if (options.key == NULL)
         return EXIT_SUCCESS;
 
-    char *master __attribute__((cleanup(autoclear))) = get_text("Passwand", "Master passphrase?", NULL, true);
-    if (master == NULL)
+    char *m __attribute__((cleanup(autoclear))) = get_text("Passwand", "Master passphrase?", NULL, true);
+    if (m == NULL)
         return EXIT_SUCCESS;
 
     flush_state();
 
     /* Import the database. */
-    passwand_entry_t *entries;
-    size_t entry_len;
     passwand_error_t err = passwand_import(options.data, &entries, &entry_len);
     if (err != PW_OK)
         DIE("failed to import database: %s", passwand_error(err));
@@ -143,71 +127,45 @@ int main(int argc, char **argv) {
      * we have to speed it up.
      */
 
-    char *value = NULL;
-    size_t found_index = SIZE_MAX;
+    char *value __attribute__((cleanup(autoclear))) = NULL;
 
     assert(options.jobs >= 1);
-
-    thread_state_t *tses = calloc(options.jobs, sizeof(thread_state_t));
-    if (tses == NULL)
-        DIE("out of memory");
 
     pthread_t *threads = calloc(options.jobs - 1, sizeof(pthread_t));
     if (threads == NULL)
         DIE("out of memory");
 
-    atomic_bool done = false;
-    atomic_size_t index = 0;
-
     /* Initialise and start threads. */
+    master = m;
     for (size_t i = 0; i < options.jobs; i++) {
-        tses[i].done = &done;
-        tses[i].index = &index;
-        tses[i].entries = entries;
-        tses[i].entry_len = entry_len;
-        tses[i].master = master;
-        tses[i].space = space;
-        tses[i].key = key;
 
         if (i < options.jobs - 1) {
-            int r = pthread_create(&threads[i], NULL, search, &tses[i]);
+            int r = pthread_create(&threads[i], NULL, search, NULL);
             if (r != 0)
                 DIE("failed to create thread %ld", i + 1);
         }
     }
 
     /* Join the other threads in searching. */
-    void *ret = search(&tses[options.jobs - 1]);
-    if (ret == (void*)-1) {
-        assert(tses[options.jobs - 1].err_message != NULL);
-        DIE("error: %s", tses[options.jobs - 1].err_message);
-    } else if (ret != NULL) {
+    void *ret = search(NULL);
+    if (ret != NULL)
         value = ret;
-        found_index = tses[options.jobs - 1].found_index;
-    }
 
     /* Collect threads. */
     for (size_t i = 0; i < options.jobs - 1; i++) {
         int r = pthread_join(threads[i], &ret);
         if (r != 0)
             DIE("failed to join thread %ld", i + 1);
-        if (ret == (void*)-1) {
-            assert(tses[i].err_message != NULL);
-            DIE("error: %s", tses[i].err_message);
-        } else if (ret != NULL) {
+        if (ret != NULL) {
             assert(value == NULL && "multiple matching entries found");
             value = ret;
-            assert(found_index == SIZE_MAX && "found_index out of sync with value");
-            found_index = tses[i].found_index;
         }
     }
 
     free(threads);
-    free(tses);
 
     if (value == NULL)
         DIE("failed to find matching entry");
-    char *clearer __attribute__((unused, cleanup(autoclear))) = value;
 
     for (size_t i = 0; i < strlen(value); i++) {
         if (!(supported_upper(value[i]) || supported_lower(value[i])))
