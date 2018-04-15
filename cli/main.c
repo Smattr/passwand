@@ -131,6 +131,13 @@ void discard_master(master_t *m) {
     passwand_secure_free(m, sizeof(*m));
 }
 
+/* Juggle the calling convention to a function for processing an entry that doesn't need the state
+ * parameter. */
+static void entry_trampoline(void *state, const char *space, const char *key, const char *value) {
+    void (*f)(const char*, const char*, const char*) = state;
+    f(space, key, value);
+}
+
 typedef struct {
     atomic_size_t *index;
     passwand_entry_t *entries;
@@ -167,7 +174,7 @@ static void *thread_loop(void *arg) {
 
         if (command->loop_body != NULL) {
             passwand_error_t err = passwand_entry_do(ts->master, &ts->entries[index],
-                command->loop_body, NULL);
+                entry_trampoline, command->loop_body);
             if (err != PW_OK) {
                 ts->error = err;
                 ts->error_index = index;

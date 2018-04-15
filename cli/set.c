@@ -48,7 +48,7 @@ static bool loop_condition(void) {
     return !found;
 }
 
-static void loop_body(void *state __attribute__((unused)), const char *space, const char *key,
+static void loop_body(const char *space, const char *key,
         const char *value __attribute__((unused))) {
 
     assert(space != NULL);

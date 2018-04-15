@@ -23,8 +23,7 @@ static bool loop_condition(void) {
     return err == PW_OK;
 }
 
-static void loop_body(void *state __attribute__((unused)), const char *space, const char *key,
-  const char *value) {
+static void loop_body(const char *space, const char *key, const char *value) {
 
     passwand_error_t e = passwand_entry_new(&new_entries[new_entry_index], new_master->master,
       space, key, value, options.work_factor);

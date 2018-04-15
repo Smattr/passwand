@@ -13,7 +13,7 @@ static int initialize(const master_t *master __attribute__((unused)),
     return 0;
 }
 
-static void loop_body(void *state __attribute__((unused)), const char *space, const char *key,
+static void loop_body(const char *space, const char *key,
         const char *value __attribute__((unused))) {
     assert(space != NULL);
     assert(key != NULL);

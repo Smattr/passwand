@@ -30,7 +30,7 @@ typedef struct {
     bool (*loop_condition)(void);
 
     /* Action of this command. Note, this may be called by multiple threads in parallel. */
-    void (*loop_body)(void *state, const char *space, const char *key, const char *value);
+    void (*loop_body)(const char *space, const char *key, const char *value);
 
     /* Destructor. */
     int (*finalize)(void);

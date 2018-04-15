@@ -22,7 +22,7 @@ static bool loop_condition(void) {
     return !found;
 }
 
-static void loop_body(void *state __attribute__((unused)), const char *space, const char *key, const char *value) {
+static void loop_body(const char *space, const char *key, const char *value) {
     assert(space != NULL);
     assert(key != NULL);
     assert(value != NULL);
