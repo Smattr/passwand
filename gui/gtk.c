@@ -5,11 +5,15 @@
 #include <gtk/gtk.h>
 #include "gui.h"
 #include <passwand/passwand.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <X11/Xlib.h>
+
+/* A lock to ensure we prevent multiple concurrent calls to GTK or X11 APIs. */
+static pthread_mutex_t gtk_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static bool inited;
 
@@ -18,10 +22,23 @@ static void init() {
     inited = true;
 }
 
+/* The inner logic of `show_error`. This function assumes the caller has already taken
+ * `gtk_lock`.
+ */
+static void show_error_core(const char *message) {
+    GtkWidget *dialog = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "%s", message);
+    gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
+    gtk_widget_show_all(dialog);
+    gtk_dialog_run(GTK_DIALOG(dialog));
+}
+
 char *get_text(const char *title, const char *message, const char *initial, bool hidden) {
 
     assert(title != NULL);
     assert(message != NULL);
+
+    int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);
+    assert(err == 0);
 
     if (!inited)
         init();
@@ -55,7 +72,7 @@ char *get_text(const char *title, const char *message, const char *initial, bool
         if (hidden) {
             if (passwand_secure_malloc((void**)&r, strlen(text) + 1) != PW_OK) {
                 r = NULL;
-                show_error("failed to allocate secure memory");
+                show_error_core("failed to allocate secure memory");
             } else {
                 strcpy(r, text);
             }
@@ -68,6 +85,9 @@ char *get_text(const char *title, const char *message, const char *initial, bool
     }
 
     gtk_widget_destroy(dialog);
+
+    err = pthread_mutex_unlock(&gtk_lock);
+    assert(err == 0);
 
     return r;
 }
@@ -98,14 +118,26 @@ static void send_char(Display *display, Window window, char c) {
 }
 
 void flush_state(void) {
+
+    int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);
+    assert(err == 0);
+
     /* Make sure we flush all GTK operations to clear remaining dialog windows. */
     while (gtk_events_pending())
         gtk_main_iteration();
+
+    err = pthread_mutex_unlock(&gtk_lock);
+    assert(err == 0);
 }
 
 int send_text(const char *text) {
 
     assert(text != NULL);
+
+    int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);
+    assert(err == 0);
+
+    int ret = -1;
 
     if (!inited)
         init();
@@ -116,8 +148,8 @@ int send_text(const char *text) {
         display = ":0";
     Display *d = XOpenDisplay(display);
     if (d == NULL) {
-        show_error("failed to open X11 display");
-        return -1;
+        show_error_core("failed to open X11 display");
+        goto done;
     }
 
     /* Find the active window. */
@@ -125,9 +157,8 @@ int send_text(const char *text) {
     int state;
     XGetInputFocus(d, &win, &state);
     if (win == None) {
-        XCloseDisplay(d);
-        show_error("no window focused");
-        return -1;
+        show_error_core("no window focused");
+        goto done;
     }
 
     for (size_t i = 0; i < strlen(text); i++) {
@@ -135,18 +166,25 @@ int send_text(const char *text) {
         send_char(d, win, text[i]);
     }
 
-    XCloseDisplay(d);
+    ret = 0;
 
-    return 0;
+done:
+    XCloseDisplay(d);
+    err = pthread_mutex_unlock(&gtk_lock);
+    assert(err == 0);
+    return ret;
 }
 
 void show_error(const char *message) {
 
+    int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);
+    assert(err == 0);
+
     if (!inited)
         init();
 
-    GtkWidget *dialog = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "%s", message);
-    gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
-    gtk_widget_show_all(dialog);
-    gtk_dialog_run(GTK_DIALOG(dialog));
+    show_error_core(message);
+
+    err = pthread_mutex_unlock(&gtk_lock);
+    assert(err == 0);
 }
