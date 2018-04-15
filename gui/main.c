@@ -155,14 +155,13 @@ int main(int argc, char **argv) {
     char *value = NULL;
     size_t found_index = SIZE_MAX;
 
-    long cpus = sysconf(_SC_NPROCESSORS_ONLN);
-    assert(cpus >= 1);
+    assert(options.jobs >= 1);
 
-    thread_state_t *tses = calloc(cpus, sizeof(thread_state_t));
+    thread_state_t *tses = calloc(options.jobs, sizeof(thread_state_t));
     if (tses == NULL)
         DIE("out of memory");
 
-    pthread_t *threads = calloc(cpus - 1, sizeof(pthread_t));
+    pthread_t *threads = calloc(options.jobs - 1, sizeof(pthread_t));
     if (threads == NULL)
         DIE("out of memory");
 
@@ -170,7 +169,7 @@ int main(int argc, char **argv) {
     atomic_size_t index = 0;
 
     /* Initialise and start threads. */
-    for (long i = 0; i < cpus; i++) {
+    for (size_t i = 0; i < options.jobs; i++) {
         tses[i].done = &done;
         tses[i].index = &index;
         tses[i].entries = entries;
@@ -179,7 +178,7 @@ int main(int argc, char **argv) {
         tses[i].space = space;
         tses[i].key = key;
 
-        if (i < cpus - 1) {
+        if (i < options.jobs - 1) {
             int r = pthread_create(&threads[i], NULL, search, &tses[i]);
             if (r != 0)
                 DIE("failed to create thread %ld", i + 1);
@@ -187,17 +186,17 @@ int main(int argc, char **argv) {
     }
 
     /* Join the other threads in searching. */
-    void *ret = search(&tses[cpus - 1]);
+    void *ret = search(&tses[options.jobs - 1]);
     if (ret == (void*)-1) {
-        assert(tses[cpus - 1].err_message != NULL);
-        DIE("error: %s", tses[cpus - 1].err_message);
+        assert(tses[options.jobs - 1].err_message != NULL);
+        DIE("error: %s", tses[options.jobs - 1].err_message);
     } else if (ret != NULL) {
         value = ret;
-        found_index = tses[cpus - 1].found_index;
+        found_index = tses[options.jobs - 1].found_index;
     }
 
     /* Collect threads. */
-    for (long i = 0; i < cpus - 1; i++) {
+    for (size_t i = 0; i < options.jobs - 1; i++) {
         int r = pthread_join(threads[i], &ret);
         if (r != 0)
             DIE("failed to join thread %ld", i + 1);
