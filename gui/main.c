@@ -45,18 +45,11 @@ typedef struct {
     size_t found_index;
 } thread_state_t;
 
-/* State for the search we'll perform. */
-typedef struct {
-    const char *space;
-    const char *key;
-    char *value;
-} check_state_t;
-
 static void check(void *state, const char *space, const char *key, const char *value) {
-    check_state_t *st = state;
-    if (strcmp(st->space, space) == 0 && strcmp(st->key, key) == 0) {
-        if (passwand_secure_malloc((void**)&st->value, strlen(value) + 1) == PW_OK)
-            strcpy(st->value, value);
+    char *found_value = state;
+    if (strcmp(options.space, space) == 0 && strcmp(options.key, key) == 0) {
+        if (passwand_secure_malloc((void**)&found_value, strlen(value) + 1) == PW_OK)
+            strcpy(found_value, value);
     }
 }
 
@@ -72,10 +65,7 @@ static void *search(void *arg) {
     assert(ts->key != NULL);
     assert(ts->err_message == NULL);
 
-    check_state_t st = {
-        .space = ts->space,
-        .key = ts->key,
-    };
+    char *found_value = NULL;
 
     for (;;) {
 
@@ -87,17 +77,18 @@ static void *search(void *arg) {
         if (index >= ts->entry_len)
             break;
 
-        passwand_error_t err = passwand_entry_do(ts->master, &ts->entries[index], check, &st);
+        passwand_error_t err = passwand_entry_do(ts->master, &ts->entries[index], check,
+          &found_value);
         if (err != PW_OK) {
             ts->err_message = passwand_error(err);
             return (void*)-1;
         }
 
-        if (st.value != NULL) {
+        if (found_value != NULL) {
             /* We found it! */
             atomic_store(ts->done, true);
             ts->found_index = index;
-            return st.value;
+            return found_value;
         }
     }
 
