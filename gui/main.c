@@ -99,7 +99,7 @@ static void autoclear(void *p) {
     assert(p != NULL);
     char **s = p;
     if (*s != NULL)
-        passwand_secure_free(*s, strlen(*s));
+        passwand_secure_free(*s, strlen(*s) + 1);
 }
 
 int main(int argc, char **argv) {
