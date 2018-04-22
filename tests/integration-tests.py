@@ -1325,6 +1325,85 @@ class Cli(unittest.TestCase):
             p.close()
             self.assertEqual(p.exitstatus, 0)
 
+    def test_concurrent_manipulation(self):
+        '''
+        Test modifying a database that is currently being read.
+        '''
+        data = os.path.join(self.tmp, 'test_concurrent_manipulation.json')
+        self.concurrent_manipulation(True, data)
+
+    def test_concurrent_manipulation_single_threaded(self):
+        '''
+        Same as test_concurrent_manipulation, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_concurrent_manipulation_single_threaded.json')
+        self.concurrent_manipulation(False, data)
+
+    def concurrent_manipulation(self, multithreaded: bool, data: str):
+
+        # Request to save 10 keys and values.
+        for i in range(10):
+            args = ['set', '--data', data, '--space', 'space{}'.format(i),
+              '--key', 'key{}'.format(i), '--value', 'value{}'.format(i)]
+            if not multithreaded:
+                args += ['--jobs', '1']
+            p = pexpect.spawn('./pw-cli', args)
+
+            # Enter the master password.
+            try:
+                p.expect('master password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('test')
+
+            # Confirm the master pasword.
+            try:
+                p.expect('confirm master password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('test')
+
+            # Now passwand should exit with success.
+            p.expect(pexpect.EOF)
+            p.close()
+            self.assertEqual(p.exitstatus, 0)
+
+        # Try to read the value that should be last in the database. This should
+        # ensure a long running 'get'.
+        args = ['get', '--data', data, '--space', 'space0', '--key', 'key0']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Now try setting an entry while the 'get' is still running.
+        args = ['set', '--data', data, '--space', 'space', '--key', 'key',
+          '--value', 'value']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        s = pexpect.spawn('./pw-cli', args)
+
+        # The 'set' should fail because it can't lock the database.
+        s.expect(pexpect.EOF)
+        s.close()
+        self.assertNotEqual(s.exitstatus, 0)
+
+        # Cleanup the 'get'.
+        p.expect(pexpect.EOF)
+        p.close()
+
     def tearDown(self):
         if hasattr(self, 'tmp') and os.path.exists(self.tmp):
             shutil.rmtree(self.tmp)
