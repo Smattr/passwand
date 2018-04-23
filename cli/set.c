@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/file.h>
 
 const master_t *saved_master;
 static passwand_entry_t *saved_entries;
@@ -111,6 +112,7 @@ const command_t set = {
     .need_space = true,
     .need_key = true,
     .need_value = true,
+    .access = LOCK_EX,
     .initialize = initialize,
     .loop_notify = loop_notify,
     .loop_condition = loop_condition,

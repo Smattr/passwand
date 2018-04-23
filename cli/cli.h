@@ -20,6 +20,12 @@ typedef struct {
     bool need_key;   /* Whether the command uses the --key argument. */
     bool need_value; /* Whether the command uses the --value argument. */
 
+    /* Mode to access the database in:
+     *  LOCK_SH - shared (read)
+     *  LOCK_EX - exclusive (write)
+     */
+    int access;
+
     /* Constructor. */
     int (*initialize)(const master_t *master, passwand_entry_t *entries, size_t entry_len);
 

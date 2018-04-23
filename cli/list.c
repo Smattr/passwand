@@ -7,6 +7,7 @@
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <sys/file.h>
 
 static int initialize(const master_t *master __attribute__((unused)),
   passwand_entry_t *entries __attribute__((unused)), size_t entry_len __attribute__((unused))) {
@@ -25,6 +26,7 @@ const command_t list = {
     .need_space = false,
     .need_key = false,
     .need_value = false,
+    .access = LOCK_SH,
     .initialize = initialize,
     .loop_body = loop_body,
 };

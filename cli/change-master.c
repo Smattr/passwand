@@ -6,6 +6,7 @@
 #include <stdatomic.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/file.h>
 
 static master_t *new_master;
 
@@ -102,6 +103,7 @@ const command_t change_master = {
     .need_space = false,
     .need_key = false,
     .need_value = false,
+    .access = LOCK_EX,
     .initialize = initialize,
     .loop_notify = loop_notify,
     .loop_condition = loop_condition,

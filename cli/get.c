@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/file.h>
 
 static atomic_bool found;
 
@@ -44,6 +45,7 @@ const command_t get = {
     .need_space = true,
     .need_key = true,
     .need_value = false,
+    .access = LOCK_SH,
     .initialize = initialize,
     .loop_condition = loop_condition,
     .loop_body = loop_body,

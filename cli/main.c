@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/file.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -221,6 +222,17 @@ int main(int argc, char **argv) {
 
     if (parse(argc - 1, argv + 1) != 0)
         goto done;
+
+    /* Take a lock on the database if it exists. */
+    if (access(options.data, R_OK) == 0) {
+        int fd = open(options.data, R_OK);
+        if (fd >= 0) {
+            if (flock(fd, command->access | LOCK_NB) != 0) {
+                perror("failed to lock database");
+                goto done;
+            }
+        }
+    }
 
     size_t entry_len = 0;
     if (access(options.data, F_OK) == 0) {
