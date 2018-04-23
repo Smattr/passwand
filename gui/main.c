@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/file.h>
 #include <unistd.h>
 
 #ifdef __APPLE__
@@ -114,6 +115,15 @@ int main(int argc, char **argv) {
         return EXIT_SUCCESS;
 
     flush_state();
+
+    /* Lock database that we're about to access. */
+    if (access(options.data, R_OK) == 0) {
+        int fd = open(options.data, R_OK);
+        if (fd < 0)
+            DIE("failed to open database");
+        if (flock(fd, LOCK_EX | LOCK_NB) != 0)
+            DIE("failed to lock database: %s", strerror(errno));
+    }
 
     /* Import the database. */
     passwand_error_t err = passwand_import(options.data, &entries, &entry_len);
