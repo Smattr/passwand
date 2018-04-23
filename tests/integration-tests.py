@@ -1474,6 +1474,83 @@ class Gui(unittest.TestCase):
         self.assertEqual(stderr, '')
         self.assertEqual(p.returncode, 0)
 
+    def test_concurrent_manipulation(self):
+        '''
+        Test reading from the database while it is being written to.
+        '''
+
+        data = os.path.join(self.tmp, 'concurrent_manipulation.json')
+
+        # Request to save 10 keys and values.
+        for i in range(10):
+            args = ['set', '--data', data, '--space', 'space{}'.format(i),
+              '--key', 'key{}'.format(i), '--value', 'value{}'.format(i)]
+            p = pexpect.spawn('./pw-cli', args)
+
+            # Enter the master password.
+            try:
+                p.expect('master password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('test')
+
+            # Confirm the master pasword.
+            try:
+                p.expect('confirm master password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('test')
+
+            # Now passwand should exit with success.
+            p.expect(pexpect.EOF)
+            p.close()
+            self.assertEqual(p.exitstatus, 0)
+
+        # Set an entry, an operation that should run for a while.
+        args = ['set', '--data', data, '--space', 'space', '--key', 'key',
+          '--value', 'value']
+        s = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            s.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        s.sendline('test')
+
+        # Confirm the master pasword.
+        try:
+            s.expect('confirm master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        s.sendline('test')
+
+        # Try to read from the database. This should fail because it should be
+        # locked by the 'set'.
+        p = subprocess.Popen(['./pw-gui-test-stub', '--data', data],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, universal_newlines=True)
+        _, stderr = p.communicate('space\n'
+                                  'key\n'
+                                  'test\n')
+        self.assertTrue(stderr.strip().startswith('failed to lock database'))
+        if sys.platform == 'darwin':
+            self.assertEqual(p.returncode, 0)
+        else:
+            self.assertNotEqual(p.returncode, 0)
+
+        # Cleanup the 'set'.
+        s.expect(pexpect.EOF)
+        s.close()
+
     def tearDown(self):
         if hasattr(self, 'tmp') and os.path.exists(self.tmp):
             shutil.rmtree(self.tmp)
