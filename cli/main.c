@@ -1,4 +1,5 @@
 #include "../common/argparse.h"
+#include "../common/privilege.h"
 #include <assert.h>
 #include "change-master.h"
 #include "cli.h"
@@ -187,6 +188,11 @@ static void *thread_loop(void *arg) {
 }
 
 int main(int argc, char **argv) {
+
+    if (drop_privileges() != 0) {
+        fprintf(stderr, "privilege downgrade failed\n");
+        return EXIT_FAILURE;
+    }
 
     if (argc < 2 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-?") == 0) {
         print("usage:\n"
