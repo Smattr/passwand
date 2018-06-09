@@ -41,10 +41,18 @@ static const char *master;
 static size_t found_index;
 
 static void check(void *state, const char *space, const char *key, const char *value) {
-    char *found_value = state;
+    char **found_value = state;
+
+    assert(options.space != NULL);
+    assert(space != NULL);
+    assert(options.key != NULL);
+    assert(key != NULL);
     if (strcmp(options.space, space) == 0 && strcmp(options.key, key) == 0) {
-        if (passwand_secure_malloc((void**)&found_value, strlen(value) + 1) == PW_OK)
-            strcpy(found_value, value);
+        assert(found_value != NULL);
+        if (passwand_secure_malloc((void**)found_value, strlen(value) + 1) == PW_OK) {
+            assert(*found_value != NULL);
+            strcpy(*found_value, value);
+        }
     }
 }
 
