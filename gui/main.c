@@ -38,27 +38,28 @@ static atomic_size_t entry_index;
 static passwand_entry_t *entries;
 static size_t entry_len;
 static const char *master;
+static char *found_value;
 static size_t found_index;
 
 static void check(void *state, const char *space, const char *key, const char *value) {
-    char **found_value = state;
+    char **v = state;
 
     assert(options.space != NULL);
     assert(space != NULL);
     assert(options.key != NULL);
     assert(key != NULL);
     if (strcmp(options.space, space) == 0 && strcmp(options.key, key) == 0) {
-        assert(found_value != NULL);
-        if (passwand_secure_malloc((void**)found_value, strlen(value) + 1) == PW_OK) {
-            assert(*found_value != NULL);
-            strcpy(*found_value, value);
+        assert(v != NULL);
+        if (passwand_secure_malloc((void**)v, strlen(value) + 1) == PW_OK) {
+            assert(*v != NULL);
+            strcpy(*v, value);
         }
     }
 }
 
 static void *search(void *arg __attribute__((unused))) {
 
-    char *found_value = NULL;
+    char *v = NULL;
 
     for (;;) {
 
@@ -70,24 +71,23 @@ static void *search(void *arg __attribute__((unused))) {
         if (i >= entry_len)
             break;
 
-        passwand_error_t err = passwand_entry_do(master, &entries[i], check, &found_value);
+        passwand_error_t err = passwand_entry_do(master, &entries[i], check, &v);
         if (err != PW_OK) {
             char *msg;
-            if (asprintf(&msg, "error: %s", passwand_error(err)) >= 0) {
-                show_error(msg);
-                free(msg);
-            }
+            if (asprintf(&msg, "error: %s", passwand_error(err)) >= 0)
+                return msg;
             return NULL;
         }
 
-        if (found_value != NULL) {
+        if (v != NULL) {
             /* We found it! */
             bool expected = false;
             if (atomic_compare_exchange_strong(&done, &expected, true)) {
                 found_index = i;
-                return found_value;
+                found_value = v;
+                return NULL;
             } else {
-                passwand_secure_free(found_value, strlen(found_value) + 1);
+                passwand_secure_free(v, strlen(v) + 1);
             }
             return NULL;
         }
@@ -145,8 +145,6 @@ int main(int argc, char **argv) {
      * we have to speed it up.
      */
 
-    char *value __attribute__((cleanup(autoclear))) = NULL;
-
     assert(options.jobs >= 1);
 
     pthread_t *threads = calloc(options.jobs - 1, sizeof(pthread_t));
@@ -164,34 +162,60 @@ int main(int argc, char **argv) {
         }
     }
 
+    bool shown_error = false;
+
     /* Join the other threads in searching. */
     void *ret = search(NULL);
-    if (ret != NULL)
-        value = ret;
+    if (ret != NULL) {
+        show_error(ret);
+        free(ret);
+        shown_error = true;
+    }
 
     /* Collect threads. */
     for (size_t i = 0; i < options.jobs - 1; i++) {
         int r = pthread_join(threads[i], &ret);
-        if (r != 0)
-            DIE("failed to join thread %ld", i + 1);
-        if (ret != NULL) {
-            assert(value == NULL && "multiple matching entries found");
-            value = ret;
+        if (r != 0) {
+            if (!shown_error) {
+                char *msg;
+                if (asprintf(&msg, "failed to join thread %ld", i + 1) >= 0) {
+                    show_error(msg);
+                    free(msg);
+                }
+            }
+            shown_error = true;
+        } else if (ret != NULL) {
+            if (!shown_error)
+                show_error(ret);
+            shown_error = true;
+            free(ret);
         }
     }
 
     free(threads);
 
-    if (value == NULL)
-        DIE("failed to find matching entry");
-
-    for (size_t i = 0; i < strlen(value); i++) {
-        if (!(supported_upper(value[i]) || supported_lower(value[i])))
-            DIE("unsupported character at index %zu in entry", i);
+    if (found_value == NULL && !shown_error) {
+        show_error("failed to find matching entry");
+        shown_error = true;
     }
 
-    if (send_text(value) < 0)
+    if (shown_error) {
+        if (found_value != NULL)
+            passwand_secure_free(found_value, strlen(found_value) + 1);
+        exit(FAILURE_CODE);
+    }
+
+    for (size_t i = 0; i < strlen(found_value); i++) {
+        if (!(supported_upper(found_value[i]) || supported_lower(found_value[i]))) {
+            passwand_secure_free(found_value, strlen(found_value) + 1);
+            DIE("unsupported character at index %zu in entry", i);
+        }
+    }
+
+    if (send_text(found_value) < 0)
         return EXIT_FAILURE;
+
+    passwand_secure_free(found_value, strlen(found_value) + 1);
 
     /* Move the entry we just retrieved to the front of the list of entries to
      * make future look ups for it faster. The idea is that over time this will
