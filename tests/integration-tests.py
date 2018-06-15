@@ -55,7 +55,7 @@ class Cli(unittest.TestCase):
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master pasword.
+        # Confirm the master password.
         try:
             p.expect('confirm master password: ')
         except pexpect.EOF:
@@ -111,7 +111,7 @@ class Cli(unittest.TestCase):
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master pasword.
+        # Confirm the master password.
         try:
             p.expect('confirm master password: ')
         except pexpect.EOF:
@@ -185,7 +185,7 @@ class Cli(unittest.TestCase):
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master pasword.
+        # Confirm the master password.
         try:
             p.expect('confirm master password: ')
         except pexpect.EOF:
@@ -224,7 +224,7 @@ class Cli(unittest.TestCase):
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master pasword.
+        # Confirm the master password.
         try:
             p.expect('confirm master password: ')
         except pexpect.EOF:
@@ -279,7 +279,7 @@ class Cli(unittest.TestCase):
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master pasword.
+        # Confirm the master password.
         try:
             p.expect('confirm master password: ')
         except pexpect.EOF:
@@ -318,7 +318,7 @@ class Cli(unittest.TestCase):
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master pasword.
+        # Confirm the master password.
         try:
             p.expect('confirm master password: ')
         except pexpect.EOF:
@@ -386,7 +386,7 @@ class Cli(unittest.TestCase):
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Set a new master pasword.
+        # Set a new master password.
         try:
             p.expect('new master password: ')
         except pexpect.EOF:
@@ -395,7 +395,7 @@ class Cli(unittest.TestCase):
             self.fail('timeout while waiting for password prompt')
         p.sendline('test2')
 
-        # Confirm the new master pasword.
+        # Confirm the new master password.
         try:
             p.expect('confirm new master password: ')
         except pexpect.EOF:
@@ -451,7 +451,7 @@ class Cli(unittest.TestCase):
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Set a new master pasword.
+        # Set a new master password.
         try:
             p.expect('new master password: ')
         except pexpect.EOF:
@@ -513,7 +513,7 @@ class Cli(unittest.TestCase):
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master pasword.
+        # Confirm the master password.
         try:
             p.expect('confirm master password: ')
         except pexpect.EOF:
@@ -556,7 +556,7 @@ class Cli(unittest.TestCase):
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Set a new master pasword.
+        # Set a new master password.
         try:
             p.expect('new master password: ')
         except pexpect.EOF:
@@ -565,7 +565,7 @@ class Cli(unittest.TestCase):
             self.fail('timeout while waiting for password prompt')
         p.sendline('test2')
 
-        # Confirm the new master pasword.
+        # Confirm the new master password.
         try:
             p.expect('confirm new master password: ')
         except pexpect.EOF:
@@ -721,7 +721,7 @@ class Cli(unittest.TestCase):
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master pasword.
+        # Confirm the master password.
         try:
             p.expect('confirm master password: ')
         except pexpect.EOF:
@@ -787,7 +787,7 @@ class Cli(unittest.TestCase):
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master pasword.
+        # Confirm the master password.
         try:
             p.expect('confirm master password: ')
         except pexpect.EOF:
@@ -886,7 +886,7 @@ class Cli(unittest.TestCase):
                 self.fail('timeout while waiting for password prompt')
             p.sendline('test')
 
-            # Confirm the master pasword.
+            # Confirm the master password.
             try:
                 p.expect('confirm master password: ')
             except pexpect.EOF:
@@ -916,7 +916,7 @@ class Cli(unittest.TestCase):
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master pasword.
+        # Confirm the master password.
         try:
             p.expect('confirm master password: ')
         except pexpect.EOF:
@@ -996,7 +996,7 @@ class Cli(unittest.TestCase):
                 self.fail('timeout while waiting for password prompt')
             p.sendline('test')
 
-            # Confirm the master pasword.
+            # Confirm the master password.
             try:
                 p.expect('confirm master password: ')
             except pexpect.EOF:
@@ -1151,7 +1151,7 @@ class Cli(unittest.TestCase):
                 self.fail('timeout while waiting for password prompt')
             p.sendline('test')
 
-            # Confirm the master pasword.
+            # Confirm the master password.
             try:
                 p.expect('confirm master password: ')
             except pexpect.EOF:
@@ -1258,7 +1258,7 @@ class Cli(unittest.TestCase):
                 self.fail('timeout while waiting for password prompt')
             p.sendline('test')
 
-            # Confirm the master pasword.
+            # Confirm the master password.
             try:
                 p.expect('confirm master password: ')
             except pexpect.EOF:
@@ -1358,7 +1358,7 @@ class Cli(unittest.TestCase):
                 self.fail('timeout while waiting for password prompt')
             p.sendline('test')
 
-            # Confirm the master pasword.
+            # Confirm the master password.
             try:
                 p.expect('confirm master password: ')
             except pexpect.EOF:
@@ -1496,7 +1496,7 @@ class Gui(unittest.TestCase):
                 self.fail('timeout while waiting for password prompt')
             p.sendline('test')
 
-            # Confirm the master pasword.
+            # Confirm the master password.
             try:
                 p.expect('confirm master password: ')
             except pexpect.EOF:
@@ -1524,7 +1524,7 @@ class Gui(unittest.TestCase):
             self.fail('timeout while waiting for password prompt')
         s.sendline('test')
 
-        # Confirm the master pasword.
+        # Confirm the master password.
         try:
             s.expect('confirm master password: ')
         except pexpect.EOF:
