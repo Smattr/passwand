@@ -1551,6 +1551,57 @@ class Gui(unittest.TestCase):
         s.expect(pexpect.EOF)
         s.close()
 
+    def test_error_rate(self):
+        '''
+        Ensure that entering the wrong password results in only a single error.
+        '''
+        data = os.path.join(self.tmp, 'error_rate.json')
+
+        # Request to save 2 keys and values.
+        for i in range(2):
+            args = ['set', '--data', data, '--space', 'space{}'.format(i),
+              '--key', 'key{}'.format(i), '--value', 'value{}'.format(i)]
+            p = pexpect.spawn('./pw-cli', args)
+
+            # Enter the master password.
+            try:
+                p.expect('master password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('test')
+
+            # Confirm the master password.
+            try:
+                p.expect('confirm master password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('test')
+
+            # Now passwand should exit with success.
+            p.expect(pexpect.EOF)
+            p.close()
+            self.assertEqual(p.exitstatus, 0)
+
+        # Now try to retrieve an entry but enter the wrong password.
+        p = subprocess.Popen(['./pw-gui-test-stub', '--data', data],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, universal_newlines=True)
+        _, stderr = p.communicate('space0\n'
+                                  'key0\n'
+                                  'not test\n')
+
+        if sys.platform == 'darwin':
+            self.assertEqual(p.returncode, 0)
+        else:
+            self.assertNotEqual(p.returncode, 0)
+
+        # We should have only received a single line of error content.
+        self.assertLess(stderr.count('\n'), 2)
+
     def tearDown(self):
         if hasattr(self, 'tmp') and os.path.exists(self.tmp):
             shutil.rmtree(self.tmp)
