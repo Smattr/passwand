@@ -2,7 +2,8 @@ language: c
 
 matrix:
   include:
-  - os: linux
+  - name: Linux, GCC 6, no GTK
+    os: linux
     addons:
       apt:
         sources:
@@ -14,7 +15,8 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub"
       - MATRIX_EVAL="CC=gcc-6"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - os: linux
+  - name: Linux, GCC 6, GTK 2
+    os: linux
     addons:
       apt:
         sources:
@@ -26,7 +28,8 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=gcc-6"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - os: linux
+  - name: Linux, GCC 6, GTK 3
+    os: linux
     addons:
       apt:
         sources:
@@ -38,7 +41,8 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=gcc-6"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - os: linux
+  - name: Linux, Clang, no GTK
+    os: linux
     addons:
       apt:
         sources:
@@ -50,7 +54,8 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub"
       - MATRIX_EVAL="CC=clang"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - os: linux
+  - name: Linux, Clang, GTK 2
+    os: linux
     addons:
       apt:
         sources:
@@ -62,7 +67,8 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=clang"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - os: linux
+  - name: Linux, Clang, GTK 3
+    os: linux
     addons:
       apt:
         sources:
