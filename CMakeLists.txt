@@ -11,9 +11,9 @@ if (CMAKE_HOST_SYSTEM_NAME STREQUAL "FreeBSD")
   # where some of our libraries live.
   link_directories (${LINK_DIRECTORIES} /usr/local/lib)
 elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
-  # Assume we're using Macports and need to tweak paths.
-  set (CONFIGURE_TWEAK env "CFLAGS=-I /opt/local/include")
-  link_directories (${LINK_DIRECTORIES} /opt/local/lib)
+  # Add paths for Macports or Homebrew, respectively.
+  set (CONFIGURE_TWEAK env "CFLAGS=-I /opt/local/include -I /usr/local/opt/openssl/include")
+  link_directories (${LINK_DIRECTORIES} /opt/local/lib /usr/local/opt/openssl/lib)
 endif ()
 
 add_compile_options (-std=c11 -W -Wall -Wextra -Wwrite-strings -Wmissing-declarations -Wshadow)
