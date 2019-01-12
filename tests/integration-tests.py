@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 '''
 Framework for writing integration tests.
@@ -37,7 +37,7 @@ class Cli(unittest.TestCase):
         data = os.path.join(self.tmp, 'test_set_basic_single_threaded.json')
         self.set_basic(False, data)
 
-    def set_basic(self, multithreaded: bool, data: str):
+    def set_basic(self, multithreaded, data):
 
         # Request to save a key and value.
         args = ['set', '--data', data, '--space', 'space', '--key', 'key',
@@ -96,7 +96,7 @@ class Cli(unittest.TestCase):
         data = os.path.join(self.tmp, 'test_get_basic_single_threaded.json')
         self.get_basic(False, data)
 
-    def get_basic(self, multithreaded: bool, data: str):
+    def get_basic(self, multithreaded, data):
 
         # Request to save a key and value.
         p = pexpect.spawn('./pw-cli', ['set', '--data', data, '--space', 'space',
@@ -167,7 +167,7 @@ class Cli(unittest.TestCase):
         data = os.path.join(self.tmp, 'test_set_overwrite_single_threaded.json')
         self.set_overwrite(False, data)
 
-    def set_overwrite(self, multithreaded: bool, data: str):
+    def set_overwrite(self, multithreaded, data):
 
         # Request to save a key and value.
         args = ['set', '--data', data, '--space', 'space', '--key', 'key',
@@ -261,7 +261,7 @@ class Cli(unittest.TestCase):
         data = os.path.join(self.tmp, 'test_set_append_single_threaded.json')
         self.set_append(False, data)
 
-    def set_append(self, multithreaded: bool, data: str):
+    def set_append(self, multithreaded, data):
 
         # Request to save a key and value.
         args = ['set', '--data', data, '--space', 'space', '--key', 'key',
@@ -365,7 +365,7 @@ class Cli(unittest.TestCase):
         data = os.path.join(self.tmp, 'test_change_master_empty_single_threaded.json')
         self.change_master_empty(False, data)
 
-    def change_master_empty(self, multithreaded: bool, data: str):
+    def change_master_empty(self, multithreaded, data):
 
         # Setup an empty database.
         with open(data, 'wt') as f:
@@ -430,7 +430,7 @@ class Cli(unittest.TestCase):
         data = os.path.join(self.tmp, 'test_change_master_mismatch_single_threaded.json')
         self.change_master_mismatch(False, data)
 
-    def change_master_mismatch(self, multithreaded: bool, data: str):
+    def change_master_mismatch(self, multithreaded, data):
 
         # Setup an empty database.
         with open(data, 'wt') as f:
@@ -495,7 +495,7 @@ class Cli(unittest.TestCase):
         data = os.path.join(self.tmp, 'test_change_master_basic_single_threaded.json')
         self.change_master_basic(False, data)
 
-    def change_master_basic(self, multithreaded: bool, data: str):
+    def change_master_basic(self, multithreaded, data):
 
         # Request to save a key and value.
         args = ['set', '--data', data, '--space', 'space', '--key', 'key',
@@ -652,7 +652,7 @@ class Cli(unittest.TestCase):
         data = os.path.join(self.tmp, 'test_list_empty_single_threaded.json')
         self.list_empty(False, data)
 
-    def list_empty(self, multithreaded: bool, data: str):
+    def list_empty(self, multithreaded, data):
 
         # Setup an empty database.
         with open(data, 'wt') as f:
@@ -703,7 +703,7 @@ class Cli(unittest.TestCase):
         data = os.path.join(self.tmp, 'test_list_wrong_password_single_threaded.json')
         self.list_wrong_password(False, data)
 
-    def list_wrong_password(self, multithreaded: bool, data: str):
+    def list_wrong_password(self, multithreaded, data):
 
         # Request to save a key and value.
         args = ['set', '--data', data, '--space', 'space', '--key', 'key',
@@ -769,7 +769,7 @@ class Cli(unittest.TestCase):
         data = os.path.join(self.tmp, 'test_list_basic_single_threaded.json')
         self.list_basic(False, data)
 
-    def list_basic(self, multithreaded: bool, data: str):
+    def list_basic(self, multithreaded, data):
 
         # Request to save a key and value.
         args = ['set', '--data', data, '--space', 'space', '--key', 'key',
@@ -865,7 +865,7 @@ class Cli(unittest.TestCase):
         data = os.path.join(self.tmp, 'test_set_oox_single_threaded.json')
         self.set_xxx(False, data, 2)
 
-    def set_xxx(self, multithreaded: bool, data: str, target: int):
+    def set_xxx(self, multithreaded, data, target):
 
         # Setup a database with three entries.
         for i in range(3):
@@ -977,7 +977,7 @@ class Cli(unittest.TestCase):
         data = os.path.join(self.tmp, 'test_list_standard_single_threaded.json')
         self.list_standard(False, data)
 
-    def list_standard(self, multithreaded: bool, data: str):
+    def list_standard(self, multithreaded, data):
 
         # Request to save 10 keys and values.
         for i in range(10):
@@ -1055,7 +1055,7 @@ class Cli(unittest.TestCase):
         data = os.path.join(self.tmp, 'test_delete_empty_single_threaded.json')
         self.delete_empty(False, data)
 
-    def delete_empty(self, multithreaded: bool, data: str):
+    def delete_empty(self, multithreaded, data):
 
         # Setup an empty database.
         with open(data, 'wt') as f:
@@ -1130,7 +1130,7 @@ class Cli(unittest.TestCase):
         data = os.path.join(self.tmp, 'test_delete_oox_single_threaded.json')
         self.delete_xxx(False, data, 2)
 
-    def delete_xxx(self, multithreaded: bool, data: str, target: int):
+    def delete_xxx(self, multithreaded, data, target):
 
         # Setup a database with three entries.
         for i in range(3):
@@ -1237,7 +1237,7 @@ class Cli(unittest.TestCase):
         data = os.path.join(self.tmp, 'test_delete_nonexistent_single_threaded.json')
         self.delete_nonexistent(False, data)
 
-    def delete_nonexistent(self, multithreaded: bool, data: str):
+    def delete_nonexistent(self, multithreaded, data):
 
         # Setup a database with three entries.
         for i in range(3):
@@ -1339,7 +1339,7 @@ class Cli(unittest.TestCase):
         data = os.path.join(self.tmp, 'test_concurrent_manipulation_single_threaded.json')
         self.concurrent_manipulation(False, data)
 
-    def concurrent_manipulation(self, multithreaded: bool, data: str):
+    def concurrent_manipulation(self, multithreaded, data):
 
         # Request to save 10 keys and values.
         for i in range(10):

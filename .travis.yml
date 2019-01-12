@@ -397,10 +397,10 @@ matrix:
 before_install:
   - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then sudo apt-get -qq update; fi
   - if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then brew update; fi
-  - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then sudo apt-get install -y libcunit1-dev libjson-c-dev python3-pexpect ${GTK}; fi
+  - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then sudo apt-get install -y libcunit1-dev libjson-c-dev python-pexpect ${GTK}; fi
   # No need to install json-c because it comes with XCode
   - if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then brew install cunit; fi
-  - if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then pip3 install pexpect; fi
+  - if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then pip install pexpect; fi
   - eval "${MATRIX_EVAL}"
 
 script:
