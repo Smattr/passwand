@@ -23,6 +23,12 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
   add_definitions (-Wtrampolines)
 endif()
 
+# Enable --as-needed, present on GNU ld on Linux, to minimise dependencies.
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--as-needed")
+  set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--as-needed")
+endif ()
+
 # Disable __builtin_memset when we need it not to be optimised out.
 set_source_files_properties (src/erase.c PROPERTIES COMPILE_FLAGS -fno-builtin-memset)
 
