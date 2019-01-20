@@ -42,9 +42,9 @@ static int finalize(void) {
 }
 
 const command_t get = {
-    .need_space = true,
-    .need_key = true,
-    .need_value = false,
+    .need_space = REQUIRED,
+    .need_key = REQUIRED,
+    .need_value = DISALLOWED,
     .access = LOCK_SH,
     .initialize = initialize,
     .loop_condition = loop_condition,

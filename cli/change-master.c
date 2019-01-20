@@ -100,9 +100,9 @@ static int finalize(void) {
 }
 
 const command_t change_master = {
-    .need_space = false,
-    .need_key = false,
-    .need_value = false,
+    .need_space = DISALLOWED,
+    .need_key = DISALLOWED,
+    .need_value = DISALLOWED,
     .access = LOCK_EX,
     .initialize = initialize,
     .loop_notify = loop_notify,

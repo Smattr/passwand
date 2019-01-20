@@ -14,11 +14,18 @@ master_t *getpassword(const char *prompt);
 
 void discard_master(master_t *m);
 
+/* How a command line argument is used. */
+typedef enum {
+    DISALLOWED,
+    OPTIONAL,
+    REQUIRED,
+} arg_required_t;
+
 /* A subcommand of this tool. */
 typedef struct {
-    bool need_space; /* Whether the command uses the --space argument. */
-    bool need_key;   /* Whether the command uses the --key argument. */
-    bool need_value; /* Whether the command uses the --value argument. */
+    arg_required_t need_space; /* Whether the command uses the --space argument. */
+    arg_required_t need_key;   /* Whether the command uses the --key argument. */
+    arg_required_t need_value; /* Whether the command uses the --value argument. */
 
     /* Mode to access the database in:
      *  LOCK_SH - shared (read)

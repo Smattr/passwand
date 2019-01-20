@@ -255,10 +255,10 @@ int main(int argc, char **argv) {
     /* Validate flags. */
 #define HANDLE(field) \
     do { \
-        if (command->need_ ## field && options.field == NULL) { \
+        if (command->need_ ## field == REQUIRED && options.field == NULL) { \
             eprint("missing required argument --" #field "\n"); \
             goto done; \
-        } else if (!command->need_ ## field && options.field != NULL) { \
+        } else if (command->need_ ## field == DISALLOWED && options.field != NULL) { \
             eprint("irrelevant argument --" #field "\n"); \
             goto done; \
         } \

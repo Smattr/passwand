@@ -5,7 +5,6 @@
 #include <passwand/passwand.h>
 #include "print.h"
 #include <stdatomic.h>
-#include <stdbool.h>
 #include <stddef.h>
 #include <sys/file.h>
 
@@ -23,9 +22,9 @@ static void loop_body(const char *space, const char *key,
 }
 
 const command_t list = {
-    .need_space = false,
-    .need_key = false,
-    .need_value = false,
+    .need_space = DISALLOWED,
+    .need_key = DISALLOWED,
+    .need_value = DISALLOWED,
     .access = LOCK_SH,
     .initialize = initialize,
     .loop_body = loop_body,

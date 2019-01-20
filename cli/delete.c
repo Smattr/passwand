@@ -72,9 +72,9 @@ static int finalize(void) {
 }
 
 const command_t delete = {
-    .need_space = true,
-    .need_key = true,
-    .need_value = false,
+    .need_space = REQUIRED,
+    .need_key = REQUIRED,
+    .need_value = DISALLOWED,
     .access = LOCK_EX,
     .initialize = initialize,
     .loop_notify = loop_notify,
