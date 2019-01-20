@@ -125,7 +125,7 @@ else ()
   set (PRIVILEGE_C privilege-fallback.c)
 endif ()
 
-add_executable (pw-cli cli/change-master.c cli/delete.c cli/get.c cli/list.c cli/main.c cli/print.c cli/set.c common/argparse.c common/${PRIVILEGE_C})
+add_executable (pw-cli cli/change-master.c cli/check.c cli/delete.c cli/get.c cli/list.c cli/main.c cli/print.c cli/set.c common/argparse.c common/${PRIVILEGE_C})
 target_link_libraries (pw-cli passwand ${CMAKE_THREAD_LIBS_INIT})
 install (TARGETS pw-cli RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 

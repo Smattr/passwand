@@ -2,6 +2,7 @@
 #include "../common/privilege.h"
 #include <assert.h>
 #include "change-master.h"
+#include "check.h"
 #include "cli.h"
 #include "delete.h"
 #include "get.h"
@@ -23,6 +24,7 @@ static const struct {
     const command_t *action;
 } COMMANDS[] = {
     { "change-master", &change_master },
+    { "check", &check },
     { "delete", &delete },
     { "get", &get },
     { "list", &list },
@@ -197,6 +199,7 @@ int main(int argc, char **argv) {
     if (argc < 2 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-?") == 0) {
         print("usage:\n"
                " %s change-master                               Change the master password\n"
+               " %s check [--space SPACE] [--key KEY]           Check the strength of existing entries\n"
                " %s delete --space SPACE --key KEY              Delete an existing entry\n"
                " %s get --space SPACE --key KEY                 Retrieve an existing entry\n"
                " %s list                                        List all entries\n"
@@ -206,7 +209,7 @@ int main(int argc, char **argv) {
                " --data DATA            Path to data file (default ~/.passwand.json)\n"
                " --jobs THREADS         Number of threads to use\n"
                " --work-factor FACTOR   Scrypt work factor (default 14)\n",
-               argv[0], argv[0], argv[0], argv[0], argv[0]);
+               argv[0], argv[0], argv[0], argv[0], argv[0], argv[0]);
         return EXIT_SUCCESS;
     }
 
