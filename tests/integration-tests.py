@@ -1404,6 +1404,381 @@ class Cli(unittest.TestCase):
         p.expect(pexpect.EOF)
         p.close()
 
+    def test_check_basic(self):
+        '''
+        Test basic functionality of checking an existing weak password entry.
+        '''
+        data = os.path.join(self.tmp, 'test_check_basic.json')
+        self.check_basic(True, data)
+
+    def test_check_basic_single_threaded(self):
+        '''
+        Same as test_check_basic, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_check_basic_single_threaded.json')
+        self.check_basic(False, data)
+
+    def check_basic(self, multithreaded, data):
+
+        # Save a weak entry that would be easy to crack.
+        args = ['set', '--data', data, '--space', 'space', '--key', 'key',
+          '--value', 'value']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Confirm the master password.
+        try:
+            p.expect('confirm master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Now let's check the entry
+        args = ['check', '--data', data, '--space', 'space', '--key', 'key']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Now passwand should exit with failure.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertNotEqual(p.exitstatus, 0)
+
+    def test_check_basic2(self):
+        '''
+        Test basic functionality of checking an existing strong password entry.
+        '''
+        data = os.path.join(self.tmp, 'test_check_basic2.json')
+        self.check_basic2(True, data)
+
+    def test_check_basic2_single_threaded(self):
+        '''
+        Same as test_check_basic2, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_check_basic2_single_threaded.json')
+        self.check_basic2(False, data)
+
+    def check_basic2(self, multithreaded, data):
+
+        # Save a strong entry that would be hard to crack.
+        args = ['set', '--data', data, '--space', 'space', '--key', 'key',
+          '--value', 'WEy2zHDJjLsNog8tE5hwvrIR0adAGrR4m5wh6y99ssyo1zzUESw9OWPp8yEL']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Confirm the master password.
+        try:
+            p.expect('confirm master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Now let's check the entry
+        args = ['check', '--data', data, '--space', 'space', '--key', 'key']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+    def test_check_empty_database(self):
+        '''
+        Test checking of a database with no entries.
+        '''
+        data = os.path.join(self.tmp, 'test_check_empty_database.json')
+        self.check_empty_database(True, data)
+
+    def test_check_empty_database_single_threaded(self):
+        '''
+        Same as test_check_empty_database, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_check_empty_database_single_threaded.json')
+        self.check_empty_database(False, data)
+
+    def check_empty_database(self, multithreaded, data):
+
+        # Create an empty database.
+        with open(data, 'wt') as f:
+            json.dump([], f)
+
+        # Check the database.
+        args = ['check', '--data', data]
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # We should exit with success because there are no weak passwords.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+    def test_check_000(self):
+        '''
+        Test checking a set of entries with no weak passwords.
+        '''
+        data = os.path.join(self.tmp, 'test_check_000.json')
+        self.check_xxx(True, data, 0)
+
+    def test_check_000_single_threaded(self):
+        '''
+        Same as test_check_000, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_check_000_single_threaded.json')
+        self.check_xxx(False, data, 0)
+
+    def test_check_001(self):
+        '''
+        Test checking a set of entries with one weak password.
+        '''
+        data = os.path.join(self.tmp, 'test_check_001.json')
+        self.check_xxx(True, data, 1)
+
+    def test_check_001_single_threaded(self):
+        '''
+        Same as test_check_001, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_check_001_single_threaded.json')
+        self.check_xxx(False, data, 1)
+
+    def test_check_010(self):
+        '''
+        Test checking a set of entries with one weak password.
+        '''
+        data = os.path.join(self.tmp, 'test_check_010.json')
+        self.check_xxx(True, data, 2)
+
+    def test_check_010_single_threaded(self):
+        '''
+        Same as test_check_010, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_check_010_single_threaded.json')
+        self.check_xxx(False, data, 2)
+
+    def test_check_011(self):
+        '''
+        Test checking a set of entries with two weak passwords.
+        '''
+        data = os.path.join(self.tmp, 'test_check_011.json')
+        self.check_xxx(True, data, 3)
+
+    def test_check_011_single_threaded(self):
+        '''
+        Same as test_check_011, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_check_011_single_threaded.json')
+        self.check_xxx(False, data, 3)
+
+    def test_check_100(self):
+        '''
+        Test checking a set of entries with one weak password.
+        '''
+        data = os.path.join(self.tmp, 'test_check_100.json')
+        self.check_xxx(True, data, 4)
+
+    def test_check_100_single_threaded(self):
+        '''
+        Same as test_check_100, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_check_100_single_threaded.json')
+        self.check_xxx(False, data, 4)
+
+    def test_check_101(self):
+        '''
+        Test checking a set of entries with two weak passwords.
+        '''
+        data = os.path.join(self.tmp, 'test_check_101.json')
+        self.check_xxx(True, data, 5)
+
+    def test_check_101_single_threaded(self):
+        '''
+        Same as test_check_101, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_check_101_single_threaded.json')
+        self.check_xxx(False, data, 5)
+
+    def test_check_110(self):
+        '''
+        Test checking a set of entries with two weak passwords.
+        '''
+        data = os.path.join(self.tmp, 'test_check_110.json')
+        self.check_xxx(True, data, 6)
+
+    def test_check_110_single_threaded(self):
+        '''
+        Same as test_check_110, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_check_110_single_threaded.json')
+        self.check_xxx(False, data, 6)
+
+    def test_check_111(self):
+        '''
+        Test checking a set of entries with three weak passwords.
+        '''
+        data = os.path.join(self.tmp, 'test_check_111.json')
+        self.check_xxx(True, data, 7)
+
+    def test_check_111_single_threaded(self):
+        '''
+        Same as test_check_111, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_check_111_single_threaded.json')
+        self.check_xxx(False, data, 7)
+
+    def check_xxx(self, multithreaded, data, weak_mask):
+
+        # Save a set of keys and values.
+        for i in range(3):
+            args = ['set', '--data', data, '--space', 'space', '--key',
+              'key{}'.format(i), '--value', 'value' if (1 << i) & weak_mask else
+              'WEy2zHDJjLsNog8tE5hwvrIR0adAGrR4m5wh6y99ssyo1zzUESw9OWPp8yEL']
+            p = pexpect.spawn('./pw-cli', args)
+
+            # Enter the master password.
+            try:
+                p.expect('master password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('test')
+
+            # Confirm the master password.
+            try:
+                p.expect('confirm master password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('test')
+
+            # Now passwand should exit with success.
+            p.expect(pexpect.EOF)
+            p.close()
+            self.assertEqual(p.exitstatus, 0)
+
+        # First, let's check the passwords individually.
+        for i in range(3):
+            args = ['check', '--data', data, '--space', 'space', '--key',
+              'key{}'.format(i)]
+            if not multithreaded:
+                args += ['--jobs', '1']
+            p = pexpect.spawn('./pw-cli', args)
+
+            # Enter the master password.
+            try:
+                p.expect('master password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('test')
+
+            # The check should have identified whether the password was weak.
+            p.expect(pexpect.EOF)
+            p.close()
+            if weak_mask & (1 << i):
+                self.assertNotEqual(p.exitstatus, 0)
+            else:
+                self.assertEqual(p.exitstatus, 0)
+
+        # Now let's check them all together.
+        args = ['check', '--data', data]
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # We should exit with error if any password was weak.
+        output = p.read().decode('utf-8', 'replace').strip()
+        p.expect(pexpect.EOF)
+        p.close()
+        if weak_mask == 0:
+            self.assertEqual(p.exitstatus, 0)
+        else:
+            self.assertNotEqual(p.exitstatus, 0)
+
+        # The output should identify which passwords were weak.
+        found = 0
+        for line in output.split('\n'):
+            m = re.match(r'space/key(\d): weak password', line)
+            if m is not None:
+                index = int(m.group(1))
+                self.assertNotEqual((1 << index) & weak_mask, 0,
+                  'strong password misidentified as weak')
+                self.assertEqual((1 << index) & found, 0,
+                  'duplicate warnings for weak password entry')
+                found |= 1 << index
+        self.assertEqual(found, weak_mask,
+          'missed warning for weak password(s)')
+
     def tearDown(self):
         if hasattr(self, 'tmp') and os.path.exists(self.tmp):
             shutil.rmtree(self.tmp)
