@@ -7,7 +7,14 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
-int drop_privileges(void) {
+int drop_privileges(bool need_network) {
+
+    if (need_network) {
+        /* there's no ready made sandbox profile on macOS that suits our needs, so don't sandbox
+         * this case
+         */
+        return 0;
+    }
 
     /* Tell the OS we don't plan to do any networking. */
     char *err;

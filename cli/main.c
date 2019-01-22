@@ -191,7 +191,7 @@ static void *thread_loop(void *arg) {
 
 int main(int argc, char **argv) {
 
-    if (drop_privileges() != 0) {
+    if (drop_privileges(false) != 0) {
         fprintf(stderr, "privilege downgrade failed\n");
         return EXIT_FAILURE;
     }
