@@ -191,7 +191,10 @@ static void *thread_loop(void *arg) {
 
 int main(int argc, char **argv) {
 
-    if (drop_privileges(false) != 0) {
+    /* we need to make a network call if we're checking a password */
+    bool need_network = argc >= 2 && strcmp(argv[1], "check") == 0;
+
+    if (drop_privileges(need_network) != 0) {
         fprintf(stderr, "privilege downgrade failed\n");
         return EXIT_FAILURE;
     }
