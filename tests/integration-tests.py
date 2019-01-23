@@ -1532,6 +1532,71 @@ class Cli(unittest.TestCase):
         p.close()
         self.assertEqual(p.exitstatus, 0)
 
+    def test_check_hibp_eg(self):
+        '''
+        Test checking a password we know to have been breached.
+        '''
+        data = os.path.join(self.tmp, 'test_check_hibp_eg.json')
+        self.check_hibp_eg(True, data)
+
+    def test_check_hibp_eg_single_threaded(self):
+        '''
+        Same as test_check_hibp_eg, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_check_hibp_eg_single_threaded.json')
+        self.check_hibp_eg(False, data)
+
+    def check_hibp_eg(self, multithreaded, data):
+
+        # Save a password that Troy Hunt gives as an example of something
+        # appearing in previous breaches.
+        args = ['set', '--data', data, '--space', 'space', '--key', 'key',
+          '--value', 'P@ssw0rd']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Confirm the master password.
+        try:
+            p.expect('confirm master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Now let's check the entry
+        args = ['check', '--data', data, '--space', 'space', '--key', 'key']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Now passwand should exit with failure.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertNotEqual(p.exitstatus, 0)
+
     def test_check_empty_database(self):
         '''
         Test checking of a database with no entries.
