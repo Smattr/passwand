@@ -9,6 +9,7 @@
 #include <openssl/sha.h>
 #include <openssl/ssl.h>
 #include "print.h"
+#include <pthread.h>
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -109,6 +110,10 @@ static void skip_past(const char **p, char c) {
     skip_over(p, c);
 }
 
+/* HIBP's DNS records. Access is protected by dns_lock below. */
+static struct addrinfo *dns_info;
+static bool dns_looked_up;
+
 static char *hibp_data(const char *hex, const char **error) {
 
     assert(hex != NULL);
@@ -116,11 +121,33 @@ static char *hibp_data(const char *hex, const char **error) {
     assert(isxdigit(hex[0]) && isxdigit(hex[1]) && isxdigit(hex[2]) && isxdigit(hex[3]) &&
            isxdigit(hex[4]) && "non hex prefix of hash");
 
-    /* lookup HIBP's IP address(es) */
-    const struct addrinfo hints = {
-      .ai_family = AF_UNSPEC, .ai_socktype = SOCK_STREAM, .ai_protocol = IPPROTO_TCP };
-    struct addrinfo *ai = NULL;
-    int r = getaddrinfo("api.pwnedpasswords.com", "https", &hints, &ai);
+    static pthread_mutex_t dns_lock = PTHREAD_MUTEX_INITIALIZER;
+
+    {
+        int res __attribute__((unused)) = pthread_mutex_lock(&dns_lock);
+        assert(res == 0);
+    }
+
+    /* wrap the DNS lookup to ensure we only do it once across threads */
+    int r = 0;
+    if (!dns_looked_up) {
+        assert(dns_info == NULL);
+
+        /* lookup HIBP's IP address(es) */
+        const struct addrinfo hints = {
+          .ai_family = AF_UNSPEC, .ai_socktype = SOCK_STREAM, .ai_protocol = IPPROTO_TCP };
+        r = getaddrinfo("api.pwnedpasswords.com", "https", &hints, &dns_info);
+
+        dns_looked_up = true;
+    }
+
+    const struct addrinfo *ai = dns_info;
+
+    {
+        int res __attribute__((unused)) = pthread_mutex_unlock(&dns_lock);
+        assert(res == 0);
+    }
+
     if (r != 0) {
         if (error != NULL)
             *error = gai_strerror(r);
@@ -142,9 +169,6 @@ static char *hibp_data(const char *hex, const char **error) {
 
         break;
     }
-
-    if (ai != NULL)
-        freeaddrinfo(ai);
 
     if (fd < 0) {
         /* failed to connect to any returned IPs */
@@ -358,6 +382,9 @@ static void loop_body(const char *space, const char *key, const char *value) {
 }
 
 static int finalize(void) {
+    if (dns_info != NULL)
+        freeaddrinfo(dns_info);
+
     return found_weak ? -1 : 0;
 }
 
