@@ -12,6 +12,20 @@
 
 options_t options;
 
+/* Overwrite command line arguments to conceal them from utils like `top`. This
+ * isn't a good way to conceal this information from a concerted attacker, but
+ * useful for more lazy snooping tools that aren't specifically targeting
+ * Passwand.
+ */
+static void blank_arguments(int argc, char **argv) {
+    for (size_t i = 0; i < (size_t)argc; i++) {
+        size_t len = strlen(argv[i]);
+        for (size_t j = 0; j < len; j++) {
+            argv[i][j] = '\0';
+        }
+    }
+}
+
 int parse(int argc, char **argv) {
 
     options.work_factor = 14;
@@ -143,6 +157,8 @@ int parse(int argc, char **argv) {
         assert(cpus >= 1);
         options.jobs = (unsigned long)cpus;
     }
+
+    blank_arguments(argc, argv);
 
     return 0;
 }
