@@ -394,6 +394,33 @@ matrix:
       # Make OpenSSL findable
       - PKG_CONFIG_PATH=/usr/local/opt/openssl/lib/pkgconfig
 
+  - name: macOS, XCode 10.0 Clang
+    os: osx
+    osx_image: xcode10
+    env:
+      - TARGETS="pw-cli pw-gui-test-stub pw-gui"
+      - MATRIX_EVAL=
+      - CTEST_OUTPUT_ON_FAILURE=1
+      - PKG_CONFIG_PATH=/usr/local/opt/openssl/lib/pkgconfig
+
+  - name: macOS, XCode 10.1 Clang
+    os: osx
+    osx_image: xcode10.1
+    env:
+      - TARGETS="pw-cli pw-gui-test-stub pw-gui"
+      - MATRIX_EVAL=
+      - CTEST_OUTPUT_ON_FAILURE=1
+      - PKG_CONFIG_PATH=/usr/local/opt/openssl/lib/pkgconfig
+
+  - name: macOS, XCode 10.2 Clang
+    os: osx
+    osx_image: xcode10.2
+    env:
+      - TARGETS="pw-cli pw-gui-test-stub pw-gui"
+      - MATRIX_EVAL=
+      - CTEST_OUTPUT_ON_FAILURE=1
+      - PKG_CONFIG_PATH=/usr/local/opt/openssl/lib/pkgconfig
+
 before_install:
   - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then sudo apt-get -qq update; fi
   - if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then brew update; fi
