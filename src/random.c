@@ -30,7 +30,7 @@
  *
  * @return An open file descriptor or -1 on failure.
  */
-static int open_dev_random(void) {
+static __attribute__((unused)) int open_dev_random(void) {
 
 retry:;
     int fd = open("/dev/random", O_RDONLY|O_NOFOLLOW);
@@ -68,7 +68,7 @@ retry:;
  * @param count Number of bytes to read
  * @return Number of bytes read
  */
-static ssize_t read_bytes(int fd, void *buf, size_t count) {
+static __attribute__((unused)) ssize_t read_bytes(int fd, void *buf, size_t count) {
 
     assert(fd >= 0);
     assert(buf != NULL);
@@ -94,6 +94,14 @@ static ssize_t read_bytes(int fd, void *buf, size_t count) {
 passwand_error_t random_bytes(void *buffer, size_t buffer_len) {
 
     assert(buffer != NULL);
+
+#if defined(__APPLE__) || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__NetBSD__)
+
+    arc4random_buf(buffer, buffer_len);
+    return PW_OK;
+
+#else
+
     assert(buffer_len <= 512 && "exceeding blocking read limits of /dev/random");
 
     if (buffer_len == 0)
@@ -106,4 +114,6 @@ passwand_error_t random_bytes(void *buffer, size_t buffer_len) {
     ssize_t r = read_bytes(fd, buffer, buffer_len);
     close(fd);
     return r == (ssize_t)buffer_len ? PW_OK : PW_IO;
+
+#endif
 }
