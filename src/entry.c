@@ -35,14 +35,18 @@ typedef struct {
 static void ctx_destructor_encrypt(void *p) {
     assert(p != NULL);
     ctx_destructor_args_t *a = p;
-    if (a->live)
+    if (a->live) {
         (void)aes_encrypt_deinit(a->ctx);
+        EVP_CIPHER_CTX_free(a->ctx);
+    }
 }
 static void ctx_destructor_decrypt(void *p) {
     assert(p != NULL);
     ctx_destructor_args_t *a = p;
-    if (a->live)
+    if (a->live) {
         (void)aes_decrypt_deinit(a->ctx);
+        EVP_CIPHER_CTX_free(a->ctx);
+    }
 }
 
 passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, const char *space,
@@ -84,15 +88,19 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
         return err;
 
     /* Setup an encryption context. */
-    EVP_CIPHER_CTX ctx;
-    err = aes_encrypt_init(*k, iv, &ctx);
-    if (err != PW_OK)
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+    if (ctx == NULL)
+        return PW_NO_MEM;
+    err = aes_encrypt_init(*k, iv, ctx);
+    if (err != PW_OK) {
+        EVP_CIPHER_CTX_free(ctx);
         return err;
+    }
 
     /* Auto-destruct the context on exit from this scope. */
     ctx_destructor_args_t ctx_destruct __attribute__((cleanup(ctx_destructor_encrypt))) = {
         .live = true,
-        .ctx = &ctx,
+        .ctx = ctx,
     };
 
 #define FREE(field) \
@@ -136,7 +144,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
             return err; \
         } \
         ct_t c; \
-        err = aes_encrypt(&ctx, pp, &c); \
+        err = aes_encrypt(ctx, pp, &c); \
         passwand_secure_free(pp->data, pp->length); \
         passwand_secure_free(pp, sizeof(*pp)); \
         if (err != PW_OK) { \
@@ -154,7 +162,8 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *master, con
 #undef ENC
 
     /* No longer need the encryption context. */
-    err = aes_encrypt_deinit(&ctx);
+    err = aes_encrypt_deinit(ctx);
+    EVP_CIPHER_CTX_free(ctx);
     ctx_destruct.live = false;
     if (err != PW_OK) {
         CLEANUP();
@@ -349,15 +358,19 @@ passwand_error_t passwand_entry_do(const char *master, const passwand_entry_t *e
     memcpy(iv, e->iv, e->iv_len);
 
     /* Setup a decryption context. */
-    EVP_CIPHER_CTX ctx;
-    err = aes_decrypt_init(*k, iv, &ctx);
-    if (err != PW_OK)
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+    if (ctx == NULL)
+        return PW_NO_MEM;
+    err = aes_decrypt_init(*k, iv, ctx);
+    if (err != PW_OK) {
+        EVP_CIPHER_CTX_free(ctx);
         return err;
+    }
 
     /* Auto-destruct the context on scope exit. */
     ctx_destructor_args_t ctx_destruct __attribute__((cleanup(ctx_destructor_decrypt))) = {
         .live = true,
-        .ctx = &ctx,
+        .ctx = ctx,
     };
 
     char *space __attribute__((cleanup(auto_secure_free))) = NULL;
@@ -374,7 +387,7 @@ passwand_error_t passwand_entry_do(const char *master, const passwand_entry_t *e
         if (passwand_secure_malloc((void**)&pp, sizeof(*pp)) != 0) { \
             return PW_NO_MEM; \
         } \
-        err = aes_decrypt(&ctx, &c, pp); \
+        err = aes_decrypt(ctx, &c, pp); \
         if (err != PW_OK) { \
             passwand_secure_free(pp, sizeof(*pp)); \
             return err; \
@@ -425,7 +438,8 @@ passwand_error_t passwand_entry_do(const char *master, const passwand_entry_t *e
     /* If we decrypted all the fields successfully, we can eagerly destroy the decryption context.
      * The advantage of this is that we can pass any error back to the caller.
      */
-    err = aes_decrypt_deinit(&ctx);
+    err = aes_decrypt_deinit(ctx);
+    EVP_CIPHER_CTX_free(ctx);
     ctx_destruct.live = false;
     if (err != PW_OK)
         return err;
