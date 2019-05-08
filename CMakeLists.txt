@@ -34,7 +34,7 @@ elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
 endif ()
 
 add_compile_options (-std=c11 -W -Wall -Wextra -Wwrite-strings -Wmissing-declarations -Wshadow)
-add_definitions (-D_BSD_SOURCE -D_GNU_SOURCE)
+add_definitions (-D_DEFAULT_SOURCE -D_BSD_SOURCE -D_GNU_SOURCE)
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
   add_definitions (-Wtrampolines)
