@@ -2,6 +2,7 @@
 #include "auto.h"
 #include "internal.h"
 #include <limits.h>
+#include <openssl/evp.h>
 #include <passwand/passwand.h>
 #include <stdbool.h>
 #include <stdint.h>
