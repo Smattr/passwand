@@ -1,6 +1,7 @@
 #include "../src/internal.h"
 #include "../src/types.h"
 #include <CUnit/CUnit.h>
+#include <openssl/evp.h>
 #include <passwand/passwand.h>
 #include <stdbool.h>
 #include <stdint.h>
