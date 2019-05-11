@@ -22,6 +22,13 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#ifdef __linux__
+  #include <linux/version.h>
+  #if LINUX_VERSION_CODE >= KERNEL_VERSION(3,17,0)
+    #include <sys/random.h>
+  #endif
+#endif
+
 /** Open /dev/random for reading
  *
  * This function contains a fair bit of paranoia based on advice from 
@@ -98,6 +105,22 @@ passwand_error_t random_bytes(void *buffer, size_t buffer_len) {
 #if defined(__APPLE__) || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__NetBSD__)
 
     arc4random_buf(buffer, buffer_len);
+    return PW_OK;
+
+#elif defined(__linux__) && LINUX_VERSION_CODE >= KERNEL_VERSION(3,17,0)
+
+    assert(buffer_len <= 256 && "call to getrandom() may be interrupted");
+
+    ssize_t r;
+    do {
+        r = getrandom(buffer, buffer_len, 0);
+    } while (r < 0 && errno == EAGAIN);
+
+    if (r < 0)
+        return PW_IO;
+
+    assert((size_t)r == buffer_len && "unexpected number of bytes from getrandom()");
+
     return PW_OK;
 
 #else
