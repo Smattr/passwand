@@ -446,5 +446,5 @@ script:
   - cmake -DCMAKE_INSTALL_PREFIX=install ..
   - cmake --build . -- ${TARGETS}
   - cmake --build . -- passwand-tests
-  - cmake --build . -- test
+  - ../tests/integration-tests.py --verbose
   - cmake --build . -- install
