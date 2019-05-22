@@ -18,6 +18,7 @@
 #include <sys/file.h>
 #include <termios.h>
 #include <unistd.h>
+#include "update.h"
 
 static const struct {
     const char *name;
@@ -29,6 +30,7 @@ static const struct {
     { "get", &get },
     { "list", &list },
     { "set", &set },
+    { "update", &update },
 };
 
 static const command_t *command_for(const char *name) {
@@ -201,18 +203,19 @@ int main(int argc, char **argv) {
 
     if (argc < 2 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-?") == 0) {
         print("usage:\n"
-               " %s change-master                               Change the master password\n"
-               " %s check [--space SPACE] [--key KEY]           Check the strength of existing entries\n"
-               " %s delete --space SPACE --key KEY              Delete an existing entry\n"
-               " %s get --space SPACE --key KEY                 Retrieve an existing entry\n"
-               " %s list                                        List all entries\n"
-               " %s set --space SPACE --key KEY --value VALUE   Set an entry\n"
+               " %s change-master                                 Change the master password\n"
+               " %s check [--space SPACE] [--key KEY]             Check the strength of existing entries\n"
+               " %s delete --space SPACE --key KEY                Delete an existing entry\n"
+               " %s get --space SPACE --key KEY                   Retrieve an existing entry\n"
+               " %s list                                          List all entries\n"
+               " %s set --space SPACE --key KEY --value VALUE     Set an entry\n"
+               " %s update --space SPACE --key KEY --value VALUE  Update an entry\n"
                "\n"
                "common options:\n"
                " --data DATA            Path to data file (default ~/.passwand.json)\n"
                " --jobs THREADS         Number of threads to use\n"
                " --work-factor FACTOR   Scrypt work factor (default 14)\n",
-               argv[0], argv[0], argv[0], argv[0], argv[0], argv[0]);
+               argv[0], argv[0], argv[0], argv[0], argv[0], argv[0], argv[0]);
         return EXIT_SUCCESS;
     }
 
