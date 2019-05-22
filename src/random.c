@@ -25,7 +25,17 @@
 #ifdef __linux__
   #include <linux/version.h>
   #if LINUX_VERSION_CODE >= KERNEL_VERSION(3,17,0)
-    #include <sys/random.h>
+    #if defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 25))
+      #include <sys/random.h>
+    #else
+      /* Before Glibc 2.25 we don't have a syscall wrapper for getrandom(). */
+      #include <linux/random.h>
+      #include <sys/syscall.h>
+
+      static ssize_t getrandom(void *buf, size_t buflen, unsigned int flags) {
+        return (ssize_t)syscall(SYS_getrandom, buf, buflen, flags);
+      }
+    #endif
   #endif
 #endif
 
