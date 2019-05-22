@@ -1844,6 +1844,393 @@ class Cli(unittest.TestCase):
         self.assertEqual(found, weak_mask,
           'missed warning for weak password(s)')
 
+    def test_update_overwrite(self):
+        '''
+        Test updating an entry that is already set overwrites it.
+        '''
+        data = os.path.join(self.tmp, 'test_update_overwrite.json')
+        self.update_overwrite(True, data)
+
+    def test_update_overwrite_single_threaded(self):
+        '''
+        Same as test_update_overwrite, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_update_overwrite_single_threaded.json')
+        self.update_overwrite(False, data)
+
+    def update_overwrite(self, multithreaded, data):
+
+        # Request to save a key and value.
+        args = ['set', '--data', data, '--space', 'space', '--key', 'key',
+          '--value', 'value']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Confirm the master password.
+        try:
+            p.expect('confirm master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Retrieve the (encrypted) value set.
+        self.assertTrue(os.path.exists(data))
+        with open(data, 'rt') as f:
+            j = json.load(f)
+        self.assertIsInstance(j, list)
+        self.assertEqual(len(j), 1)
+        self.assertIsInstance(j[0], dict)
+        value = j[0]['value']
+
+        # Now overwrite the value.
+        args = ['update', '--data', data, '--space', 'space', '--key', 'key',
+          '--value', 'value2']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Confirm the master password.
+        try:
+            p.expect('confirm master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Confirm that we still have a single entry and it has been changed.
+        self.assertTrue(os.path.exists(data))
+        with open(data, 'rt') as f:
+            j = json.load(f)
+        self.assertIsInstance(j, list)
+        self.assertEqual(len(j), 1)
+        self.assertIsInstance(j[0], dict)
+        self.assertNotEqual(value, j[0]['value'])
+
+    def test_update_empty(self):
+        '''
+        Test updating on an empty database fails.
+        '''
+        data = os.path.join(self.tmp, 'test_update_empty.json')
+        self.update_empty(True, data)
+
+    def test_update_empty_single_threaded(self):
+        '''
+        Same as test_update_empty, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_update_empty_single_threaded.json')
+        self.update_empty(False, data)
+
+    def update_empty(self, multithreaded, data):
+
+        # Create an empty database.
+        with open(data, 'wt') as f:
+            f.write('[]')
+
+        # Now try to update a non-existing value.
+        args = ['update', '--data', data, '--space', 'space', '--key', 'key',
+          '--value', 'value']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Confirm the master password.
+        try:
+            p.expect('confirm master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Passwand should reject this.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertNotEqual(p.exitstatus, 0)
+
+        # Confirm that the database has not changed.
+        self.assertTrue(os.path.exists(data))
+        with open(data, 'rt') as f:
+            j = json.load(f)
+        self.assertIsInstance(j, list)
+        self.assertEqual(len(j), 0)
+
+    def test_update_non_existing(self):
+        '''
+        Test update an entry that doesn't exist.
+        '''
+        data = os.path.join(self.tmp, 'test_update_non_existing.json')
+        self.update_non_existing(True, data)
+
+    def test_update_non_existing_single_threaded(self):
+        '''
+        Same as test_update_non_existing, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_update_non_existing_single_threaded.json')
+        self.update_non_existing(False, data)
+
+    def update_non_existing(self, multithreaded, data):
+
+        # Request to save a key and value.
+        args = ['set', '--data', data, '--space', 'space', '--key', 'key',
+          '--value', 'value']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Confirm the master password.
+        try:
+            p.expect('confirm master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Retrieve the (encrypted) value set.
+        self.assertTrue(os.path.exists(data))
+        with open(data, 'rt') as f:
+            j = json.load(f)
+        self.assertIsInstance(j, list)
+        self.assertEqual(len(j), 1)
+        self.assertIsInstance(j[0], dict)
+        value = j[0]['value']
+
+        # Now try to update a non-existing value.
+        args = ['update', '--data', data, '--space', 'space', '--key', 'key2',
+          '--value', 'value2']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Confirm the master password.
+        try:
+            p.expect('confirm master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Passwand should reject this.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertNotEqual(p.exitstatus, 0)
+
+        # Confirm that the database has not changed.
+        self.assertTrue(os.path.exists(data))
+        with open(data, 'rt') as f:
+            j = json.load(f)
+        self.assertIsInstance(j, list)
+        self.assertEqual(len(j), 1)
+        self.assertIsInstance(j[0], dict)
+
+        # We should have the original value we set.
+        self.assertEqual(j[0]['value'], value)
+
+    def test_update_xoo(self):
+        '''
+        Test overwriting the first of a set of three entries.
+        '''
+        data = os.path.join(self.tmp, 'test_update_xoo.json')
+        self.update_xxx(True, data, 0)
+
+    def test_update_xoo_single_threaded(self):
+        '''
+        Same as test_update_xoo, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_update_xoo_single_threaded.json')
+        self.update_xxx(False, data, 0)
+
+    def test_update_oxo(self):
+        '''
+        Test overwriting the second of a set of three entries.
+        '''
+        data = os.path.join(self.tmp, 'test_update_oxo.json')
+        self.update_xxx(True, data, 1)
+
+    def test_update_oxo_single_threaded(self):
+        '''
+        Same as test_update_oxo, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_update_oxo_single_threaded.json')
+        self.update_xxx(False, data, 1)
+
+    def test_update_oox(self):
+        '''
+        Test overwriting the third of a set of three entries.
+        '''
+        data = os.path.join(self.tmp, 'test_update_oox.json')
+        self.update_xxx(True, data, 2)
+
+    def test_update_oox_single_threaded(self):
+        '''
+        Same as test_update_oox, but restrict to a single thread.
+        '''
+        data = os.path.join(self.tmp, 'test_update_oox_single_threaded.json')
+        self.update_xxx(False, data, 2)
+
+    def update_xxx(self, multithreaded, data, target):
+
+        # Setup a database with three entries.
+        for i in range(3):
+
+            # Request to save a key and value.
+            args = ['set', '--data', data, '--space', 'space{}'.format(i),
+              '--key', 'key{}'.format(i), '--value', 'value{}'.format(i)]
+            if not multithreaded:
+                args += ['--jobs', '1']
+            p = pexpect.spawn('./pw-cli', args)
+
+            # Enter the master password.
+            try:
+                p.expect('master password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('test')
+
+            # Confirm the master password.
+            try:
+                p.expect('confirm master password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('test')
+
+            # Now passwand should exit with success.
+            p.expect(pexpect.EOF)
+            p.close()
+            self.assertEqual(p.exitstatus, 0)
+
+        # Now overwrite the 'target'-th entry.
+        args = ['update', '--data', data, '--space', 'space{}'.format(target),
+          '--key', 'key{}'.format(target), '--value', 'valuenew']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args)
+
+        # Enter the master password.
+        try:
+            p.expect('master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Confirm the master password.
+        try:
+            p.expect('confirm master password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Now retrieve each value.
+        for i in range(3):
+
+            args = ['get', '--data', data, '--space', 'space{}'.format(i),
+              '--key', 'key{}'.format(i)]
+            if not multithreaded:
+                args += ['--jobs', '1']
+            p = pexpect.spawn('./pw-cli', args)
+
+            # Enter the master password.
+            try:
+                p.expect('master password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('test')
+
+            # We should get the original value for everything except the entry
+            # we changed.
+            try:
+                expected = 'value{}'.format('new' if i == target else i)
+                p.expect('{}\r\n'.format(expected))
+            except pexpect.EOF:
+                self.fail('EOF while waiting for {}'.format(expected))
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for {}'.format(expected))
+
+            # And passwand should exit with success.
+            p.expect(pexpect.EOF)
+            p.close()
+            self.assertEqual(p.exitstatus, 0)
+
     def tearDown(self):
         if hasattr(self, 'tmp') and os.path.exists(self.tmp):
             shutil.rmtree(self.tmp)
