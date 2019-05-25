@@ -80,6 +80,15 @@ static int finalize(void) {
         return -1;
     }
 
+    /* Cleanup the entry we're about to overwrite. */
+    free(saved_entries[found_index].space);
+    free(saved_entries[found_index].key);
+    free(saved_entries[found_index].value);
+    free(saved_entries[found_index].hmac);
+    free(saved_entries[found_index].hmac_salt);
+    free(saved_entries[found_index].salt);
+    free(saved_entries[found_index].iv);
+
     /* Insert the updated entry at the start of the list, as we assume we'll be looking it up in the
      * near future.
      */
