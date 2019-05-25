@@ -15,7 +15,6 @@ const master_t *saved_master;
 static passwand_entry_t *saved_entries;
 static size_t saved_entry_len;
 static atomic_bool found;
-static size_t found_index;
 static _Thread_local size_t candidate_index;
 
 static int initialize(const master_t *master, passwand_entry_t *entries, size_t entry_len) {
@@ -24,7 +23,6 @@ static int initialize(const master_t *master, passwand_entry_t *entries, size_t 
     saved_entries = entries;
     saved_entry_len = entry_len;
     found = false;
-    found_index = 0;
 
     master_t *confirm = getpassword("confirm master password: ");
     if (confirm == NULL) {
@@ -56,17 +54,21 @@ static void loop_body(const char *space, const char *key,
     assert(key != NULL);
 
     if (strcmp(options.space, space) == 0 && strcmp(options.key, key) == 0) {
-        /* This entry matches the one we just set. Mark it. This cmpxchg should never fail because
+        /* This entry matches the one we are trying to set. This cmpxchg should never fail because
          * there should only ever be a single matching entry (this one) but maybe we're operating
          * on a tampered with or corrupted database.
          */
         bool expected = false;
-        if (atomic_compare_exchange_strong(&found, &expected, true))
-            found_index = candidate_index;
+        (void)atomic_compare_exchange_strong(&found, &expected, true);
     }
 }
 
 static int finalize(void) {
+
+    if (found) {
+        eprint("an entry for %s/%s already exists\n", options.space, options.key);
+        return -1;
+    }
 
     passwand_entry_t e;
     if (passwand_entry_new(&e, saved_master->master, options.space, options.key, options.value,
@@ -75,11 +77,7 @@ static int finalize(void) {
         return -1;
     }
 
-    /* If we found an existing entry for this combination of space and key, we want to overwrite it
-     * instead of creating a new entry.
-     */
-
-    size_t new_entry_len = saved_entry_len + (found ? 0 : 1);
+    size_t new_entry_len = saved_entry_len + 1;
     passwand_entry_t *new_entries = calloc(new_entry_len, sizeof(new_entries[0]));
     if (new_entries == NULL) {
         eprint("out of memory\n");
@@ -90,12 +88,9 @@ static int finalize(void) {
      * in the near future.
      */
     new_entries[0] = e;
-    for (size_t src_index = 0, dst_index = 1; src_index < saved_entry_len; src_index++) {
-        if (!found || src_index != found_index) {
-            assert(dst_index < new_entry_len);
-            new_entries[dst_index] = saved_entries[src_index];
-            dst_index++;
-        }
+    for (size_t index = 0; index < saved_entry_len; index++) {
+        assert(index + 1 < new_entry_len);
+        new_entries[index + 1] = saved_entries[index];
     }
 
     passwand_error_t err = passwand_export(options.data, new_entries, new_entry_len);

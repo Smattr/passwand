@@ -155,7 +155,7 @@ class Cli(unittest.TestCase):
 
     def test_set_overwrite(self):
         '''
-        Test setting an entry that is already set overwrites it.
+        Test setting an entry that is already set does not overwrite it.
         '''
         data = os.path.join(self.tmp, 'test_set_overwrite.json')
         self.set_overwrite(True, data)
@@ -208,7 +208,7 @@ class Cli(unittest.TestCase):
         self.assertIsInstance(j[0], dict)
         value = j[0]['value']
 
-        # Now overwrite the value.
+        # Now try to overwrite the value.
         args = ['set', '--data', data, '--space', 'space', '--key', 'key',
           '--value', 'value2']
         if not multithreaded:
@@ -233,19 +233,19 @@ class Cli(unittest.TestCase):
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Passwand should exit with success.
+        # Passwand should exit with failure.
         p.expect(pexpect.EOF)
         p.close()
-        self.assertEqual(p.exitstatus, 0)
+        self.assertNotEqual(p.exitstatus, 0)
 
-        # Confirm that we still have a single entry and it has been changed.
+        # Confirm that we still have a single entry and it has not been changed.
         self.assertTrue(os.path.exists(data))
         with open(data, 'rt') as f:
             j = json.load(f)
         self.assertIsInstance(j, list)
         self.assertEqual(len(j), 1)
         self.assertIsInstance(j[0], dict)
-        self.assertNotEqual(value, j[0]['value'])
+        self.assertEqual(value, j[0]['value'])
 
     def test_set_append(self):
         '''
@@ -825,7 +825,7 @@ class Cli(unittest.TestCase):
 
     def test_set_xoo(self):
         '''
-        Test overwriting the first of a set of three entries.
+        Test trying to overwrite the first of a set of three entries.
         '''
         data = os.path.join(self.tmp, 'test_set_xoo.json')
         self.set_xxx(True, data, 0)
@@ -839,7 +839,7 @@ class Cli(unittest.TestCase):
 
     def test_set_oxo(self):
         '''
-        Test overwriting the second of a set of three entries.
+        Test trying to overwrite the second of a set of three entries.
         '''
         data = os.path.join(self.tmp, 'test_set_oxo.json')
         self.set_xxx(True, data, 1)
@@ -853,7 +853,7 @@ class Cli(unittest.TestCase):
 
     def test_set_oox(self):
         '''
-        Test overwriting the third of a set of three entries.
+        Test trying to overwrite the third of a set of three entries.
         '''
         data = os.path.join(self.tmp, 'test_set_oox.json')
         self.set_xxx(True, data, 2)
@@ -900,7 +900,7 @@ class Cli(unittest.TestCase):
             p.close()
             self.assertEqual(p.exitstatus, 0)
 
-        # Now overwrite the 'target'-th entry.
+        # Now try to overwrite the 'target'-th entry.
         args = ['set', '--data', data, '--space', 'space{}'.format(target),
           '--key', 'key{}'.format(target), '--value', 'valuenew']
         if not multithreaded:
@@ -925,10 +925,10 @@ class Cli(unittest.TestCase):
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Now passwand should exit with success.
+        # Now passwand should exit with failure.
         p.expect(pexpect.EOF)
         p.close()
-        self.assertEqual(p.exitstatus, 0)
+        self.assertNotEqual(p.exitstatus, 0)
 
         # Now retrieve each value.
         for i in range(3):
@@ -948,10 +948,9 @@ class Cli(unittest.TestCase):
                 self.fail('timeout while waiting for password prompt')
             p.sendline('test')
 
-            # We should get the original value for everything except the entry
-            # we changed.
+            # We should get the original values.
             try:
-                expected = 'value{}'.format('new' if i == target else i)
+                expected = 'value{}'.format(i)
                 p.expect('{}\r\n'.format(expected))
             except pexpect.EOF:
                 self.fail('EOF while waiting for {}'.format(expected))
