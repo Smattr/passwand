@@ -30,6 +30,9 @@
             show_error(msg); \
             free(msg); \
         } \
+        if (master != NULL) { \
+            passwand_secure_free(master, strlen(master) + 1); \
+        } \
         exit(FAILURE_CODE); \
     } while (0)
 
@@ -37,7 +40,7 @@ static atomic_bool done;
 static atomic_size_t entry_index;
 static passwand_entry_t *entries;
 static size_t entry_len;
-static const char *master;
+static char *master;
 static char *found_value;
 static size_t found_index;
 
@@ -96,13 +99,6 @@ static void *search(void *arg __attribute__((unused))) {
     return NULL;
 }
 
-static void autoclear(void *p) {
-    assert(p != NULL);
-    char **s = p;
-    if (*s != NULL)
-        passwand_secure_free(*s, strlen(*s) + 1);
-}
-
 int main(int argc, char **argv) {
 
     if (parse(argc, argv) != 0)
@@ -118,8 +114,8 @@ int main(int argc, char **argv) {
     if (options.key == NULL)
         return EXIT_SUCCESS;
 
-    char *m __attribute__((cleanup(autoclear))) = get_text("Passwand", "Master passphrase?", NULL, true);
-    if (m == NULL)
+    master = get_text("Passwand", "Master passphrase?", NULL, true);
+    if (master == NULL)
         return EXIT_SUCCESS;
 
     flush_state();
@@ -152,7 +148,6 @@ int main(int argc, char **argv) {
         DIE("out of memory");
 
     /* Initialise and start threads. */
-    master = m;
     for (size_t i = 0; i < options.jobs; i++) {
 
         if (i < options.jobs - 1) {
@@ -192,12 +187,15 @@ int main(int argc, char **argv) {
         }
     }
 
+    /* we don't need the master password anymore */
+    assert(master != NULL);
+    passwand_secure_free(master, strlen(master) + 1);
+    master = NULL;
+
     free(threads);
 
-    if (found_value == NULL && !shown_error) {
-        show_error("failed to find matching entry");
-        shown_error = true;
-    }
+    if (found_value == NULL && !shown_error)
+        DIE("failed to find matching entry");
 
     if (shown_error) {
         if (found_value != NULL)
