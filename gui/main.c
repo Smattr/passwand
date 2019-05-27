@@ -210,10 +210,11 @@ int main(int argc, char **argv) {
         }
     }
 
-    if (send_text(found_value) < 0)
-        return EXIT_FAILURE;
-
+    int r = send_text(found_value);
     passwand_secure_free(found_value, strlen(found_value) + 1);
+
+    if (r < 0)
+        return EXIT_FAILURE;
 
     /* Move the entry we just retrieved to the front of the list of entries to
      * make future look ups for it faster. The idea is that over time this will
