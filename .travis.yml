@@ -2,13 +2,11 @@ language: c
 
 matrix:
   include:
-  - name: Linux, GCC 5, no GTK
+  - name: Ubuntu Linux 18.04, GCC 5, no GTK
     os: linux
-    dist: xenial
+    dist: bionic
     addons:
       apt:
-        sources:
-          - ubuntu-toolchain-r-test
         packages:
           - g++-5
     env:
@@ -16,13 +14,11 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub"
       - MATRIX_EVAL="CC=gcc-5"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - name: Linux, GCC 5, GTK 2
+  - name: Ubuntu Linux 18.04, GCC 5, GTK 2
     os: linux
-    dist: xenial
+    dist: bionic
     addons:
       apt:
-        sources:
-          - ubuntu-toolchain-r-test
         packages:
           - g++-5
     env:
@@ -30,13 +26,11 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=gcc-5"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - name: Linux, GCC 5, GTK 3
+  - name: Ubuntu Linux 18.04, GCC 5, GTK 3
     os: linux
-    dist: xenial
+    dist: bionic
     addons:
       apt:
-        sources:
-          - ubuntu-toolchain-r-test
         packages:
           - g++-5
     env:
@@ -44,13 +38,11 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=gcc-5"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - name: Linux, GCC 6, no GTK
+  - name: Ubuntu Linux 18.04, GCC 6, no GTK
     os: linux
-    dist: xenial
+    dist: bionic
     addons:
       apt:
-        sources:
-          - ubuntu-toolchain-r-test
         packages:
           - g++-6
     env:
@@ -58,13 +50,11 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub"
       - MATRIX_EVAL="CC=gcc-6"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - name: Linux, GCC 6, GTK 2
+  - name: Ubuntu Linux 18.04, GCC 6, GTK 2
     os: linux
-    dist: xenial
+    dist: bionic
     addons:
       apt:
-        sources:
-          - ubuntu-toolchain-r-test
         packages:
           - g++-6
     env:
@@ -72,13 +62,11 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=gcc-6"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - name: Linux, GCC 6, GTK 3
+  - name: Ubuntu Linux 18.04, GCC 6, GTK 3
     os: linux
-    dist: xenial
+    dist: bionic
     addons:
       apt:
-        sources:
-          - ubuntu-toolchain-r-test
         packages:
           - g++-6
     env:
@@ -86,13 +74,11 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=gcc-6"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - name: Linux, GCC 7, no GTK
+  - name: Ubuntu Linux 18.04, GCC 7, no GTK
     os: linux
-    dist: xenial
+    dist: bionic
     addons:
       apt:
-        sources:
-          - ubuntu-toolchain-r-test
         packages:
           - g++-7
     env:
@@ -100,13 +86,11 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub"
       - MATRIX_EVAL="CC=gcc-7"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - name: Linux, GCC 7, GTK 2
+  - name: Ubuntu Linux 18.04, GCC 7, GTK 2
     os: linux
-    dist: xenial
+    dist: bionic
     addons:
       apt:
-        sources:
-          - ubuntu-toolchain-r-test
         packages:
           - g++-7
     env:
@@ -114,13 +98,11 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=gcc-7"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - name: Linux, GCC 7, GTK 3
+  - name: Ubuntu Linux 18.04, GCC 7, GTK 3
     os: linux
-    dist: xenial
+    dist: bionic
     addons:
       apt:
-        sources:
-          - ubuntu-toolchain-r-test
         packages:
           - g++-7
     env:
@@ -128,13 +110,11 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=gcc-7"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - name: Linux, GCC 8, no GTK
+  - name: Ubuntu Linux 18.04, GCC 8, no GTK
     os: linux
-    dist: xenial
+    dist: bionic
     addons:
       apt:
-        sources:
-          - ubuntu-toolchain-r-test
         packages:
           - g++-8
     env:
@@ -142,13 +122,11 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub"
       - MATRIX_EVAL="CC=gcc-8"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - name: Linux, GCC 8, GTK 2
+  - name: Ubuntu Linux 18.04, GCC 8, GTK 2
     os: linux
-    dist: xenial
+    dist: bionic
     addons:
       apt:
-        sources:
-          - ubuntu-toolchain-r-test
         packages:
           - g++-8
     env:
@@ -156,13 +134,11 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=gcc-8"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - name: Linux, GCC 8, GTK 3
+  - name: Ubuntu Linux 18.04, GCC 8, GTK 3
     os: linux
-    dist: xenial
+    dist: bionic
     addons:
       apt:
-        sources:
-          - ubuntu-toolchain-r-test
         packages:
           - g++-8
     env:
@@ -170,14 +146,11 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=gcc-8"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - name: Linux, Clang 4.0, no GTK
+  - name: Ubuntu Linux 18.04, Clang 4.0, no GTK
     os: linux
-    dist: xenial
+    dist: bionic
     addons:
       apt:
-        sources:
-          - ubuntu-toolchain-r-test
-          - llvm-toolchain-trusty-4.0
         packages:
           - clang-4.0
           - g++-6
@@ -186,14 +159,11 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub"
       - MATRIX_EVAL="CC=clang-4.0"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - name: Linux, Clang 4.0, GTK 2
+  - name: Ubuntu Linux 18.04, Clang 4.0, GTK 2
     os: linux
-    dist: xenial
+    dist: bionic
     addons:
       apt:
-        sources:
-          - ubuntu-toolchain-r-test
-          - llvm-toolchain-trusty-4.0
         packages:
           - clang-4.0
           - g++-6
@@ -202,14 +172,11 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=clang-4.0"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - name: Linux, Clang 4.0, GTK 3
+  - name: Ubuntu Linux 18.04, Clang 4.0, GTK 3
     os: linux
-    dist: xenial
+    dist: bionic
     addons:
       apt:
-        sources:
-          - ubuntu-toolchain-r-test
-          - llvm-toolchain-trusty-4.0
         packages:
           - clang-4.0
           - g++-6
@@ -218,9 +185,9 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=clang-4.0"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - name: Linux, Clang 5.0, no GTK
+  - name: Ubuntu Linux 18.04, Clang 5.0, no GTK
     os: linux
-    dist: xenial
+    dist: bionic
     addons:
       apt:
         packages:
@@ -230,9 +197,9 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub"
       - MATRIX_EVAL="CC=clang-5.0"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - name: Linux, Clang 5.0, GTK 2
+  - name: Ubuntu Linux 18.04, Clang 5.0, GTK 2
     os: linux
-    dist: xenial
+    dist: bionic
     addons:
       apt:
         packages:
@@ -242,9 +209,9 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=clang-5.0"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - name: Linux, Clang 5.0, GTK 3
+  - name: Ubuntu Linux 18.04, Clang 5.0, GTK 3
     os: linux
-    dist: xenial
+    dist: bionic
     addons:
       apt:
         packages:
@@ -254,9 +221,9 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=clang-5.0"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - name: Linux, Clang 6.0, no GTK
+  - name: Ubuntu Linux 18.04, Clang 6.0, no GTK
     os: linux
-    dist: xenial
+    dist: bionic
     addons:
       apt:
         packages:
@@ -266,9 +233,9 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub"
       - MATRIX_EVAL="CC=clang-6.0"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - name: Linux, Clang 6.0, GTK 2
+  - name: Ubuntu Linux 18.04, Clang 6.0, GTK 2
     os: linux
-    dist: xenial
+    dist: bionic
     addons:
       apt:
         packages:
@@ -278,9 +245,9 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=clang-6.0"
       - CTEST_OUTPUT_ON_FAILURE=1
-  - name: Linux, Clang 6.0, GTK 3
+  - name: Ubuntu Linux 18.04, Clang 6.0, GTK 3
     os: linux
-    dist: xenial
+    dist: bionic
     addons:
       apt:
         packages:
