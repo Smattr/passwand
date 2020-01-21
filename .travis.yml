@@ -271,7 +271,17 @@ matrix:
   - name: macOS, XCode 10.0 Clang
     os: osx
     osx_image: xcode10
+    # XXX: Apple "helpfully" ships OpenSSL without headers after macOS 9. To
+    # work around this, ask Homebrew to install a complete version with headers
+    # and then redirect to it with env variables below.
+    # See https://github.com/Tarsnap/scrypt/issues/20
+    addons:
+      homebrew:
+        packages:
+          - openssl
     env:
+      - CFLAGS="${CFLAGS} -I/usr/local/opt/openssl/include -I$(brew --prefix)/include"
+      - LDFLAGS="${LDFLAGS} -L/usr/local/opt/openssl/lib -L$(brew --prefix)/lib"
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL=
       - CTEST_OUTPUT_ON_FAILURE=1
@@ -280,7 +290,13 @@ matrix:
   - name: macOS, XCode 10.1 Clang
     os: osx
     osx_image: xcode10.1
+    addons:
+      homebrew:
+        packages:
+          - openssl
     env:
+      - CFLAGS="${CFLAGS} -I/usr/local/opt/openssl/include -I$(brew --prefix)/include"
+      - LDFLAGS="${LDFLAGS} -L/usr/local/opt/openssl/lib -L$(brew --prefix)/lib"
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL=
       - CTEST_OUTPUT_ON_FAILURE=1
@@ -289,10 +305,6 @@ matrix:
   - name: macOS, XCode 10.2 Clang
     os: osx
     osx_image: xcode10.2
-    # XXX: Apple "helpfully" ships OpenSSL without headers after macOS 10.1. To
-    # work around this, ask Homebrew to install a complete version with headers
-    # and then redirect to it with env variables below.
-    # See https://github.com/Tarsnap/scrypt/issues/20
     addons:
       homebrew:
         packages:
