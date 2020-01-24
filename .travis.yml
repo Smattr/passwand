@@ -258,23 +258,13 @@ matrix:
       - MATRIX_EVAL="CC=clang-6.0"
       - CTEST_OUTPUT_ON_FAILURE=1
 
-  - name: macOS, XCode 9.4 Clang
-    os: osx
-    osx_image: xcode9.4
-    env:
-      - TARGETS="pw-cli pw-gui-test-stub pw-gui"
-      - MATRIX_EVAL=
-      - CTEST_OUTPUT_ON_FAILURE=1
-      # Make OpenSSL findable
-      - PKG_CONFIG_PATH=/usr/local/opt/openssl/lib/pkgconfig
-
   - name: macOS, XCode 10.0 Clang
     os: osx
     osx_image: xcode10
-    # XXX: Apple "helpfully" ships OpenSSL without headers after macOS 9. To
-    # work around this, ask Homebrew to install a complete version with headers
-    # and then redirect to it with env variables below.
-    # See https://github.com/Tarsnap/scrypt/issues/20
+    # XXX: Apple “helpfully” ships OpenSSL without headers after. To work around
+    # this, ask Homebrew to install a complete version with headers and then
+    # redirect to it with env variables below. See
+    # https://github.com/Tarsnap/scrypt/issues/20
     addons:
       homebrew:
         packages:
@@ -285,6 +275,7 @@ matrix:
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL=
       - CTEST_OUTPUT_ON_FAILURE=1
+      # make OpenSSL findable
       - PKG_CONFIG_PATH=/usr/local/opt/openssl/lib/pkgconfig
 
   - name: macOS, XCode 10.1 Clang
