@@ -261,13 +261,14 @@ matrix:
   - name: macOS, XCode 10.0 Clang
     os: osx
     osx_image: xcode10
-    # XXX: Apple “helpfully” ships OpenSSL without headers after. To work around
-    # this, ask Homebrew to install a complete version with headers and then
-    # redirect to it with env variables below. See
-    # https://github.com/Tarsnap/scrypt/issues/20
     addons:
       homebrew:
         packages:
+          - cunit
+          # XXX: Apple “helpfully” ships OpenSSL without headers after. To work
+          # around this, ask Homebrew to install a complete version with headers
+          # and then redirect to it with env variables below. See
+          # https://github.com/Tarsnap/scrypt/issues/20
           - openssl
     env:
       - CFLAGS="${CFLAGS} -I/usr/local/opt/openssl/include -I$(brew --prefix)/include"
@@ -284,6 +285,7 @@ matrix:
     addons:
       homebrew:
         packages:
+          - cunit
           - openssl
     env:
       - CFLAGS="${CFLAGS} -I/usr/local/opt/openssl/include -I$(brew --prefix)/include"
@@ -299,6 +301,7 @@ matrix:
     addons:
       homebrew:
         packages:
+          - cunit
           - openssl
     env:
       - CFLAGS="${CFLAGS} -I/usr/local/opt/openssl/include -I$(brew --prefix)/include"
@@ -313,7 +316,6 @@ before_install:
   - if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then brew update; fi
   - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then sudo apt-get install -y libcunit1-dev libjson-c-dev python-pexpect ${GTK}; fi
   # No need to install json-c because it comes with XCode
-  - if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then brew install cunit; fi
   - if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then pip install pexpect; fi
   - eval "${MATRIX_EVAL}"
   # build and install libscrypt-kdf
