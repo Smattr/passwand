@@ -265,9 +265,9 @@ matrix:
       homebrew:
         packages:
           - cunit
-          # XXX: Apple “helpfully” ships OpenSSL without headers after. To work
-          # around this, ask Homebrew to install a complete version with headers
-          # and then redirect to it with env variables below. See
+          # XXX: Apple “helpfully” ships OpenSSL without headers after 9. To
+          # work around this, ask Homebrew to install a complete version with
+          # headers and then redirect to it with env variables below. See
           # https://github.com/Tarsnap/scrypt/issues/20
           - openssl
     env:
