@@ -221,6 +221,7 @@ int main(int argc, char **argv) {
 
     master_t *master = NULL;
     passwand_entry_t *entries = NULL;
+    size_t entry_len = 0;
     const command_t *command = NULL;
     bool command_initialized = false;
     thread_state_t *tses = NULL;
@@ -249,7 +250,6 @@ int main(int argc, char **argv) {
         }
     }
 
-    size_t entry_len = 0;
     if (access(options.data, F_OK) == 0) {
         passwand_error_t err = passwand_import(options.data, &entries, &entry_len);
         if (err != PW_OK) {
@@ -365,6 +365,15 @@ done:
             ret = EXIT_FAILURE;
     }
     discard_master(master);
+    for (size_t i = 0; i < entry_len; i++) {
+        free(entries[i].space);
+        free(entries[i].key);
+        free(entries[i].value);
+        free(entries[i].hmac);
+        free(entries[i].hmac_salt);
+        free(entries[i].salt);
+        free(entries[i].iv);
+    }
     free(entries);
     return ret;
 }
