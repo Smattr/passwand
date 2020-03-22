@@ -258,9 +258,9 @@ matrix:
       - MATRIX_EVAL="CC=clang-6.0"
       - CTEST_OUTPUT_ON_FAILURE=1
 
-  - name: macOS, XCode 10.0 Clang
+  - name: macOS, XCode 11.0 Clang
     os: osx
-    osx_image: xcode10
+    osx_image: xcode11
     addons:
       homebrew:
         packages:
@@ -279,9 +279,9 @@ matrix:
       # make OpenSSL findable
       - PKG_CONFIG_PATH=/usr/local/opt/openssl/lib/pkgconfig
 
-  - name: macOS, XCode 10.1 Clang
+  - name: macOS, XCode 11.1 Clang
     os: osx
-    osx_image: xcode10.1
+    osx_image: xcode11.1
     addons:
       homebrew:
         packages:
@@ -295,9 +295,25 @@ matrix:
       - CTEST_OUTPUT_ON_FAILURE=1
       - PKG_CONFIG_PATH=/usr/local/opt/openssl/lib/pkgconfig
 
-  - name: macOS, XCode 10.2 Clang
+  - name: macOS, XCode 11.2 Clang
     os: osx
-    osx_image: xcode10.2
+    osx_image: xcode11.2
+    addons:
+      homebrew:
+        packages:
+          - cunit
+          - openssl
+    env:
+      - CFLAGS="${CFLAGS} -I/usr/local/opt/openssl/include -I$(brew --prefix)/include"
+      - LDFLAGS="${LDFLAGS} -L/usr/local/opt/openssl/lib -L$(brew --prefix)/lib"
+      - TARGETS="pw-cli pw-gui-test-stub pw-gui"
+      - MATRIX_EVAL=
+      - CTEST_OUTPUT_ON_FAILURE=1
+      - PKG_CONFIG_PATH=/usr/local/opt/openssl/lib/pkgconfig
+
+  - name: macOS, XCode 11.3 Clang
+    os: osx
+    osx_image: xcode11.3
     addons:
       homebrew:
         packages:
