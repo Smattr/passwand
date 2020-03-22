@@ -231,5 +231,21 @@ int main(int argc, char **argv) {
     }
     (void)passwand_export(options.data, entries, entry_len);
 
+    /* Cleanup to make us Valgrind-free in successful runs. */
+    for (size_t i = 0; i < entry_len; i++) {
+        free(entries[i].space);
+        free(entries[i].key);
+        free(entries[i].value);
+        free(entries[i].hmac);
+        free(entries[i].hmac_salt);
+        free(entries[i].salt);
+        free(entries[i].iv);
+    }
+    free(entries);
+    free(options.data);
+    free(options.space);
+    free(options.key);
+    free(options.value);
+
     return EXIT_SUCCESS;
 }
