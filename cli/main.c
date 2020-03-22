@@ -375,5 +375,14 @@ done:
         free(entries[i].iv);
     }
     free(entries);
+
+    /* Reset the state of the allocator, freeing memory back to the operating
+     * system, to pacify tools like Valgrind.
+     */
+    {
+        int rc __attribute__((unused)) = passwand_secure_malloc_reset();
+        assert(rc == 0 && "allocator leak in cli");
+    }
+
     return ret;
 }
