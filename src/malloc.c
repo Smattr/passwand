@@ -289,6 +289,39 @@ void passwand_secure_free(void *p, size_t size) {
     disabled = true;
 }
 
+int passwand_secure_malloc_reset(void) {
+
+    LOCK_UNTIL_RET();
+
+    if (disabled)
+        return -1;
+
+    /* Scan all chunks for occupied blocks. */
+    for (chunk_t *c = freelist; c != NULL; c = c->next) {
+        for (unsigned i = 0; i < sizeof(c->free) * 8; i++) {
+            if (read_bitmap(c, i)) {
+                /* We found an in-use block. */
+                return -1;
+            }
+        }
+    }
+
+    /* Now we can free all chunks. */
+    for (chunk_t *c = freelist; c != NULL; ) {
+        int r __attribute__((unused)) = munlock(c->base, EXPECTED_PAGE_SIZE);
+        assert(r == 0 && "munlock unexpectedly failed");
+        free(c->base);
+        chunk_t *next = c->next;
+        free(c);
+        c = next;
+    }
+
+    /* Reset the freelist head. */
+    freelist = NULL;
+
+    return 0;
+}
+
 void passwand_secure_heap_print(FILE *f) {
     for (chunk_t *c = freelist; c != NULL; c = c->next) {
         fprintf(f, "%p:\n", c->base);

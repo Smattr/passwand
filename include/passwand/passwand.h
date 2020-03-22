@@ -149,6 +149,15 @@ int passwand_secure_malloc(void **p, size_t size);
  */
 void passwand_secure_free(void *p, size_t size);
 
+/** Reset the state of the allocator, releasing cached memory to the operating system.
+ *
+ * This function should only be called when you have freed any outstanding allocations from the
+ * allocator.
+ *
+ * @return 0 on success, -1 if there are still outstanding allocations
+ */
+int passwand_secure_malloc_reset(void);
+
 /** Print the current secure heap layout
  *
  * Only implemented for debugging purposes.
