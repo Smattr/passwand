@@ -269,15 +269,15 @@ void passwand_secure_free(void *p, size_t size) {
     for (chunk_t *c = freelist; c != NULL; c = c->next) {
         if (p >= c->base && p + size <= c->base + EXPECTED_PAGE_SIZE) {
             /* It came from this chunk. */
-            for (unsigned index = (p - c->base) / sizeof(long long);
-                    index * sizeof(long long) < size; index++) {
-                assert(read_bitmap(c, index));
-                if (!read_bitmap(c, index)) {
+            unsigned offset = (p - c->base) / sizeof(long long);
+            for (unsigned index = 0; index * sizeof(long long) < size; index++) {
+                assert(read_bitmap(c, index + offset));
+                if (!read_bitmap(c, index + offset)) {
                     /* This memory was not in use. Double free? */
                     disabled = true;
                     return;
                 }
-                write_bitmap(c, index, false);
+                write_bitmap(c, index + offset, false);
             }
             passwand_erase(p, size);
             return;
