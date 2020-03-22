@@ -34,13 +34,12 @@ passwand_error_t encode(const uint8_t *s, size_t len, char **e) {
     if (out == NULL)
         return PW_NO_MEM;
 
-    BIO *pipe __attribute__((cleanup(autobiofree))) = BIO_push(b64, out);
-    b64 = NULL;
+    b64 = BIO_push(b64, out);
 
     /* Encode the data. */
-    if (BIO_write(pipe, s, len) != (int)len)
+    if (BIO_write(b64, s, len) != (int)len)
         return PW_IO;
-    BIO_flush(pipe);
+    BIO_flush(b64);
 
     /* Extract it into a string. */
     BUF_MEM *bptr;
