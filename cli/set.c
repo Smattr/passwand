@@ -95,6 +95,13 @@ static int finalize(void) {
 
     passwand_error_t err = passwand_export(options.data, new_entries, new_entry_len);
     free(new_entries);
+    free(e.space);
+    free(e.key);
+    free(e.value);
+    free(e.hmac);
+    free(e.hmac_salt);
+    free(e.salt);
+    free(e.iv);
     if (err != PW_OK) {
         print("failed to export entries: %s\n", passwand_error(err));
         return -1;
