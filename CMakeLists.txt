@@ -59,33 +59,10 @@ include_directories (${JSON_INCLUDE_DIRS})
 
 find_library (CUNIT NAMES cunit libcunit cunitlib)
 
-# Depend on Scrypt, that we retrieve and build from source.
-include (ExternalProject)
-ExternalProject_Add (scrypt
-
-  # Retrieve Scrypt 1.2.1 from its Git repository.
-  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/scrypt
-  GIT_REPOSITORY https://github.com/Tarsnap/scrypt
-  GIT_TAG 1.2.1
-  UPDATE_COMMAND ""
-  TLS_VERIFY true
-
-  # Despite being structured into library directories, Scrypt's build system
-  # doesn't build a reusable crypto_scypt(), so patch it to add this.
-  PATCH_COMMAND patch -p0 ${CMAKE_CURRENT_BINARY_DIR}/scrypt/scrypt/Makefile.am ${CMAKE_CURRENT_SOURCE_DIR}/scrypt/Makefile.am.patch
-
-  # Build Scrypt.
-  SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/scrypt/scrypt
-  CONFIGURE_COMMAND autoreconf -i && ${CONFIGURE_TWEAK} ./configure --prefix=${CMAKE_CURRENT_BINARY_DIR}/scrypt/install
-  BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/scrypt/scrypt
-  BUILD_COMMAND make
-  BUILD_BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/scrypt/scrypt/libscrypt_sse2.a ${CMAKE_CURRENT_BINARY_DIR}/scrypt/scrypt/libcrypto_scrypt.a
-
-  # Install to the build directory. This is not really necessary since we don't
-  # use the installed artefacts, but it seems sensible to validate that this
-  # works.
-  INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/scrypt/scrypt
-  INSTALL_COMMAND make install)
+find_library (SCRYPTKDF_LIBRARIES NAMES scrypt-kdf libscrypt-kdf
+  PATHS ENV LIBRARY_PATH)
+find_path (SCRYPTKDF_INCLUDE_DIRS scrypt-kdf.h
+  PATHS ENV C_INCLUDE_PATH)
 
 # Try to find X11.
 pkg_check_modules (X11 x11)
@@ -135,11 +112,8 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_library (passwand src/encoding.c src/erase.c src/encryption.c src/entry.c src/error.c
     src/export.c src/hmac.c src/import.c src/make_key.c src/malloc.c src/pack.c src/random.c)
-add_dependencies (passwand scrypt)
-target_include_directories (passwand PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/scrypt/scrypt/lib)
-target_link_libraries (passwand ${OPENSSL_LIBRARIES} ${JSON_LIBRARIES}
-  ${CMAKE_CURRENT_BINARY_DIR}/scrypt/scrypt/libscrypt_sse2.a
-  ${CMAKE_CURRENT_BINARY_DIR}/scrypt/scrypt/libcrypto_scrypt.a)
+target_include_directories (passwand PRIVATE ${SCRYPTKDF_INCLUDE_DIRS})
+target_link_libraries (passwand ${OPENSSL_LIBRARIES} ${JSON_LIBRARIES} ${SCRYPTKDF_LIBRARIES})
 install (TARGETS passwand
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
