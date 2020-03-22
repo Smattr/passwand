@@ -263,6 +263,7 @@ matrix:
     osx_image: xcode11
     addons:
       homebrew:
+        update: true
         packages:
           - cunit
           # XXX: Apple “helpfully” ships OpenSSL without headers after 9. To
@@ -284,6 +285,7 @@ matrix:
     osx_image: xcode11.1
     addons:
       homebrew:
+        update: true
         packages:
           - cunit
           - openssl
@@ -300,6 +302,7 @@ matrix:
     osx_image: xcode11.2
     addons:
       homebrew:
+        update: true
         packages:
           - cunit
           - openssl
@@ -316,6 +319,7 @@ matrix:
     osx_image: xcode11.3
     addons:
       homebrew:
+        update: true
         packages:
           - cunit
           - openssl
