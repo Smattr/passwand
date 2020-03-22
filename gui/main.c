@@ -247,5 +247,13 @@ int main(int argc, char **argv) {
     free(options.key);
     free(options.value);
 
+    /* Reset the state of the allocator, freeing memory back to the operating
+     * system, to pacify tools like Valgrind.
+     */
+    {
+        int rc __attribute__((unused)) = passwand_secure_malloc_reset();
+        assert(rc == 0 && "allocator leak in cli");
+    }
+
     return EXIT_SUCCESS;
 }
