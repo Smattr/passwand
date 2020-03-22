@@ -59,8 +59,14 @@ static int finalize(void) {
     }
 
     /* Shuffle entries following the one to be deleted, to remove the deleted one. */
+    passwand_entry_t deleted = saved_entries[found_index];
     for (size_t i = found_index; i < saved_entry_len - 1; i++)
         saved_entries[i] = saved_entries[i + 1];
+
+    /* Put the deleted entry in the last place in the list, unused by us, but will be freed by
+     * main().
+     */
+    saved_entries[saved_entry_len - 1] = deleted;
 
     passwand_error_t err = passwand_export(options.data, saved_entries, saved_entry_len - 1);
     if (err != PW_OK) {
