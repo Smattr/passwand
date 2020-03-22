@@ -376,6 +376,11 @@ done:
     }
     free(entries);
 
+    free(options.data);
+    free(options.space);
+    free(options.key);
+    free(options.value);
+
     /* Reset the state of the allocator, freeing memory back to the operating
      * system, to pacify tools like Valgrind.
      */
