@@ -53,44 +53,47 @@ static int osascript_pipe(proc_t *proc) {
     pid_t pid;
     int in[2] = { 0 };
     int out[2] = { 0 };
-    int ret = -1;
+    int rc = 0;
 
-    if (posix_spawn_file_actions_init(&actions) < 0)
-        return -1;
+    if ((rc = posix_spawn_file_actions_init(&actions)))
+        return rc;
 
-    if (pipe(in) < 0)
+    if (pipe(in) < 0) {
+        rc = errno;
         goto done;
+    }
 
-    if (pipe(out) < 0)
+    if (pipe(out) < 0) {
+        rc = errno;
         goto done;
+    }
 
     /* Close the FDs we don't need. */
-    if (posix_spawn_file_actions_addclose(&actions, in[1]) < 0)
+    if ((rc = posix_spawn_file_actions_addclose(&actions, in[1])))
         goto done;
-    if (posix_spawn_file_actions_addclose(&actions, out[0]) < 0)
+    if ((rc = posix_spawn_file_actions_addclose(&actions, out[0])))
         goto done;
 
     /* Redirect stdin from the input pipe. */
-    if (posix_spawn_file_actions_adddup2(&actions, in[0], STDIN_FILENO) < 0)
+    if ((rc = posix_spawn_file_actions_adddup2(&actions, in[0], STDIN_FILENO)))
         goto done;
 
     /* Redirect stdout to the output pipe. */
-    if (posix_spawn_file_actions_adddup2(&actions, out[1], STDOUT_FILENO) < 0)
+    if ((rc = posix_spawn_file_actions_adddup2(&actions, out[1], STDOUT_FILENO)))
         goto done;
 
     /* Redirect stderr to /dev/null. You may want to comment this out if you are
      * debugging.
      */
-    if (posix_spawn_file_actions_addopen(&actions, STDERR_FILENO, "/dev/null", O_WRONLY,
-      S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH) < 0)
+    if ((rc = posix_spawn_file_actions_addopen(&actions, STDERR_FILENO,
+      "/dev/null", O_WRONLY, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)))
         goto done;
 
     static char argv0[] = "osascript";
     static char *const argv[] = { argv0, NULL };
-    if (posix_spawnp(&pid, "osascript", &actions, NULL, argv, get_environ()) != 0)
+    if ((rc = posix_spawnp(&pid, "osascript", &actions, NULL, argv, get_environ())))
         goto done;
 
-    ret = 0;
     proc->pid = pid;
     proc->in = in[1];
     proc->out = out[0];
@@ -98,14 +101,14 @@ static int osascript_pipe(proc_t *proc) {
 done:
     if (out[1] != 0)
         close(out[1]);
-    if (ret < 0 && out[0] != 0)
+    if (rc != 0 && out[0] != 0)
         close(out[0]);
-    if (ret < 0 && in[1] != 0)
+    if (rc != 0 && in[1] != 0)
         close(in[1]);
     if (in[0] != 0)
         close(in[0]);
     (void)posix_spawn_file_actions_destroy(&actions);
-    return ret;
+    return rc;
 }
 
 static char *osascript(const struct iovec *iov, size_t iovcnt) {
@@ -122,7 +125,7 @@ static char *osascript(const struct iovec *iov, size_t iovcnt) {
     assert(err == 0);
 
     proc_t proc;
-    if (osascript_pipe(&proc) < 0) {
+    if (osascript_pipe(&proc) != 0) {
         err = pthread_mutex_unlock(&mutex);
         assert(err == 0);
         return NULL;
