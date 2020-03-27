@@ -292,8 +292,9 @@ int send_text(const char *text) {
 
     if (rc != 0) {
         char *msg = NULL;
-        if (asprintf(&msg, "failed to send text to active program (code %d)",
-          rc) >= 0)
+        if (asprintf(&msg, "failed to send text to the active program (code "
+          "%d); maybe it needs to be added to the Accessibility list in "
+          "Security & Privacy Settings", rc) >= 0)
             show_error(msg);
         free(msg);
     }
