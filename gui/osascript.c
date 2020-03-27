@@ -135,10 +135,15 @@ static int osascript(const struct iovec *iov, size_t iovcnt, char **out) {
         return rc;
     }
 
-    (void)writev(proc.in, iov, iovcnt);
+    if (writev(proc.in, iov, iovcnt) < 0)
+        rc = errno;
     close(proc.in);
 
     char *buf = NULL;
+
+    if (rc != 0)
+        goto done;
+
     size_t size;
     FILE *buffer = open_memstream(&buf, &size);
     if (buffer != NULL) {
@@ -181,6 +186,7 @@ static int osascript(const struct iovec *iov, size_t iovcnt, char **out) {
     }
 
     /* If we've reached here, we failed. E.g. because the user clicked Cancel. */
+done:
     free(buf);
     return rc;
 }
