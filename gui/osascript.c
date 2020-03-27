@@ -111,7 +111,7 @@ done:
     return rc;
 }
 
-static char *osascript(const struct iovec *iov, size_t iovcnt) {
+static int osascript(const struct iovec *iov, size_t iovcnt, char **out) {
 
     /* Lock that we use to prevent multiple concurrent osascript tasks. It is OK
      * to run osascript multiple times, but the effect may confuse the user.
@@ -120,15 +120,19 @@ static char *osascript(const struct iovec *iov, size_t iovcnt) {
 
     assert(iov != NULL);
     assert(iovcnt > 0);
+    assert(out != NULL);
+
+    *out = NULL;
+    int rc = 0;
 
     int err __attribute__((unused)) = pthread_mutex_lock(&mutex);
     assert(err == 0);
 
     proc_t proc;
-    if (osascript_pipe(&proc) != 0) {
+    if ((rc = osascript_pipe(&proc))) {
         err = pthread_mutex_unlock(&mutex);
         assert(err == 0);
-        return NULL;
+        return rc;
     }
 
     (void)writev(proc.in, iov, iovcnt);
@@ -168,12 +172,17 @@ static char *osascript(const struct iovec *iov, size_t iovcnt) {
     err = pthread_mutex_unlock(&mutex);
     assert(err == 0);
 
-    if (WIFEXITED(status) && WEXITSTATUS(status) == EXIT_SUCCESS)
-        return buf;
+    if (WIFEXITED(status)) {
+      if (WEXITSTATUS(status) == EXIT_SUCCESS) {
+        *out = buf;
+        return rc;
+      }
+      rc = WEXITSTATUS(status);
+    }
 
     /* If we've reached here, we failed. E.g. because the user clicked Cancel. */
     free(buf);
-    return NULL;
+    return rc;
 }
 
 /* Escape a string that is to be passed to osascript. */
@@ -227,7 +236,9 @@ char *get_text(const char *title, const char *message, const char *initial, bool
     if (hidden)
         iov[7] = IOV(" with hidden answer");
 
-    char *result = osascript(iov, sizeof(iov) / sizeof(iov[0]));
+    char *result = NULL;
+    /* Ignore failure, as we will signal it by returning NULL. */
+    (void)osascript(iov, sizeof(iov) / sizeof(iov[0]), &result);
 
     free(i);
     free(m);
@@ -267,12 +278,13 @@ int send_text(const char *text) {
         IOV("\"\nend tell"),
     };
 
-    char *result = osascript(iov, sizeof(iov) / sizeof(iov[0]));
+    char *result = NULL;
+    int rc = osascript(iov, sizeof(iov) / sizeof(iov[0]), &result);
     free(result);
 
     free(t);
 
-    return result == NULL ? -1 : 0;
+    return rc;
 }
 
 void flush_state() {
@@ -291,7 +303,8 @@ void show_error(const char *message) {
         IOV("\" with title \"Passwand\" buttons \"OK\" default button 1 with icon stop"),
     };
 
-    char *result = osascript(iov, sizeof(iov) / sizeof(iov[0]));
+    char *result = NULL;
+    (void)osascript(iov, sizeof(iov) / sizeof(iov[0]), &result);
     free(result);
 
     free(m);

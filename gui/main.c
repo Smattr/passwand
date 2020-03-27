@@ -213,7 +213,7 @@ int main(int argc, char **argv) {
     int r = send_text(found_value);
     passwand_secure_free(found_value, strlen(found_value) + 1);
 
-    if (r < 0)
+    if (r != 0)
         return EXIT_FAILURE;
 
     /* Move the entry we just retrieved to the front of the list of entries to
