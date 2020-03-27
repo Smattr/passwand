@@ -284,6 +284,14 @@ int send_text(const char *text) {
 
     free(t);
 
+    if (rc != 0) {
+        char *msg = NULL;
+        if (asprintf(&msg, "failed to send text to active program (code %d)",
+          rc) >= 0)
+            show_error(msg);
+        free(msg);
+    }
+
     return rc;
 }
 
