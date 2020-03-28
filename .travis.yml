@@ -295,9 +295,9 @@ matrix:
 before_install:
   - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then sudo apt-get -qq update; fi
   - if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then brew update; fi
-  - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then sudo apt-get install -y libcunit1-dev libjson-c-dev python-pexpect ${GTK}; fi
+  - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then sudo apt-get install -y libcunit1-dev libjson-c-dev python3-pexpect ${GTK}; fi
   # No need to install json-c because it comes with XCode
-  - if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then pip install pexpect; fi
+  - if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then pip3 install pexpect; fi
   - eval "${MATRIX_EVAL}"
   # build and install libscrypt-kdf
   - mkdir scrypt-build && cd scrypt-build && curl https://www.tarsnap.com/scrypt/scrypt-1.3.0.tgz -o scrypt-1.3.0.tgz && tar xf scrypt-1.3.0.tgz && cd scrypt-1.3.0 && ./configure --enable-libscrypt-kdf && make && sudo make install && cd ../..
