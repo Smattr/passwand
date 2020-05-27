@@ -10,7 +10,7 @@ TEST("erase: erase(NULL)") {
     CU_ASSERT_EQUAL(r, 0);
 }
 
-TEST("erase: basic funtionality") {
+TEST("erase: basic functionality") {
     char basic[20];
     strcpy(basic, "hello world");
     int r = passwand_erase((uint8_t*)basic, strlen(basic));
