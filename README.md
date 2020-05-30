@@ -44,8 +44,9 @@ The motivation for various places where we follow 1Password or deviate from thei
 documented below (partly to inform you, partly to remind myself):
 
   * Most crypto tools, including 1Password, use a [CSPRNG](https://en.wikipedia.org/wiki/Cryptographically_secure_pseudorandom_number_generator)
-    for generating random data. Instead, we just **read directly from /dev/random** because we have
-    no need for low latency and there are flaws with most of the widely available CSPRNGs.
+    for generating random data. Instead, we use either **`getrandom` or `arc4random`** because we
+    do not need to support older systems and there are flaws with most of the widely available
+    CSPRNGs.
   * Instead of using PBKDF2-HMAC-SHA512 as a
     [KDF](https://en.wikipedia.org/wiki/Key_derivation_function), we use **Scrypt**. Agile Bits note
     that they would probably also do this (as it has better resistance against GPU-hosted attacks)
