@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.2)
+cmake_minimum_required (VERSION 3.2 FATAL_ERROR)
 project (passwand C)
 
 # This seems to be some magic to get libraries to install correctly.
