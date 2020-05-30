@@ -41,16 +41,18 @@ significant effort to ensure the security of its on-disk data format. If
 The design of 1Password’s key chain and ``opdata`` format are documented in
 the following:
 
-  * https://support.1password.com/agile-keychain-design/
-  * https://support.1password.com/opvault-design/
-  * https://support.1password.com/defense-against-crackers/
+* https://support.1password.com/agile-keychain-design/
+
+* https://support.1password.com/opvault-design/
+
+* https://support.1password.com/defense-against-crackers/
 
 The motivation for various places where we follow 1Password or deviate from
 their design are documented below (partly to inform you, partly to remind
 myself):
 
 * Most crypto tools, including 1Password, use a CSPRNG_ for generating random
-  data. Instead, we use either **``getrandom`` or ``arc4random``** because we do
+  data. Instead, we use either **getrandom() or arc4random()** because we do
   not need to support older systems and there are flaws with most of the widely
   available CSPRNGs.
 
