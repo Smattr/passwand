@@ -9,6 +9,7 @@ matrix:
       apt:
         packages:
           - gcc-7
+          - libscrypt-kdf-dev
     env:
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
@@ -20,6 +21,7 @@ matrix:
       apt:
         packages:
           - gcc-7
+          - libscrypt-kdf-dev
     env:
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -31,6 +33,7 @@ matrix:
       apt:
         packages:
           - gcc-7
+          - libscrypt-kdf-dev
     env:
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -42,6 +45,7 @@ matrix:
       apt:
         packages:
           - gcc-8
+          - libscrypt-kdf-dev
     env:
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
@@ -53,6 +57,7 @@ matrix:
       apt:
         packages:
           - gcc-8
+          - libscrypt-kdf-dev
     env:
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -64,6 +69,7 @@ matrix:
       apt:
         packages:
           - gcc-8
+          - libscrypt-kdf-dev
     env:
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -75,6 +81,7 @@ matrix:
       apt:
         packages:
           - gcc-9
+          - libscrypt-kdf-dev
     env:
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
@@ -86,6 +93,7 @@ matrix:
       apt:
         packages:
           - gcc-9
+          - libscrypt-kdf-dev
     env:
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -97,6 +105,7 @@ matrix:
       apt:
         packages:
           - gcc-9
+          - libscrypt-kdf-dev
     env:
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -108,6 +117,7 @@ matrix:
       apt:
         packages:
           - gcc-10
+          - libscrypt-kdf-dev
     env:
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
@@ -119,6 +129,7 @@ matrix:
       apt:
         packages:
           - gcc-10
+          - libscrypt-kdf-dev
     env:
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -130,6 +141,7 @@ matrix:
       apt:
         packages:
           - gcc-10
+          - libscrypt-kdf-dev
     env:
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -141,6 +153,7 @@ matrix:
       apt:
         packages:
           - clang-6.0
+          - libscrypt-kdf-dev
     env:
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
@@ -152,6 +165,7 @@ matrix:
       apt:
         packages:
           - clang-6.0
+          - libscrypt-kdf-dev
     env:
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -163,6 +177,7 @@ matrix:
       apt:
         packages:
           - clang-6.0
+          - libscrypt-kdf-dev
     env:
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -174,6 +189,7 @@ matrix:
       apt:
         packages:
           - clang-7
+          - libscrypt-kdf-dev
     env:
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
@@ -185,6 +201,7 @@ matrix:
       apt:
         packages:
           - clang-7
+          - libscrypt-kdf-dev
     env:
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -196,6 +213,7 @@ matrix:
       apt:
         packages:
           - clang-7
+          - libscrypt-kdf-dev
     env:
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -207,6 +225,7 @@ matrix:
       apt:
         packages:
           - clang-8
+          - libscrypt-kdf-dev
     env:
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
@@ -218,6 +237,7 @@ matrix:
       apt:
         packages:
           - clang-8
+          - libscrypt-kdf-dev
     env:
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -229,6 +249,7 @@ matrix:
       apt:
         packages:
           - clang-8
+          - libscrypt-kdf-dev
     env:
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -240,6 +261,7 @@ matrix:
       apt:
         packages:
           - clang-9
+          - libscrypt-kdf-dev
     env:
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
@@ -251,6 +273,7 @@ matrix:
       apt:
         packages:
           - clang-9
+          - libscrypt-kdf-dev
     env:
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -262,6 +285,7 @@ matrix:
       apt:
         packages:
           - clang-9
+          - libscrypt-kdf-dev
     env:
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -273,6 +297,7 @@ matrix:
       apt:
         packages:
           - clang-10
+          - libscrypt-kdf-dev
     env:
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
@@ -284,6 +309,7 @@ matrix:
       apt:
         packages:
           - clang-10
+          - libscrypt-kdf-dev
     env:
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -295,6 +321,7 @@ matrix:
       apt:
         packages:
           - clang-10
+          - libscrypt-kdf-dev
     env:
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -339,7 +366,7 @@ before_install:
   - if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then pip3 install pexpect; fi
   - eval "${MATRIX_EVAL}"
   # build and install libscrypt-kdf
-  - mkdir scrypt-build && cd scrypt-build && curl https://www.tarsnap.com/scrypt/scrypt-1.3.0.tgz -o scrypt-1.3.0.tgz && tar xf scrypt-1.3.0.tgz && cd scrypt-1.3.0 && ./configure --enable-libscrypt-kdf && make && sudo make install && cd ../..
+  - if [ "${TRAVIS_OS_NAME}" = "osx"   ]; mkdir scrypt-build && cd scrypt-build && curl https://www.tarsnap.com/scrypt/scrypt-1.3.0.tgz -o scrypt-1.3.0.tgz && tar xf scrypt-1.3.0.tgz && cd scrypt-1.3.0 && ./configure --enable-libscrypt-kdf && make && sudo make install && cd ../..; fi
 
 script:
   - mkdir build && cd build && cmake .. && cmake --build . -- ${TARGETS} passwand-tests && ./passwand-tests && ../tests/integration-tests.py --verbose && sudo env "PATH=$PATH" cmake --build . -- install
