@@ -2,39 +2,6 @@ language: c
 
 matrix:
   include:
-  - name: Ubuntu Linux 18.04, GCC 5, no GTK
-    os: linux
-    dist: bionic
-    addons:
-      apt:
-        packages:
-          - g++-5
-    env:
-      - GTK=
-      - TARGETS="pw-cli pw-gui-test-stub"
-      - MATRIX_EVAL="CC=gcc-5"
-  - name: Ubuntu Linux 18.04, GCC 5, GTK 2
-    os: linux
-    dist: bionic
-    addons:
-      apt:
-        packages:
-          - g++-5
-    env:
-      - GTK=libgtk2.0-dev
-      - TARGETS="pw-cli pw-gui-test-stub pw-gui"
-      - MATRIX_EVAL="CC=gcc-5"
-  - name: Ubuntu Linux 18.04, GCC 5, GTK 3
-    os: linux
-    dist: bionic
-    addons:
-      apt:
-        packages:
-          - g++-5
-    env:
-      - GTK=libgtk-3-dev
-      - TARGETS="pw-cli pw-gui-test-stub pw-gui"
-      - MATRIX_EVAL="CC=gcc-5"
   - name: Ubuntu Linux 18.04, GCC 6, no GTK
     os: linux
     dist: bionic
