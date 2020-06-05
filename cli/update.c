@@ -11,7 +11,7 @@
 #include <sys/file.h>
 #include "update.h"
 
-const master_t *saved_master;
+static const master_t *saved_master;
 static passwand_entry_t *saved_entries;
 static size_t saved_entry_len;
 static atomic_bool found;
