@@ -9,6 +9,9 @@ matrix:
       apt:
         packages:
           - gcc-7
+          # we need to install libscrypt-kdf1 explicitly
+          # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=962425
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=
@@ -21,6 +24,7 @@ matrix:
       apt:
         packages:
           - gcc-7
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=libgtk2.0-dev
@@ -33,6 +37,7 @@ matrix:
       apt:
         packages:
           - gcc-7
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=libgtk-3-dev
@@ -45,6 +50,7 @@ matrix:
       apt:
         packages:
           - gcc-8
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=
@@ -57,6 +63,7 @@ matrix:
       apt:
         packages:
           - gcc-8
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=libgtk2.0-dev
@@ -69,6 +76,7 @@ matrix:
       apt:
         packages:
           - gcc-8
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=libgtk-3-dev
@@ -81,6 +89,7 @@ matrix:
       apt:
         packages:
           - gcc-9
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=
@@ -93,6 +102,7 @@ matrix:
       apt:
         packages:
           - gcc-9
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=libgtk2.0-dev
@@ -105,6 +115,7 @@ matrix:
       apt:
         packages:
           - gcc-9
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=libgtk-3-dev
@@ -117,6 +128,7 @@ matrix:
       apt:
         packages:
           - gcc-10
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=
@@ -129,6 +141,7 @@ matrix:
       apt:
         packages:
           - gcc-10
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=libgtk2.0-dev
@@ -141,6 +154,7 @@ matrix:
       apt:
         packages:
           - gcc-10
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=libgtk-3-dev
@@ -153,6 +167,7 @@ matrix:
       apt:
         packages:
           - clang-6.0
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=
@@ -165,6 +180,7 @@ matrix:
       apt:
         packages:
           - clang-6.0
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=libgtk2.0-dev
@@ -177,6 +193,7 @@ matrix:
       apt:
         packages:
           - clang-6.0
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=libgtk-3-dev
@@ -189,6 +206,7 @@ matrix:
       apt:
         packages:
           - clang-7
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=
@@ -201,6 +219,7 @@ matrix:
       apt:
         packages:
           - clang-7
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=libgtk2.0-dev
@@ -213,6 +232,7 @@ matrix:
       apt:
         packages:
           - clang-7
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=libgtk-3-dev
@@ -225,6 +245,7 @@ matrix:
       apt:
         packages:
           - clang-8
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=
@@ -237,6 +258,7 @@ matrix:
       apt:
         packages:
           - clang-8
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=libgtk2.0-dev
@@ -249,6 +271,7 @@ matrix:
       apt:
         packages:
           - clang-8
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=libgtk-3-dev
@@ -261,6 +284,7 @@ matrix:
       apt:
         packages:
           - clang-9
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=
@@ -273,6 +297,7 @@ matrix:
       apt:
         packages:
           - clang-9
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=libgtk2.0-dev
@@ -285,6 +310,7 @@ matrix:
       apt:
         packages:
           - clang-9
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=libgtk-3-dev
@@ -297,6 +323,7 @@ matrix:
       apt:
         packages:
           - clang-10
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=
@@ -309,6 +336,7 @@ matrix:
       apt:
         packages:
           - clang-10
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=libgtk2.0-dev
@@ -321,6 +349,7 @@ matrix:
       apt:
         packages:
           - clang-10
+          - libscrypt-kdf1
           - libscrypt-kdf-dev
     env:
       - GTK=libgtk-3-dev
