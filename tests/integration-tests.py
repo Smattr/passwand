@@ -44,7 +44,7 @@ class Cli(unittest.TestCase):
           '--value', 'value']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -100,7 +100,7 @@ class Cli(unittest.TestCase):
 
         # Request to save a key and value.
         p = pexpect.spawn('./pw-cli', ['set', '--data', data, '--space', 'space',
-          '--key', 'key', '--value', 'value'])
+          '--key', 'key', '--value', 'value'], timeout=120)
 
         # Enter the master password.
         try:
@@ -129,7 +129,7 @@ class Cli(unittest.TestCase):
         args = ['get', '--data', data, '--space', 'space', '--key', 'key']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -174,7 +174,7 @@ class Cli(unittest.TestCase):
           '--value', 'value']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -213,7 +213,7 @@ class Cli(unittest.TestCase):
           '--value', 'value2']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -268,7 +268,7 @@ class Cli(unittest.TestCase):
           '--value', 'value']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -307,7 +307,7 @@ class Cli(unittest.TestCase):
           '--value', 'value2']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -375,7 +375,7 @@ class Cli(unittest.TestCase):
         args = ['change-master', '--data', data]
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -440,7 +440,7 @@ class Cli(unittest.TestCase):
         args = ['change-master', '--data', data]
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -502,7 +502,7 @@ class Cli(unittest.TestCase):
           '--value', 'value']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -545,7 +545,7 @@ class Cli(unittest.TestCase):
         args = ['change-master', '--data', data]
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -598,7 +598,7 @@ class Cli(unittest.TestCase):
         args = ['get', '--data', data, '--space', 'space', '--key', 'key']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the old master password.
         try:
@@ -618,7 +618,7 @@ class Cli(unittest.TestCase):
         args = ['get', '--data', data, '--space', 'space', '--key', 'key']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Now enter the new master password.
         try:
@@ -662,7 +662,7 @@ class Cli(unittest.TestCase):
         args = ['list', '--data', data]
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -710,7 +710,7 @@ class Cli(unittest.TestCase):
           '--value', 'value']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -739,7 +739,7 @@ class Cli(unittest.TestCase):
         args = ['list', '--data', data]
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the wrong master password.
         try:
@@ -776,7 +776,7 @@ class Cli(unittest.TestCase):
           '--value', 'value']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -805,7 +805,7 @@ class Cli(unittest.TestCase):
         args = ['list', '--data', data]
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -875,7 +875,7 @@ class Cli(unittest.TestCase):
               '--key', 'key{}'.format(i), '--value', 'value{}'.format(i)]
             if not multithreaded:
                 args += ['--jobs', '1']
-            p = pexpect.spawn('./pw-cli', args)
+            p = pexpect.spawn('./pw-cli', args, timeout=120)
 
             # Enter the master password.
             try:
@@ -905,7 +905,7 @@ class Cli(unittest.TestCase):
           '--key', 'key{}'.format(target), '--value', 'valuenew']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -937,7 +937,7 @@ class Cli(unittest.TestCase):
               '--key', 'key{}'.format(i)]
             if not multithreaded:
                 args += ['--jobs', '1']
-            p = pexpect.spawn('./pw-cli', args)
+            p = pexpect.spawn('./pw-cli', args, timeout=120)
 
             # Enter the master password.
             try:
@@ -984,7 +984,7 @@ class Cli(unittest.TestCase):
               '--key', 'key{}'.format(i), '--value', 'value{}'.format(i)]
             if not multithreaded:
                 args += ['--jobs', '1']
-            p = pexpect.spawn('./pw-cli', args)
+            p = pexpect.spawn('./pw-cli', args, timeout=120)
 
             # Enter the master password.
             try:
@@ -1013,7 +1013,7 @@ class Cli(unittest.TestCase):
         args = ['list', '--data', data]
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -1064,7 +1064,7 @@ class Cli(unittest.TestCase):
         args = ['delete', '--data', data, '--space', 'space', '--key', 'key']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -1139,7 +1139,7 @@ class Cli(unittest.TestCase):
               '--key', 'key{}'.format(i), '--value', 'value{}'.format(i)]
             if not multithreaded:
                 args += ['--jobs', '1']
-            p = pexpect.spawn('./pw-cli', args)
+            p = pexpect.spawn('./pw-cli', args, timeout=120)
 
             # Enter the master password.
             try:
@@ -1169,7 +1169,7 @@ class Cli(unittest.TestCase):
           '--key', 'key{}'.format(target)]
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -1192,7 +1192,7 @@ class Cli(unittest.TestCase):
               '--key', 'key{}'.format(i)]
             if not multithreaded:
                 args += ['--jobs', '1']
-            p = pexpect.spawn('./pw-cli', args)
+            p = pexpect.spawn('./pw-cli', args, timeout=120)
 
             # Enter the master password.
             try:
@@ -1246,7 +1246,7 @@ class Cli(unittest.TestCase):
               '--key', 'key{}'.format(i), '--value', 'value{}'.format(i)]
             if not multithreaded:
                 args += ['--jobs', '1']
-            p = pexpect.spawn('./pw-cli', args)
+            p = pexpect.spawn('./pw-cli', args, timeout=120)
 
             # Enter the master password.
             try:
@@ -1275,7 +1275,7 @@ class Cli(unittest.TestCase):
         args = ['delete', '--data', data, '--space', 'space3', '--key', 'key4']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -1298,7 +1298,7 @@ class Cli(unittest.TestCase):
               '--key', 'key{}'.format(i)]
             if not multithreaded:
                 args += ['--jobs', '1']
-            p = pexpect.spawn('./pw-cli', args)
+            p = pexpect.spawn('./pw-cli', args, timeout=120)
 
             # Enter the master password.
             try:
@@ -1346,7 +1346,7 @@ class Cli(unittest.TestCase):
               '--key', 'key{}'.format(i), '--value', 'value{}'.format(i)]
             if not multithreaded:
                 args += ['--jobs', '1']
-            p = pexpect.spawn('./pw-cli', args)
+            p = pexpect.spawn('./pw-cli', args, timeout=120)
 
             # Enter the master password.
             try:
@@ -1376,7 +1376,7 @@ class Cli(unittest.TestCase):
         args = ['get', '--data', data, '--space', 'space0', '--key', 'key0']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -1392,7 +1392,7 @@ class Cli(unittest.TestCase):
           '--value', 'value']
         if not multithreaded:
             args += ['--jobs', '1']
-        s = pexpect.spawn('./pw-cli', args)
+        s = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # The 'set' should fail because it can't lock the database.
         s.expect(pexpect.EOF)
@@ -1422,7 +1422,7 @@ class Cli(unittest.TestCase):
         # Save a weak entry that would be easy to crack.
         args = ['set', '--data', data, '--space', 'space', '--key', 'key',
           '--value', 'value']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -1451,7 +1451,7 @@ class Cli(unittest.TestCase):
         args = ['check', '--data', data, '--space', 'space', '--key', 'key']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -1486,7 +1486,7 @@ class Cli(unittest.TestCase):
         # Save a strong entry that would be hard to crack.
         args = ['set', '--data', data, '--space', 'space', '--key', 'key',
           '--value', 'WEy2zHDJjLsNog8tE5hwvrIR0adAGrR4m5wh6y99ssyo1zzUESw9OWPp8yEL']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -1515,7 +1515,7 @@ class Cli(unittest.TestCase):
         args = ['check', '--data', data, '--space', 'space', '--key', 'key']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -1551,7 +1551,7 @@ class Cli(unittest.TestCase):
         # appearing in previous breaches.
         args = ['set', '--data', data, '--space', 'space', '--key', 'key',
           '--value', 'P@ssw0rd']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -1580,7 +1580,7 @@ class Cli(unittest.TestCase):
         args = ['check', '--data', data, '--space', 'space', '--key', 'key']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -1620,7 +1620,7 @@ class Cli(unittest.TestCase):
         args = ['check', '--data', data]
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -1755,7 +1755,7 @@ class Cli(unittest.TestCase):
             args = ['set', '--data', data, '--space', 'space', '--key',
               'key{}'.format(i), '--value', 'value' if (1 << i) & weak_mask else
               'WEy2zHDJjLsNog8tE5hwvrIR0adAGrR4m5wh6y99ssyo1zzUESw9OWPp8yEL']
-            p = pexpect.spawn('./pw-cli', args)
+            p = pexpect.spawn('./pw-cli', args, timeout=120)
 
             # Enter the master password.
             try:
@@ -1786,7 +1786,7 @@ class Cli(unittest.TestCase):
               'key{}'.format(i)]
             if not multithreaded:
                 args += ['--jobs', '1']
-            p = pexpect.spawn('./pw-cli', args)
+            p = pexpect.spawn('./pw-cli', args, timeout=120)
 
             # Enter the master password.
             try:
@@ -1809,7 +1809,7 @@ class Cli(unittest.TestCase):
         args = ['check', '--data', data]
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -1864,7 +1864,7 @@ class Cli(unittest.TestCase):
           '--value', 'value']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -1903,7 +1903,7 @@ class Cli(unittest.TestCase):
           '--value', 'value2']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -1962,7 +1962,7 @@ class Cli(unittest.TestCase):
           '--value', 'value']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -2015,7 +2015,7 @@ class Cli(unittest.TestCase):
           '--value', 'value']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -2054,7 +2054,7 @@ class Cli(unittest.TestCase):
           '--value', 'value2']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -2142,7 +2142,7 @@ class Cli(unittest.TestCase):
               '--key', 'key{}'.format(i), '--value', 'value{}'.format(i)]
             if not multithreaded:
                 args += ['--jobs', '1']
-            p = pexpect.spawn('./pw-cli', args)
+            p = pexpect.spawn('./pw-cli', args, timeout=120)
 
             # Enter the master password.
             try:
@@ -2172,7 +2172,7 @@ class Cli(unittest.TestCase):
           '--key', 'key{}'.format(target), '--value', 'valuenew']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args)
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -2204,7 +2204,7 @@ class Cli(unittest.TestCase):
               '--key', 'key{}'.format(i)]
             if not multithreaded:
                 args += ['--jobs', '1']
-            p = pexpect.spawn('./pw-cli', args)
+            p = pexpect.spawn('./pw-cli', args, timeout=120)
 
             # Enter the master password.
             try:
@@ -2311,7 +2311,7 @@ class Gui(unittest.TestCase):
         for i in range(10):
             args = ['set', '--data', data, '--space', 'space{}'.format(i),
               '--key', 'key{}'.format(i), '--value', 'value{}'.format(i)]
-            p = pexpect.spawn('./pw-cli', args)
+            p = pexpect.spawn('./pw-cli', args, timeout=120)
 
             # Enter the master password.
             try:
@@ -2339,7 +2339,7 @@ class Gui(unittest.TestCase):
         # Set an entry, an operation that should run for a while.
         args = ['set', '--data', data, '--space', 'space', '--key', 'key',
           '--value', 'value']
-        s = pexpect.spawn('./pw-cli', args)
+        s = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the master password.
         try:
@@ -2387,7 +2387,7 @@ class Gui(unittest.TestCase):
         for i in range(2):
             args = ['set', '--data', data, '--space', 'space{}'.format(i),
               '--key', 'key{}'.format(i), '--value', 'value{}'.format(i)]
-            p = pexpect.spawn('./pw-cli', args)
+            p = pexpect.spawn('./pw-cli', args, timeout=120)
 
             # Enter the master password.
             try:
