@@ -13,6 +13,7 @@ matrix:
           # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=962425
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
@@ -26,6 +27,7 @@ matrix:
           - gcc-7
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -39,6 +41,7 @@ matrix:
           - gcc-7
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -52,6 +55,7 @@ matrix:
           - gcc-8
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
@@ -65,6 +69,7 @@ matrix:
           - gcc-8
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -78,6 +83,7 @@ matrix:
           - gcc-8
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -91,6 +97,7 @@ matrix:
           - gcc-9
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
@@ -104,6 +111,7 @@ matrix:
           - gcc-9
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -117,6 +125,7 @@ matrix:
           - gcc-9
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -130,6 +139,7 @@ matrix:
           - gcc-10
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
@@ -143,6 +153,7 @@ matrix:
           - gcc-10
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -156,6 +167,7 @@ matrix:
           - gcc-10
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -169,6 +181,7 @@ matrix:
           - clang-6.0
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
@@ -182,6 +195,7 @@ matrix:
           - clang-6.0
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -195,6 +209,7 @@ matrix:
           - clang-6.0
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -208,6 +223,7 @@ matrix:
           - clang-7
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
@@ -221,6 +237,7 @@ matrix:
           - clang-7
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -234,6 +251,7 @@ matrix:
           - clang-7
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -247,6 +265,7 @@ matrix:
           - clang-8
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
@@ -260,6 +279,7 @@ matrix:
           - clang-8
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -273,6 +293,7 @@ matrix:
           - clang-8
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -286,6 +307,7 @@ matrix:
           - clang-9
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
@@ -299,6 +321,7 @@ matrix:
           - clang-9
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -312,6 +335,7 @@ matrix:
           - clang-9
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -325,6 +349,7 @@ matrix:
           - clang-10
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
@@ -338,6 +363,7 @@ matrix:
           - clang-10
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -351,6 +377,7 @@ matrix:
           - clang-10
           - libscrypt-kdf1
           - libscrypt-kdf-dev
+          - pylint
     env:
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
@@ -398,4 +425,4 @@ before_install:
   - if [ "${TRAVIS_OS_NAME}" = "osx"   ]; then mkdir scrypt-build && cd scrypt-build && curl https://www.tarsnap.com/scrypt/scrypt-1.3.0.tgz -o scrypt-1.3.0.tgz && tar xf scrypt-1.3.0.tgz && cd scrypt-1.3.0 && ./configure --enable-libscrypt-kdf && make && sudo make install && cd ../..; fi
 
 script:
-  - mkdir build && cd build && cmake .. && cmake --build . -- ${TARGETS} passwand-tests && ./passwand-tests && ../tests/integration-tests.py --verbose && sudo env "PATH=$PATH" cmake --build . -- install
+  - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then python3 -m pylint --errors-only ./tests/integration-tests.py; fi && mkdir build && cd build && cmake .. && cmake --build . -- ${TARGETS} passwand-tests && ./passwand-tests && ../tests/integration-tests.py --verbose && sudo env "PATH=$PATH" cmake --build . -- install
