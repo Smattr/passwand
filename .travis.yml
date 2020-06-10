@@ -15,6 +15,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror"
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
       - MATRIX_EVAL="CC=gcc-7"
@@ -29,6 +30,9 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      # XXX: we need to disable -Wdeprecated-declarations because the GTK 2
+      # headers trigger this
+      - CFLAGS="-g -Werror -Wno-deprecated-declarations"
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=gcc-7"
@@ -43,6 +47,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror"
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=gcc-7"
@@ -57,6 +62,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror"
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
       - MATRIX_EVAL="CC=gcc-8"
@@ -71,6 +77,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror -Wno-deprecated-declarations"
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=gcc-8"
@@ -85,6 +92,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror"
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=gcc-8"
@@ -99,6 +107,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror"
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
       - MATRIX_EVAL="CC=gcc-9"
@@ -113,6 +122,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror -Wno-deprecated-declarations"
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=gcc-9"
@@ -127,6 +137,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror"
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=gcc-9"
@@ -141,7 +152,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
-      - CFLAGS="-g -fsanitize=address,undefined -fno-sanitize-recover=address,undefined"
+      - CFLAGS="-g -fsanitize=address,undefined -fno-sanitize-recover=address,undefined -Werror"
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
       - MATRIX_EVAL="CC=gcc-10"
@@ -157,7 +168,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
-      - CFLAGS="-g -fsanitize=address,undefined -fno-sanitize-recover=address,undefined"
+      - CFLAGS="-g -fsanitize=address,undefined -fno-sanitize-recover=address,undefined -Werror -Wno-deprecated-declarations"
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=gcc-10"
@@ -173,7 +184,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
-      - CFLAGS="-g -fsanitize=address,undefined -fno-sanitize-recover=address,undefined"
+      - CFLAGS="-g -fsanitize=address,undefined -fno-sanitize-recover=address,undefined -Werror"
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=gcc-10"
@@ -189,6 +200,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror"
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
       - MATRIX_EVAL="CC=clang-6.0"
@@ -203,6 +215,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror -Wno-deprecated-declarations"
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=clang-6.0"
@@ -217,6 +230,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror"
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=clang-6.0"
@@ -231,6 +245,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror"
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
       - MATRIX_EVAL="CC=clang-7"
@@ -245,6 +260,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror -Wno-deprecated-declarations"
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=clang-7"
@@ -259,6 +275,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror"
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=clang-7"
@@ -273,6 +290,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror"
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
       - MATRIX_EVAL="CC=clang-8"
@@ -287,6 +305,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror -Wno-deprecated-declarations"
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=clang-8"
@@ -301,6 +320,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror"
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=clang-8"
@@ -315,6 +335,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror"
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
       - MATRIX_EVAL="CC=clang-9"
@@ -329,6 +350,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror -Wno-deprecated-declarations"
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=clang-9"
@@ -343,6 +365,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror"
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=clang-9"
@@ -357,6 +380,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror"
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
       - MATRIX_EVAL="CC=clang-10"
@@ -371,6 +395,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror -Wno-deprecated-declarations"
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=clang-10"
@@ -385,6 +410,7 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -Werror"
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=clang-10"
@@ -399,7 +425,8 @@ matrix:
           - cunit
           - openssl
     env:
-      - CFLAGS="${CFLAGS} -I/usr/local/opt/openssl/include -I$(brew --prefix)/include"
+      # XXX: can't enable -Werror because Scrypt build generates some warnings
+      - CFLAGS="${CFLAGS} -I/usr/local/opt/openssl/include -I$(brew --prefix)/include -g"
       - LDFLAGS="${LDFLAGS} -L/usr/local/opt/openssl/lib -L$(brew --prefix)/lib"
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL=
@@ -415,7 +442,7 @@ matrix:
           - cunit
           - openssl
     env:
-      - CFLAGS="${CFLAGS} -I/usr/local/opt/openssl/include -I$(brew --prefix)/include"
+      - CFLAGS="${CFLAGS} -I/usr/local/opt/openssl/include -I$(brew --prefix)/include -g"
       - LDFLAGS="${LDFLAGS} -L/usr/local/opt/openssl/lib -L$(brew --prefix)/lib"
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL=
