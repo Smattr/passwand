@@ -130,7 +130,7 @@ matrix:
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=gcc-9"
-  - name: Ubuntu Linux 20.04, GCC 10, no GTK
+  - name: Ubuntu Linux 20.04, GCC 10, no GTK, ASan, UBSan
     os: linux
     dist: focal
     addons:
@@ -141,10 +141,12 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -fsanitize=address,undefined -fno-sanitize-recover=address,undefined"
       - GTK=
       - TARGETS="pw-cli pw-gui-test-stub"
       - MATRIX_EVAL="CC=gcc-10"
-  - name: Ubuntu Linux 20.04, GCC 10, GTK 2
+      - UBSAN_OPTIONS=print_stacktrace=1
+  - name: Ubuntu Linux 20.04, GCC 10, GTK 2, ASan, UBSan
     os: linux
     dist: focal
     addons:
@@ -155,10 +157,12 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -fsanitize=address,undefined -fno-sanitize-recover=address,undefined"
       - GTK=libgtk2.0-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=gcc-10"
-  - name: Ubuntu Linux 20.04, GCC 10, GTK 3
+      - UBSAN_OPTIONS=print_stacktrace=1
+  - name: Ubuntu Linux 20.04, GCC 10, GTK 3, ASan, UBSan
     os: linux
     dist: focal
     addons:
@@ -169,9 +173,11 @@ matrix:
           - libscrypt-kdf-dev
           - pylint
     env:
+      - CFLAGS="-g -fsanitize=address,undefined -fno-sanitize-recover=address,undefined"
       - GTK=libgtk-3-dev
       - TARGETS="pw-cli pw-gui-test-stub pw-gui"
       - MATRIX_EVAL="CC=gcc-10"
+      - UBSAN_OPTIONS=print_stacktrace=1
   - name: Ubuntu Linux 20.04, Clang 6.0, no GTK
     os: linux
     dist: focal
