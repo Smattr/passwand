@@ -410,7 +410,7 @@ passwand_error_t passwand_entry_do(const char *master, const passwand_entry_t *e
             passwand_secure_free(p, sizeof(*p)); \
             return err; \
         } \
-        if (memchr(p->data, 0, p->length) != NULL) { \
+        if (p->length > 0 && memchr(p->data, 0, p->length) != NULL) { \
             /* The unpacked data contains a '\0' which will lead this string to be misinterpreted
              * later.
              */ \
