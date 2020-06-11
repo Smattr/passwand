@@ -25,6 +25,8 @@ TEST("entry_new: basic functionality") {
     free(e.value);
     free(e.hmac);
     free(e.hmac_salt);
+    free(e.salt);
+    free(e.iv);
 }
 
 TEST("entry_new: check_mac(entry_new(...))") {
@@ -40,6 +42,8 @@ TEST("entry_new: check_mac(entry_new(...))") {
     free(e.value);
     free(e.hmac);
     free(e.hmac_salt);
+    free(e.salt);
+    free(e.iv);
 }
 
 static void check(void *state, const char *s, const char *k, const char *v) {
@@ -62,4 +66,6 @@ TEST("entry_new: recoverable") {
     free(e.value);
     free(e.hmac);
     free(e.hmac_salt);
+    free(e.salt);
+    free(e.iv);
 }
