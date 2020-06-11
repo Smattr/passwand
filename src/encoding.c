@@ -54,7 +54,8 @@ passwand_error_t encode(const uint8_t *s, size_t len, char **e) {
         goto done;
     }
 
-    memcpy(*e, bptr->data, bptr->length);
+    if (bptr->length > 0)
+        memcpy(*e, bptr->data, bptr->length);
     (*e)[bptr->length] = '\0';
 
 done:

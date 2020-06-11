@@ -86,7 +86,8 @@ passwand_error_t pack_data(const pt_t *p, const iv_t iv, ppt_t *pp) {
     offset += padding_len;
 
     /* Pack the plain text itself. */
-    memcpy(pp->data + offset, p->data, p->length);
+    if (p->length > 0)
+        memcpy(pp->data + offset, p->data, p->length);
     offset += p->length;
 
     return PW_OK;
@@ -138,7 +139,8 @@ passwand_error_t unpack_data(const ppt_t *pp, const iv_t iv, pt_t *p) {
     /* Now we're ready to unpack it. */
     if (passwand_secure_malloc((void**)&p->data, p->length) != 0)
         return PW_NO_MEM;
-    memcpy(p->data, d.data + d.length - p->length, p->length);
+    if (p->length > 0)
+        memcpy(p->data, d.data + d.length - p->length, p->length);
 
     return PW_OK;
 }

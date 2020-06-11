@@ -234,15 +234,20 @@ static passwand_error_t get_mac(const char *master, const passwand_entry_t *e, m
         .data = _data,
         .length = len,
     };
-    memcpy(_data, e->space, e->space_len);
+    if (e->space_len > 0)
+        memcpy(_data, e->space, e->space_len);
     _data += e->space_len;
-    memcpy(_data, e->key, e->key_len);
+    if (e->key_len > 0)
+        memcpy(_data, e->key, e->key_len);
     _data += e->key_len;
-    memcpy(_data, e->value, e->value_len);
+    if (e->value_len > 0)
+        memcpy(_data, e->value, e->value_len);
     _data += e->value_len;
-    memcpy(_data, e->salt, e->salt_len);
+    if (e->salt_len > 0)
+        memcpy(_data, e->salt, e->salt_len);
     _data += e->salt_len;
-    memcpy(_data, e->iv, e->iv_len);
+    if (e->iv_len > 0)
+        memcpy(_data, e->iv, e->iv_len);
     _data += e->iv_len;
 
     /* Now generate the MAC. */
@@ -423,7 +428,9 @@ passwand_error_t passwand_entry_do(const char *master, const passwand_entry_t *e
             passwand_secure_free(p, sizeof(*p)); \
             return PW_NO_MEM; \
         } \
-        memcpy(field, p->data, p->length); \
+        if (p->length > 0) { \
+            memcpy(field, p->data, p->length); \
+        } \
         field[p->length] = '\0'; \
         passwand_secure_free(p->data, p->length); \
         passwand_secure_free(p, sizeof(*p)); \

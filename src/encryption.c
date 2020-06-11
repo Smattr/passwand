@@ -119,7 +119,8 @@ passwand_error_t aes_decrypt(EVP_CIPHER_CTX *ctx, const ct_t *c, ppt_t *pp) {
      */
     if (passwand_secure_malloc((void**)&pp->data, pp->length) != 0)
         return PW_NO_MEM;
-    memcpy(pp->data, buffer->data, pp->length);
+    if (pp->length > 0)
+        memcpy(pp->data, buffer->data, pp->length);
 
     return PW_OK;
 }
