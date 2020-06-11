@@ -19,14 +19,17 @@ TEST("import: import(\"[]\")") {
     CU_ASSERT_EQUAL_FATAL(written, strlen("[]"));
 
     /* Now read in the entries */
-    passwand_entry_t *entries;
-    size_t entry_len;
+    passwand_entry_t *entries = NULL;
+    size_t entry_len = 0;
     int r = passwand_import(tmp, &entries, &entry_len);
     unlink(tmp);
     CU_ASSERT_EQUAL_FATAL(r, 0);
 
     /* Check we got nothing */
     CU_ASSERT_EQUAL_FATAL(entry_len, 0);
+
+    /* clean up */
+    free(entries);
 }
 
 TEST("import: with a missing field") {
