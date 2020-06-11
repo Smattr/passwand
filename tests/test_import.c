@@ -121,8 +121,8 @@ TEST("import: with an extra field") {
     CU_ASSERT_EQUAL_FATAL((size_t)written, strlen(data));
 
     /* Now read in the entries */
-    passwand_entry_t *entries;
-    size_t entry_len;
+    passwand_entry_t *entries = NULL;
+    size_t entry_len = 0;
     int r = passwand_import(tmp, &entries, &entry_len);
     unlink(tmp);
     CU_ASSERT_EQUAL_FATAL(r, 0);
@@ -143,6 +143,18 @@ TEST("import: with an extra field") {
     CU_ASSERT_EQUAL_FATAL(strncmp((const char*)entries[0].salt, "hello world", entries[0].salt_len), 0);
     CU_ASSERT_EQUAL_FATAL(entries[0].iv_len, strlen("hello world"));
     CU_ASSERT_EQUAL_FATAL(strncmp((const char*)entries[0].iv, "hello world", entries[0].iv_len), 0);
+
+    /* clean up */
+    for (size_t i = 0; i < entry_len; i++) {
+        free(entries[i].space);
+        free(entries[i].key);
+        free(entries[i].value);
+        free(entries[i].hmac);
+        free(entries[i].hmac_salt);
+        free(entries[i].salt);
+        free(entries[i].iv);
+    }
+    free(entries);
 }
 
 TEST("import: import(export(x)) == x") {
