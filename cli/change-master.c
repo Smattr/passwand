@@ -94,6 +94,15 @@ static int finalize(void) {
             eprint("failed to export entries: %s\n", passwand_error(err));
     }
 
+    for (size_t i = 0; i < new_entries_len; i++) {
+        free(new_entries[i].space);
+        free(new_entries[i].key);
+        free(new_entries[i].value);
+        free(new_entries[i].hmac);
+        free(new_entries[i].hmac_salt);
+        free(new_entries[i].salt);
+        free(new_entries[i].iv);
+    }
     free(new_entries);
 
     return err != PW_OK;
