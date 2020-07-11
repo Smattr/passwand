@@ -63,7 +63,7 @@ static void body(void *state, const char *space, const char *key, const char *va
 }
 
 TEST("integration: basic lifecycle") {
-    const char *master = "hello world";
+    const char *mainpass = "hello world";
 
     size_t entry_len = 4;
     passwand_entry_t *entries = calloc(entry_len, sizeof(entries[0]));
@@ -75,7 +75,7 @@ TEST("integration: basic lifecycle") {
         const char *key = "username";
         const char *value = "bob";
 
-        passwand_error_t err = passwand_entry_new(&entries[0], master, space, key, value, work_factor);
+        passwand_error_t err = passwand_entry_new(&entries[0], mainpass, space, key, value, work_factor);
         CU_ASSERT_EQUAL_FATAL(err, PW_OK);
     }
 
@@ -84,7 +84,7 @@ TEST("integration: basic lifecycle") {
         const char *key = "password";
         const char *value = "bob's password";
 
-        passwand_error_t err = passwand_entry_new(&entries[1], master, space, key, value, work_factor);
+        passwand_error_t err = passwand_entry_new(&entries[1], mainpass, space, key, value, work_factor);
         CU_ASSERT_EQUAL_FATAL(err, PW_OK);
     }
 
@@ -93,7 +93,7 @@ TEST("integration: basic lifecycle") {
         const char *key = "username";
         const char *value = "alice";
 
-        passwand_error_t err = passwand_entry_new(&entries[2], master, space, key, value, work_factor);
+        passwand_error_t err = passwand_entry_new(&entries[2], mainpass, space, key, value, work_factor);
         CU_ASSERT_EQUAL_FATAL(err, PW_OK);
     }
 
@@ -102,7 +102,7 @@ TEST("integration: basic lifecycle") {
         const char *key = "password";
         const char *value = "alice's password";
 
-        passwand_error_t err = passwand_entry_new(&entries[3], master, space, key, value, work_factor);
+        passwand_error_t err = passwand_entry_new(&entries[3], mainpass, space, key, value, work_factor);
         CU_ASSERT_EQUAL_FATAL(err, PW_OK);
     }
 
@@ -133,7 +133,7 @@ TEST("integration: basic lifecycle") {
         .failed = false,
     };
     for (size_t i = 0; i < entry_len; i++) {
-        err = passwand_entry_do(master, &entries[i], body, &st);
+        err = passwand_entry_do(mainpass, &entries[i], body, &st);
         CU_ASSERT_EQUAL_FATAL(err, PW_OK);
         CU_ASSERT_EQUAL_FATAL(st.failed, false);
     }

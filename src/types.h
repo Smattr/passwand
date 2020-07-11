@@ -11,7 +11,7 @@
  * text.
  */
 
-/* Master passphrase */
+/* Main passphrase */
 typedef struct {
     uint8_t *data;
     size_t length;

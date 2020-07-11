@@ -46,18 +46,18 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master password.
+        # Confirm the main password.
         try:
-            p.expect('confirm master password: ')
+            p.expect('confirm main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -102,18 +102,18 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', ['set', '--data', data, '--space', 'space',
           '--key', 'key', '--value', 'value'], timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master password.
+        # Confirm the main password.
         try:
-            p.expect('confirm master password: ')
+            p.expect('confirm main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -131,9 +131,9 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -176,18 +176,18 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master password.
+        # Confirm the main password.
         try:
-            p.expect('confirm master password: ')
+            p.expect('confirm main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -215,18 +215,18 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master password.
+        # Confirm the main password.
         try:
-            p.expect('confirm master password: ')
+            p.expect('confirm main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -270,18 +270,18 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master password.
+        # Confirm the main password.
         try:
-            p.expect('confirm master password: ')
+            p.expect('confirm main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -309,18 +309,18 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master password.
+        # Confirm the main password.
         try:
-            p.expect('confirm master password: ')
+            p.expect('confirm main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -351,53 +351,53 @@ class Cli(unittest.TestCase):
         if j[0]['value'] != value:
             self.assertEqual(j[1]['value'], value)
 
-    def test_change_master_empty(self):
+    def test_change_main_empty(self):
         '''
-        Test changing the master password on an empty database.
+        Test changing the main password on an empty database.
         '''
-        data = os.path.join(self.tmp, 'test_change_master_empty.json')
-        self.change_master_empty(True, data)
+        data = os.path.join(self.tmp, 'test_change_main_empty.json')
+        self.change_main_empty(True, data)
 
-    def test_change_master_empty_single_threaded(self):
+    def test_change_main_empty_single_threaded(self):
         '''
-        Same as test_change_master_empty, but restrict to a single thread.
+        Same as test_change_main_empty, but restrict to a single thread.
         '''
-        data = os.path.join(self.tmp, 'test_change_master_empty_single_threaded.json')
-        self.change_master_empty(False, data)
+        data = os.path.join(self.tmp, 'test_change_main_empty_single_threaded.json')
+        self.change_main_empty(False, data)
 
-    def change_master_empty(self, multithreaded, data):
+    def change_main_empty(self, multithreaded, data):
 
         # Setup an empty database.
         with open(data, 'wt') as f:
             json.dump([], f)
 
-        # Request to change the master password.
-        args = ['change-master', '--data', data]
+        # Request to change the main password.
+        args = ['change-main', '--data', data]
         if not multithreaded:
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Set a new master password.
+        # Set a new main password.
         try:
-            p.expect('new master password: ')
+            p.expect('new main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test2')
 
-        # Confirm the new master password.
+        # Confirm the new main password.
         try:
-            p.expect('confirm new master password: ')
+            p.expect('confirm new main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -416,44 +416,44 @@ class Cli(unittest.TestCase):
         self.assertIsInstance(j, list)
         self.assertEqual(len(j), 0)
 
-    def test_change_master_mismatch(self):
+    def test_change_main_mismatch(self):
         '''
-        Test changing the master password but failing to confirm it fails.
+        Test changing the main password but failing to confirm it fails.
         '''
-        data = os.path.join(self.tmp, 'test_change_master_mismatch.json')
-        self.change_master_mismatch(True, data)
+        data = os.path.join(self.tmp, 'test_change_main_mismatch.json')
+        self.change_main_mismatch(True, data)
 
-    def test_change_master_mismatch_single_threaded(self):
+    def test_change_main_mismatch_single_threaded(self):
         '''
-        Same as test_change_master_mismatch, but restrict to a single thread.
+        Same as test_change_main_mismatch, but restrict to a single thread.
         '''
-        data = os.path.join(self.tmp, 'test_change_master_mismatch_single_threaded.json')
-        self.change_master_mismatch(False, data)
+        data = os.path.join(self.tmp, 'test_change_main_mismatch_single_threaded.json')
+        self.change_main_mismatch(False, data)
 
-    def change_master_mismatch(self, multithreaded, data):
+    def change_main_mismatch(self, multithreaded, data):
 
         # Setup an empty database.
         with open(data, 'wt') as f:
             json.dump([], f)
 
-        # Request to change the master password.
-        args = ['change-master', '--data', data]
+        # Request to change the main password.
+        args = ['change-main', '--data', data]
         if not multithreaded:
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Set a new master password.
+        # Set a new main password.
         try:
-            p.expect('new master password: ')
+            p.expect('new main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -462,7 +462,7 @@ class Cli(unittest.TestCase):
 
         # Enter an incorrect confirmation.
         try:
-            p.expect('confirm new master password: ')
+            p.expect('confirm new main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -481,21 +481,21 @@ class Cli(unittest.TestCase):
         self.assertIsInstance(j, list)
         self.assertEqual(len(j), 0)
 
-    def test_change_master_basic(self):
+    def test_change_main_basic(self):
         '''
-        Test changing the master password does what it says on the box.
+        Test changing the main password does what it says on the box.
         '''
-        data = os.path.join(self.tmp, 'test_change_master_basic.json')
-        self.change_master_basic(True, data)
+        data = os.path.join(self.tmp, 'test_change_main_basic.json')
+        self.change_main_basic(True, data)
 
-    def test_change_master_basic_single_threaded(self):
+    def test_change_main_basic_single_threaded(self):
         '''
-        Same as test_change_master_basic, but restrict to a single thread.
+        Same as test_change_main_basic, but restrict to a single thread.
         '''
-        data = os.path.join(self.tmp, 'test_change_master_basic_single_threaded.json')
-        self.change_master_basic(False, data)
+        data = os.path.join(self.tmp, 'test_change_main_basic_single_threaded.json')
+        self.change_main_basic(False, data)
 
-    def change_master_basic(self, multithreaded, data):
+    def change_main_basic(self, multithreaded, data):
 
         # Request to save a key and value.
         args = ['set', '--data', data, '--space', 'space', '--key', 'key',
@@ -504,18 +504,18 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master password.
+        # Confirm the main password.
         try:
-            p.expect('confirm master password: ')
+            p.expect('confirm main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -541,33 +541,33 @@ class Cli(unittest.TestCase):
         key = j[0]['key']
         value = j[0]['value']
 
-        # Request to change the master password.
-        args = ['change-master', '--data', data]
+        # Request to change the main password.
+        args = ['change-main', '--data', data]
         if not multithreaded:
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Set a new master password.
+        # Set a new main password.
         try:
-            p.expect('new master password: ')
+            p.expect('new main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test2')
 
-        # Confirm the new master password.
+        # Confirm the new main password.
         try:
-            p.expect('confirm new master password: ')
+            p.expect('confirm new main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -600,9 +600,9 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the old master password.
+        # Enter the old main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -620,9 +620,9 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Now enter the new master password.
+        # Now enter the new main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -664,9 +664,9 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -712,18 +712,18 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master password.
+        # Confirm the main password.
         try:
-            p.expect('confirm master password: ')
+            p.expect('confirm main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -741,9 +741,9 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the wrong master password.
+        # Enter the wrong main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -778,18 +778,18 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master password.
+        # Confirm the main password.
         try:
-            p.expect('confirm master password: ')
+            p.expect('confirm main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -807,9 +807,9 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -877,18 +877,18 @@ class Cli(unittest.TestCase):
                 args += ['--jobs', '1']
             p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-            # Enter the master password.
+            # Enter the main password.
             try:
-                p.expect('master password: ')
+                p.expect('main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
                 self.fail('timeout while waiting for password prompt')
             p.sendline('test')
 
-            # Confirm the master password.
+            # Confirm the main password.
             try:
-                p.expect('confirm master password: ')
+                p.expect('confirm main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
@@ -907,18 +907,18 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master password.
+        # Confirm the main password.
         try:
-            p.expect('confirm master password: ')
+            p.expect('confirm main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -939,9 +939,9 @@ class Cli(unittest.TestCase):
                 args += ['--jobs', '1']
             p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-            # Enter the master password.
+            # Enter the main password.
             try:
-                p.expect('master password: ')
+                p.expect('main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
@@ -986,18 +986,18 @@ class Cli(unittest.TestCase):
                 args += ['--jobs', '1']
             p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-            # Enter the master password.
+            # Enter the main password.
             try:
-                p.expect('master password: ')
+                p.expect('main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
                 self.fail('timeout while waiting for password prompt')
             p.sendline('test')
 
-            # Confirm the master password.
+            # Confirm the main password.
             try:
-                p.expect('confirm master password: ')
+                p.expect('confirm main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
@@ -1015,9 +1015,9 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -1066,9 +1066,9 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -1141,18 +1141,18 @@ class Cli(unittest.TestCase):
                 args += ['--jobs', '1']
             p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-            # Enter the master password.
+            # Enter the main password.
             try:
-                p.expect('master password: ')
+                p.expect('main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
                 self.fail('timeout while waiting for password prompt')
             p.sendline('test')
 
-            # Confirm the master password.
+            # Confirm the main password.
             try:
-                p.expect('confirm master password: ')
+                p.expect('confirm main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
@@ -1171,9 +1171,9 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -1194,9 +1194,9 @@ class Cli(unittest.TestCase):
                 args += ['--jobs', '1']
             p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-            # Enter the master password.
+            # Enter the main password.
             try:
-                p.expect('master password: ')
+                p.expect('main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
@@ -1248,18 +1248,18 @@ class Cli(unittest.TestCase):
                 args += ['--jobs', '1']
             p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-            # Enter the master password.
+            # Enter the main password.
             try:
-                p.expect('master password: ')
+                p.expect('main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
                 self.fail('timeout while waiting for password prompt')
             p.sendline('test')
 
-            # Confirm the master password.
+            # Confirm the main password.
             try:
-                p.expect('confirm master password: ')
+                p.expect('confirm main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
@@ -1277,9 +1277,9 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -1300,9 +1300,9 @@ class Cli(unittest.TestCase):
                 args += ['--jobs', '1']
             p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-            # Enter the master password.
+            # Enter the main password.
             try:
-                p.expect('master password: ')
+                p.expect('main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
@@ -1348,18 +1348,18 @@ class Cli(unittest.TestCase):
                 args += ['--jobs', '1']
             p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-            # Enter the master password.
+            # Enter the main password.
             try:
-                p.expect('master password: ')
+                p.expect('main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
                 self.fail('timeout while waiting for password prompt')
             p.sendline('test')
 
-            # Confirm the master password.
+            # Confirm the main password.
             try:
-                p.expect('confirm master password: ')
+                p.expect('confirm main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
@@ -1378,9 +1378,9 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -1424,18 +1424,18 @@ class Cli(unittest.TestCase):
           '--value', 'value']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master password.
+        # Confirm the main password.
         try:
-            p.expect('confirm master password: ')
+            p.expect('confirm main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -1453,9 +1453,9 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -1488,18 +1488,18 @@ class Cli(unittest.TestCase):
           '--value', 'WEy2zHDJjLsNog8tE5hwvrIR0adAGrR4m5wh6y99ssyo1zzUESw9OWPp8yEL']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master password.
+        # Confirm the main password.
         try:
-            p.expect('confirm master password: ')
+            p.expect('confirm main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -1517,9 +1517,9 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -1553,18 +1553,18 @@ class Cli(unittest.TestCase):
           '--value', 'P@ssw0rd']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master password.
+        # Confirm the main password.
         try:
-            p.expect('confirm master password: ')
+            p.expect('confirm main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -1582,9 +1582,9 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -1622,9 +1622,9 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -1757,18 +1757,18 @@ class Cli(unittest.TestCase):
               'WEy2zHDJjLsNog8tE5hwvrIR0adAGrR4m5wh6y99ssyo1zzUESw9OWPp8yEL']
             p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-            # Enter the master password.
+            # Enter the main password.
             try:
-                p.expect('master password: ')
+                p.expect('main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
                 self.fail('timeout while waiting for password prompt')
             p.sendline('test')
 
-            # Confirm the master password.
+            # Confirm the main password.
             try:
-                p.expect('confirm master password: ')
+                p.expect('confirm main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
@@ -1788,9 +1788,9 @@ class Cli(unittest.TestCase):
                 args += ['--jobs', '1']
             p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-            # Enter the master password.
+            # Enter the main password.
             try:
-                p.expect('master password: ')
+                p.expect('main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
@@ -1811,9 +1811,9 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -1866,18 +1866,18 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master password.
+        # Confirm the main password.
         try:
-            p.expect('confirm master password: ')
+            p.expect('confirm main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -1905,18 +1905,18 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master password.
+        # Confirm the main password.
         try:
-            p.expect('confirm master password: ')
+            p.expect('confirm main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -1964,18 +1964,18 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master password.
+        # Confirm the main password.
         try:
-            p.expect('confirm master password: ')
+            p.expect('confirm main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -2017,18 +2017,18 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master password.
+        # Confirm the main password.
         try:
-            p.expect('confirm master password: ')
+            p.expect('confirm main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -2056,18 +2056,18 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master password.
+        # Confirm the main password.
         try:
-            p.expect('confirm master password: ')
+            p.expect('confirm main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -2144,18 +2144,18 @@ class Cli(unittest.TestCase):
                 args += ['--jobs', '1']
             p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-            # Enter the master password.
+            # Enter the main password.
             try:
-                p.expect('master password: ')
+                p.expect('main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
                 self.fail('timeout while waiting for password prompt')
             p.sendline('test')
 
-            # Confirm the master password.
+            # Confirm the main password.
             try:
-                p.expect('confirm master password: ')
+                p.expect('confirm main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
@@ -2174,18 +2174,18 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            p.expect('master password: ')
+            p.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         p.sendline('test')
 
-        # Confirm the master password.
+        # Confirm the main password.
         try:
-            p.expect('confirm master password: ')
+            p.expect('confirm main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -2206,9 +2206,9 @@ class Cli(unittest.TestCase):
                 args += ['--jobs', '1']
             p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-            # Enter the master password.
+            # Enter the main password.
             try:
-                p.expect('master password: ')
+                p.expect('main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
@@ -2252,7 +2252,7 @@ class Gui(unittest.TestCase):
         p = subprocess.Popen(['./pw-gui-test-stub', '--data', self.empty_json],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, universal_newlines=True)
-        stdout, stderr = p.communicate('\n'       # No master password
+        stdout, stderr = p.communicate('\n'       # No main password
                                        'hello\n'  # Space "hello"
                                        'world\n') # Key "world"
         self.assertEqual(stdout, '')
@@ -2262,9 +2262,9 @@ class Gui(unittest.TestCase):
         else:
             self.assertNotEqual(p.returncode, 0)
 
-    def test_cancel_master(self):
+    def test_cancel_main(self):
         '''
-        When cancelling the master password request, we should exit with
+        When cancelling the main password request, we should exit with
         success.
         '''
         p = subprocess.Popen(['./pw-gui-test-stub', '--data', self.empty_json],
@@ -2282,7 +2282,7 @@ class Gui(unittest.TestCase):
         p = subprocess.Popen(['./pw-gui-test-stub', '--data', self.empty_json],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, universal_newlines=True)
-        stdout, stderr = p.communicate('master\n') # EOF indicates cancel
+        stdout, stderr = p.communicate('main\n') # EOF indicates cancel
         self.assertEqual(stdout, '')
         self.assertEqual(stderr, '')
         self.assertEqual(p.returncode, 0)
@@ -2294,7 +2294,7 @@ class Gui(unittest.TestCase):
         p = subprocess.Popen(['./pw-gui-test-stub', '--data', self.empty_json],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, universal_newlines=True)
-        stdout, stderr = p.communicate('master\n'
+        stdout, stderr = p.communicate('main\n'
                                        'space\n') # EOF indicates cancel
         self.assertEqual(stdout, '')
         self.assertEqual(stderr, '')
@@ -2313,18 +2313,18 @@ class Gui(unittest.TestCase):
               '--key', 'key{}'.format(i), '--value', 'value{}'.format(i)]
             p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-            # Enter the master password.
+            # Enter the main password.
             try:
-                p.expect('master password: ')
+                p.expect('main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
                 self.fail('timeout while waiting for password prompt')
             p.sendline('test')
 
-            # Confirm the master password.
+            # Confirm the main password.
             try:
-                p.expect('confirm master password: ')
+                p.expect('confirm main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
@@ -2341,18 +2341,18 @@ class Gui(unittest.TestCase):
           '--value', 'value']
         s = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the master password.
+        # Enter the main password.
         try:
-            s.expect('master password: ')
+            s.expect('main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
             self.fail('timeout while waiting for password prompt')
         s.sendline('test')
 
-        # Confirm the master password.
+        # Confirm the main password.
         try:
-            s.expect('confirm master password: ')
+            s.expect('confirm main password: ')
         except pexpect.EOF:
             self.fail('EOF while waiting for password prompt')
         except pexpect.TIMEOUT:
@@ -2389,18 +2389,18 @@ class Gui(unittest.TestCase):
               '--key', 'key{}'.format(i), '--value', 'value{}'.format(i)]
             p = pexpect.spawn('./pw-cli', args, timeout=120)
 
-            # Enter the master password.
+            # Enter the main password.
             try:
-                p.expect('master password: ')
+                p.expect('main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:
                 self.fail('timeout while waiting for password prompt')
             p.sendline('test')
 
-            # Confirm the master password.
+            # Confirm the main password.
             try:
-                p.expect('confirm master password: ')
+                p.expect('confirm main password: ')
             except pexpect.EOF:
                 self.fail('EOF while waiting for password prompt')
             except pexpect.TIMEOUT:

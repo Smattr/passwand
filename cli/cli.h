@@ -6,13 +6,13 @@
 #include <stdlib.h>
 
 typedef struct {
-    char *master;
-    size_t master_len;
-} master_t;
+    char *main;
+    size_t main_len;
+} main_t;
 
-master_t *getpassword(const char *prompt);
+main_t *getpassword(const char *prompt);
 
-void discard_master(master_t *m);
+void discard_main(main_t *m);
 
 /* How a command line argument is used. */
 typedef enum {
@@ -34,7 +34,7 @@ typedef struct {
     int access;
 
     /* Constructor. */
-    int (*initialize)(const master_t *master, passwand_entry_t *entries, size_t entry_len);
+    int (*initialize)(const main_t *mainpass, passwand_entry_t *entries, size_t entry_len);
 
     /* Prepare to run 'loop_body' on an entry. */
     void (*loop_notify)(size_t entry_index);

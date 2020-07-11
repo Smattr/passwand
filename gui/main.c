@@ -30,8 +30,8 @@
             show_error(msg); \
             free(msg); \
         } \
-        if (master != NULL) { \
-            passwand_secure_free(master, strlen(master) + 1); \
+        if (mainpass != NULL) { \
+            passwand_secure_free(mainpass, strlen(mainpass) + 1); \
         } \
         exit(FAILURE_CODE); \
     } while (0)
@@ -40,7 +40,7 @@ static atomic_bool done;
 static atomic_size_t entry_index;
 static passwand_entry_t *entries;
 static size_t entry_len;
-static char *master;
+static char *mainpass;
 static char *found_value;
 static size_t found_index;
 
@@ -74,7 +74,7 @@ static void *search(void *arg __attribute__((unused))) {
         if (i >= entry_len)
             break;
 
-        passwand_error_t err = passwand_entry_do(master, &entries[i], check, &v);
+        passwand_error_t err = passwand_entry_do(mainpass, &entries[i], check, &v);
         if (err != PW_OK) {
             char *msg;
             if (asprintf(&msg, "error: %s", passwand_error(err)) >= 0)
@@ -114,8 +114,8 @@ int main(int argc, char **argv) {
     if (options.key == NULL)
         return EXIT_SUCCESS;
 
-    master = get_text("Passwand", "Master passphrase?", NULL, true);
-    if (master == NULL)
+    mainpass = get_text("Passwand", "Main passphrase?", NULL, true);
+    if (mainpass == NULL)
         return EXIT_SUCCESS;
 
     flush_state();
@@ -187,10 +187,10 @@ int main(int argc, char **argv) {
         }
     }
 
-    /* we don't need the master password anymore */
-    assert(master != NULL);
-    passwand_secure_free(master, strlen(master) + 1);
-    master = NULL;
+    /* we don't need the main password anymore */
+    assert(mainpass != NULL);
+    passwand_secure_free(mainpass, strlen(mainpass) + 1);
+    mainpass = NULL;
 
     free(threads);
 

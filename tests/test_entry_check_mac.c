@@ -36,7 +36,7 @@ TEST("entry_check_mac: bad password") {
     create_maced_entry(&e);
 
     /* Checking the MAC with the wrong password should fail. Note that we can't actually detect an
-     * incorrect master password, and this failure will manifest as a failed integrity check.
+     * incorrect main password, and this failure will manifest as a failed integrity check.
      */
     passwand_error_t err = passwand_entry_check_mac("hello world", &e);
     CU_ASSERT_NOT_EQUAL_FATAL(err, PW_OK);

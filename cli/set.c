@@ -11,26 +11,26 @@
 #include <string.h>
 #include <sys/file.h>
 
-static const master_t *saved_master;
+static const main_t *saved_main;
 static passwand_entry_t *saved_entries;
 static size_t saved_entry_len;
 static atomic_bool found;
 static _Thread_local size_t candidate_index;
 
-static int initialize(const master_t *master, passwand_entry_t *entries, size_t entry_len) {
+static int initialize(const main_t *mainpass, passwand_entry_t *entries, size_t entry_len) {
 
-    saved_master = master;
+    saved_main = mainpass;
     saved_entries = entries;
     saved_entry_len = entry_len;
     found = false;
 
-    master_t *confirm = getpassword("confirm master password: ");
+    main_t *confirm = getpassword("confirm main password: ");
     if (confirm == NULL) {
         eprint("out of memory\n");
         return -1;
     }
-    bool r = strcmp(master->master, confirm->master) == 0;
-    discard_master(confirm);
+    bool r = strcmp(mainpass->main, confirm->main) == 0;
+    discard_main(confirm);
     if (!r) {
         eprint("passwords do not match\n");
         return -1;
@@ -71,7 +71,7 @@ static int finalize(void) {
     }
 
     passwand_entry_t e;
-    if (passwand_entry_new(&e, saved_master->master, options.space, options.key, options.value,
+    if (passwand_entry_new(&e, saved_main->main, options.space, options.key, options.value,
             options.work_factor) != PW_OK) {
         eprint("failed to create new entry\n");
         return -1;

@@ -17,7 +17,7 @@ static _Thread_local size_t current_index;
 static passwand_entry_t *saved_entries;
 static size_t saved_entry_len;
 
-static int initialize(const master_t *master __attribute__((unused)), passwand_entry_t *entries,
+static int initialize(const main_t *mainpass __attribute__((unused)), passwand_entry_t *entries,
   size_t entry_len) {
 
     found = false;

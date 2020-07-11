@@ -1,7 +1,7 @@
 #include "../common/argparse.h"
 #include "../common/privilege.h"
 #include <assert.h>
-#include "change-master.h"
+#include "change-main.h"
 #include "check.h"
 #include "cli.h"
 #include "delete.h"
@@ -24,7 +24,7 @@ static const struct {
     const char *name;
     const command_t *action;
 } COMMANDS[] = {
-    { "change-master", &change_master },
+    { "change-main", &change_main },
     { "check", &check },
     { "delete", &delete },
     { "get", &get },
@@ -41,7 +41,7 @@ static const command_t *command_for(const char *name) {
     return NULL;
 }
 
-master_t *getpassword(const char *prompt) {
+main_t *getpassword(const char *prompt) {
 
     static const size_t EXPECTED_PAGE_SIZE = 4096;
 
@@ -56,7 +56,7 @@ master_t *getpassword(const char *prompt) {
         return NULL;
     }
 
-    print("%s", prompt == NULL ? "master password: " : prompt);
+    print("%s", prompt == NULL ? "main password: " : prompt);
     fflush(stdout);
 
     struct termios old;
@@ -118,22 +118,22 @@ master_t *getpassword(const char *prompt) {
 
     m[index] = '\0';
 
-    master_t *master;
-    if (passwand_secure_malloc((void**)&master, sizeof(*master)) != 0) {
+    main_t *mainpass;
+    if (passwand_secure_malloc((void**)&mainpass, sizeof(*mainpass)) != 0) {
         eprint("failed to reallocate secure memory\n");
         passwand_secure_free(m, size);
         return NULL;
     }
-    master->master = m;
-    master->master_len = size;
+    mainpass->main = m;
+    mainpass->main_len = size;
 
-    return master;
+    return mainpass;
 }
 
-void discard_master(master_t *m) {
+void discard_main(main_t *m) {
     if (m == NULL)
         return;
-    passwand_secure_free(m->master, m->master_len);
+    passwand_secure_free(m->main, m->main_len);
     passwand_secure_free(m, sizeof(*m));
 }
 
@@ -148,7 +148,7 @@ typedef struct {
     atomic_size_t *index;
     passwand_entry_t *entries;
     size_t entry_len;
-    const char *master;
+    const char *main;
 
     const command_t *command;
 
@@ -179,7 +179,7 @@ static void *thread_loop(void *arg) {
             break;
 
         if (command->loop_body != NULL) {
-            passwand_error_t err = passwand_entry_do(ts->master, &ts->entries[index],
+            passwand_error_t err = passwand_entry_do(ts->main, &ts->entries[index],
                 entry_trampoline, command->loop_body);
             if (err != PW_OK) {
                 ts->error = err;
@@ -203,7 +203,7 @@ int main(int argc, char **argv) {
 
     if (argc < 2 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-?") == 0) {
         print("usage:\n"
-               " %s change-master                                 Change the master password\n"
+               " %s change-main                                   Change the main password\n"
                " %s check [--space SPACE] [--key KEY]             Check the strength of existing entries\n"
                " %s delete --space SPACE --key KEY                Delete an existing entry\n"
                " %s get --space SPACE --key KEY                   Retrieve an existing entry\n"
@@ -219,7 +219,7 @@ int main(int argc, char **argv) {
         return EXIT_SUCCESS;
     }
 
-    master_t *master = NULL;
+    main_t *mainpass = NULL;
     passwand_entry_t *entries = NULL;
     size_t entry_len = 0;
     const command_t *command = NULL;
@@ -277,15 +277,15 @@ int main(int argc, char **argv) {
     HANDLE(value);
 #undef HANDLE
 
-    master = getpassword(NULL);
-    if (master == NULL) {
-        eprint("failed to read master password\n");
+    mainpass = getpassword(NULL);
+    if (mainpass == NULL) {
+        eprint("failed to read main password\n");
         goto done;
     }
 
     /* Setup command. */
     assert(command->initialize != NULL);
-    int r = command->initialize(master, entries, entry_len);
+    int r = command->initialize(mainpass, entries, entry_len);
     if (r != 0)
         goto done;
     command_initialized = true;
@@ -303,7 +303,7 @@ int main(int argc, char **argv) {
         tses[i].index = &index;
         tses[i].entries = entries;
         tses[i].entry_len = entry_len;
-        tses[i].master = master->master;
+        tses[i].main = mainpass->main;
         tses[i].command = command;
         tses[i].error = PW_OK;
         tses[i].error_index = SIZE_MAX;
@@ -364,7 +364,7 @@ done:
         if (r != 0)
             ret = EXIT_FAILURE;
     }
-    discard_master(master);
+    discard_main(mainpass);
     for (size_t i = 0; i < entry_len; i++) {
         free(entries[i].space);
         free(entries[i].key);

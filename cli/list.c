@@ -8,7 +8,7 @@
 #include <stddef.h>
 #include <sys/file.h>
 
-static int initialize(const master_t *master __attribute__((unused)),
+static int initialize(const main_t *mainpass __attribute__((unused)),
   passwand_entry_t *entries __attribute__((unused)), size_t entry_len __attribute__((unused))) {
     return 0;
 }

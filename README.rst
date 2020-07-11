@@ -3,7 +3,7 @@ passwand
 A password manager.
 
 This tool is designed for encrypted storage and retrieval of entries consisting
-of a space, key and value. These fields are encrypted using a master passphrase
+of a space, key and value. These fields are encrypted using a main passphrase
 which is required to retrieve any entry. The interface is fairly unpolished, but
 the underlying implementation is intended to preserve strong security properties
 on data both at-rest and in-memory.

@@ -8,10 +8,10 @@
 #include <stdlib.h>
 #include "types.h"
 
-passwand_error_t hmac(const m_t *master, const data_t *data, const salt_t *salt, mac_t *mac,
+passwand_error_t hmac(const m_t *mainkey, const data_t *data, const salt_t *salt, mac_t *mac,
         int work_factor) {
 
-    assert(master != NULL);
+    assert(mainkey != NULL);
     assert(data != NULL);
     assert(salt != NULL);
     assert(mac != NULL);
@@ -19,7 +19,7 @@ passwand_error_t hmac(const m_t *master, const data_t *data, const salt_t *salt,
     AUTO_K_T(k);
     if (k == NULL)
         return PW_NO_MEM;
-    passwand_error_t err = make_key(master, salt, work_factor, *k);
+    passwand_error_t err = make_key(mainkey, salt, work_factor, *k);
     if (err != PW_OK)
         return err;
 

@@ -10,14 +10,14 @@
 
 /** Construct a key for use in AES encryption
  *
- * @param master      Master key
+ * @param mainkey     Main key
  * @param salt        Salt
  * @param work_factor Work factor to use in Scrypt (must be between 10 and 31
  *                    or -1 for the default)
  * @param[out] key    Generated key
  * @return            PW_OK on success
  */
-passwand_error_t make_key(const m_t *master, const salt_t *salt, int work_factor, k_t key)
+passwand_error_t make_key(const m_t *mainkey, const salt_t *salt, int work_factor, k_t key)
     __attribute__((visibility("internal")));
 
 /** Initialise an AES encryption context
@@ -80,14 +80,14 @@ passwand_error_t aes_decrypt_deinit(EVP_CIPHER_CTX *ctx) __attribute__((visibili
 
 /** Generate an authentication code
  *
- * @param master        Master key
+ * @param mainkey       Main key
  * @param data          Data to authenticate
  * @param salt          Salt
  * @param[out] mac      Authentication code
  * @param work_factor   Scrypt work factor (see above)
  * @return              PW_OK on success
  */
-passwand_error_t hmac(const m_t *master, const data_t *data, const salt_t *salt, mac_t *mac,
+passwand_error_t hmac(const m_t *mainkey, const data_t *data, const salt_t *salt, mac_t *mac,
     int work_factor) __attribute__((visibility("internal")));
 
 /** Pack data with padding in preparation for encryption

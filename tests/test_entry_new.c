@@ -5,7 +5,7 @@
 #include <string.h>
 #include "test.h"
 
-static const char *master = "hello world";
+static const char *mainpass = "hello world";
 static const char *space = "space";
 static const char *key = "key";
 static const char *value = "value";
@@ -13,7 +13,7 @@ static const char *value = "value";
 TEST("entry_new: basic functionality") {
     passwand_entry_t e;
     memset(&e, 0, sizeof(e));
-    passwand_error_t err = passwand_entry_new(&e, master, space, key, value, 14);
+    passwand_error_t err = passwand_entry_new(&e, mainpass, space, key, value, 14);
     CU_ASSERT_EQUAL_FATAL(err, PW_OK);
     CU_ASSERT_PTR_NOT_NULL_FATAL(e.space);
     CU_ASSERT_PTR_NOT_NULL_FATAL(e.key);
@@ -31,10 +31,10 @@ TEST("entry_new: basic functionality") {
 
 TEST("entry_new: check_mac(entry_new(...))") {
     passwand_entry_t e;
-    passwand_error_t err = passwand_entry_new(&e, master, space, key, value, 14);
+    passwand_error_t err = passwand_entry_new(&e, mainpass, space, key, value, 14);
     CU_ASSERT_EQUAL_FATAL(err, PW_OK);
 
-    err = passwand_entry_check_mac(master, &e);
+    err = passwand_entry_check_mac(mainpass, &e);
     CU_ASSERT_EQUAL_FATAL(err, PW_OK);
 
     free(e.space);
@@ -53,11 +53,11 @@ static void check(void *state, const char *s, const char *k, const char *v) {
 
 TEST("entry_new: recoverable") {
     passwand_entry_t e;
-    passwand_error_t err = passwand_entry_new(&e, master, space, key, value, 14);
+    passwand_error_t err = passwand_entry_new(&e, mainpass, space, key, value, 14);
     CU_ASSERT_EQUAL_FATAL(err, PW_OK);
 
     bool checked = false;
-    err = passwand_entry_do(master, &e, check, &checked);
+    err = passwand_entry_do(mainpass, &e, check, &checked);
     CU_ASSERT_EQUAL_FATAL(err, PW_OK);
     CU_ASSERT_EQUAL_FATAL(checked, true);
 
