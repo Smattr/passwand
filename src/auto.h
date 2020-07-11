@@ -23,4 +23,4 @@ static inline void unmake_k_t(void *p) {
     if (k != NULL)
         passwand_secure_free(k, sizeof(*k));
 }
-#define AUTO_K_T(name) k_t *k __attribute__((cleanup(unmake_k_t))) = make_k_t()
+#define AUTO_K_T(name) k_t *name __attribute__((cleanup(unmake_k_t))) = make_k_t()

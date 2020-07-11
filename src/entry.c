@@ -25,7 +25,7 @@ static void unmake_m_t(void *p) {
     if (m != NULL)
         passwand_secure_free(m, sizeof(*m));
 }
-#define AUTO_M_T(name, mainpass) m_t *m __attribute__((cleanup(unmake_m_t))) = make_m_t(mainpass)
+#define AUTO_M_T(name, mainpass) m_t *name __attribute__((cleanup(unmake_m_t))) = make_m_t(mainpass)
 
 /* Auto-destruct infrastructure for use below. */
 typedef struct {
