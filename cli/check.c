@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
+#include <netinet/in.h>
 #include <netdb.h>
 #include <openssl/sha.h>
 #include <openssl/ssl.h>
