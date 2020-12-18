@@ -52,9 +52,7 @@ int parse(int argc, char **argv) {
 
 #define HANDLE_ARG(field) \
     do { \
-        if (options.field != NULL) { \
-            free(options.field); \
-        } \
+        free(options.field); \
         options.field = strdup(optarg); \
         if (options.field == NULL) { \
             fprintf(stderr, "out of memory while processing arguments\n"); \
