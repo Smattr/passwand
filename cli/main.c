@@ -6,6 +6,7 @@
 #include "cli.h"
 #include "delete.h"
 #include "get.h"
+#include "help.h"
 #include "list.h"
 #include <passwand/passwand.h>
 #include <pthread.h>
@@ -201,23 +202,8 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    if (argc < 2 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-?") == 0) {
-        print("usage:\n"
-               " %s change-main                                   Change the main password\n"
-               " %s check [--space SPACE] [--key KEY]             Check the strength of existing entries\n"
-               " %s delete --space SPACE --key KEY                Delete an existing entry\n"
-               " %s get --space SPACE --key KEY                   Retrieve an existing entry\n"
-               " %s list                                          List all entries\n"
-               " %s set --space SPACE --key KEY --value VALUE     Set an entry\n"
-               " %s update --space SPACE --key KEY --value VALUE  Update an entry\n"
-               "\n"
-               "common options:\n"
-               " --data DATA            Path to data file (default ~/.passwand.json)\n"
-               " --jobs THREADS         Number of threads to use\n"
-               " --work-factor FACTOR   Scrypt work factor (default 14)\n",
-               argv[0], argv[0], argv[0], argv[0], argv[0], argv[0], argv[0]);
-        return EXIT_SUCCESS;
-    }
+    if (argc < 2 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-?") == 0)
+        help();
 
     main_t *mainpass = NULL;
     passwand_entry_t *entries = NULL;

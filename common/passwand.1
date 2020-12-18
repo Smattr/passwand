@@ -1,0 +1,150 @@
+.TH PASSWAND 1
+.SH NAME
+passwand \- password manager
+.SH SYNOPSIS
+.B \fBpw-cli\fR \fBcommand\fR \fBoptions\fR
+.br
+.B \fBpw-gui\fR \fBoptions\fR
+.SH DESCRIPTION
+Passwand is a password manager with a focus on security, sometimes to the
+detriment of usability. You have been warned.
+.PP
+Passwand consists of two tools, \fBpw-cli\fR for creating and maintaining a
+database of encrypted passwords, and \fBpw-gui\fR for retrieving passwords from
+this database and typing them into the active application. \fBpw-cli\fR, as its
+name suggests, is intended to be run from the command line. \fBpw-gui\fR is
+intended to be bound to an operating system keyboard shortcut to invoke it when,
+for example, logging into a site using your web browser. \fBpw-gui\fR
+effectively does the same operation as \fBpw-cli get\fR but emits the password
+as if it were typed on the keyboard rather than printing it to stdout.
+.PP
+To decrypt a database entry or encrypt a new entry, you must supply a "main"
+password. All cryptographic operations indirectly use this as a key. There is no
+recovery mechanism; if you forget the main password to a database, you have
+irrevocably lost access to its entries.
+.PP
+The password database, stored as JSON, contains only encrypted information. That
+is, all namespaces, keys, and values are encrypted at rest. There are no clear
+text fields in the database. At runtime, entries are decrypted on demand and
+then erased from memory as soon as they are no longer needed. This design
+provides strong security at rest and minimises the time unencrypted data is
+present in memory, at the expense of longer runtime due to time spent encrypting
+and decrypting.
+.PP
+The encryption scheme used is AES-256 in CTR mode, with scrypt as a key
+derivation function. This is intended to provide strong security against a
+motivated attacker who has your database file and access to state-of-the-art
+computational resources. Whether it achieves this goal, please judge for
+yourself.
+.SH OPTIONS
+The possible commands that can be given to \fBpw-cli\fR are:
+.RS
+.IP \[bu] 2
+\fBchange-main\fR - Change the main password used to encrypt the database. You
+will be prompted for the old password and the new one you wish to set.
+.IP \[bu]
+\fBcheck\fR - Check each password in the database against the system dictionary
+and the Have I Been Pwned website. Report any weak entries.
+.IP \[bu]
+\fBdelete\fR - Remove an existing entry from the database.
+.IP \[bu]
+\fBget\fR - Retrieve and display an existing entry from the database.
+.IP \[bu]
+\fBlist\fR - List all entries in the given database.
+.IP \[bu]
+\fBset\fR - Create a new entry in the database. This will fail if there is an
+already existing entry with the same namespace and key.
+.IP \[bu]
+\fBupdate\fR - Change the password associated with a given entry. Use this
+instead of \fBset\fR when you wish to set the password of an entry previously
+created.
+.RE
+.PP
+Each command accepts a subset of the options given below. All commands accept
+\fB--data\fR/\fB-d\fR, \fB--jobs\fR/\fB-j\fR, and \fB--work-factor\fR/\fB-N\fR.
+The following table summarises which other options are relevant for each
+command.
+.PP
+.TS
+allbox center; l || c c c .
+command	space	key	value
+=
+\fBpw-cli change-main\fR	disallowed	disallowed	disallowed
+\fBpw-cli check\fR	optional	optional	disallowed
+\fBpw-cli delete\fR	required	required	disallowed
+\fBpw-cli get\fR	required	required	disallowed
+\fBpw-cli list\fR	disallowed	disallowed	disallowed
+\fBpw-cli set\fR	required	required	required
+\fBps-cli update\fR	required	required	required
+\fBpw-gui\fR	optional	optional	disallowed
+.TE
+.PP
+\fB--data\fR \fIFILE\fR or \fB-d\fR \fIFILE\fR
+.RS
+Database of passwords to open or create. If you do not specify this option, it
+defaults to ~/.passwand.json.
+.RE
+.PP
+\fB--jobs\fR \fINUM\fR or \fB-j\fR \fINUM\fR
+.RS
+How many threads to use. Omitting this option or specifying \fB0\fR causes
+passwand to use a number of threads equal to the number of available CPUs.
+.RE
+.PP
+\fB--key\fR \fIKEY\fR or \fB-k\fR \fIKEY\fR
+.RS
+Name of the key to be looked up or stored.
+.RE
+.PP
+\fB--space\fR \fISPACE\fR or \fB-s\fR \fISPACE\fR
+.RS
+Namespace in which the given key/value pair is sought or to be stored.
+.RE
+.PP
+\fB--value\fR \fIVALUE\fR or \fB-v\fR \fIVALUE\fR
+.RS
+Name of the value to be looked up or stored.
+.RE
+.PP
+\fB--work-factor\fR \fIWF\fR or \fB-N\fR \fIWF\fR
+.RS
+Scrypt work factor to use when operating on the database. This influences the
+number of scrypt rounds used during key derivation. A higher number results in
+slower operations but greater resistance to brute force attacks. For more
+information about this parameter, consult Scrypt documentation. This defaults to
+\fB14\fR if omitted.
+.RE
+.PP
+Technically Passwand can be used to store any arbitrary data. That is, the
+"passwords" of your database entries can be binary blobs. However, it is not
+recommended to attempt this. Obviously \fBpw-gui\fR will be unable to "type"
+some of these entries and any \fBNUL\fR bytes in your data will cause these
+fields to be truncated when storing to the database.
+.SH AUTHOR
+All comments, questions and complaints should be directed to Matthew Fernandez
+<matthew.fernandez@gmail.com>.
+.SH LICENSE
+This is free and unencumbered software released into the public domain.
+
+Anyone is free to copy, modify, publish, use, compile, sell, or
+distribute this software, either in source code form or as a compiled
+binary, for any purpose, commercial or non-commercial, and by any
+means.
+
+In jurisdictions that recognize copyright laws, the author or authors
+of this software dedicate any and all copyright interest in the
+software to the public domain. We make this dedication for the benefit
+of the public at large and to the detriment of our heirs and
+successors. We intend this dedication to be an overt act of
+relinquishment in perpetuity of all present and future rights to this
+software under copyright law.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+For more information, please refer to <http://unlicense.org>
