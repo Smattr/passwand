@@ -12,6 +12,9 @@
 
 options_t options;
 
+// default to use if --work-factor is not supplied
+static const unsigned DEFAULT_WORK_FACTOR = 14;
+
 /* Overwrite command line arguments to conceal them from utils like `top`. This
  * isn't a good way to conceal this information from a concerted attacker, but
  * useful for more lazy snooping tools that aren't specifically targeting
@@ -28,7 +31,7 @@ static void blank_arguments(int argc, char **argv) {
 
 int parse(int argc, char **argv) {
 
-    options.work_factor = 14;
+    options.db.work_factor = DEFAULT_WORK_FACTOR;
     options.jobs = 0; // == "number of CPUs"
 
     while (true) {
@@ -61,7 +64,7 @@ int parse(int argc, char **argv) {
     } while (0)
 
             case 'd':
-                HANDLE_ARG(data);
+                HANDLE_ARG(db.path);
                 break;
 
             case 'j': {
@@ -96,7 +99,7 @@ int parse(int argc, char **argv) {
                     fprintf(stderr, "invalid argument to --work-factor\n");
                     return -1;
                 }
-                options.work_factor = wf;
+                options.db.work_factor = wf;
                 break;
             }
 
@@ -110,7 +113,7 @@ int parse(int argc, char **argv) {
         return -1;
     }
 
-    if (options.data == NULL) {
+    if (options.db.path == NULL) {
         /* Setup default path. */
         char *home = getenv_("HOME");
         if (home == NULL)
@@ -125,7 +128,7 @@ int parse(int argc, char **argv) {
             return -1;
         strcpy(path, home);
         strcat(path, "/.passwand.json");
-        options.data = path;
+        options.db.path = path;
     }
 
     /* Try to resolve the path to its ultimate target if it is a symbolic link. The purpose of this
@@ -137,7 +140,7 @@ int parse(int argc, char **argv) {
         char *target = malloc(PATH_MAX + 1);
         if (target == NULL)
             return -1;
-        ssize_t r = readlink(options.data, target, PATH_MAX + 1);
+        ssize_t r = readlink(options.db.path, target, PATH_MAX + 1);
         if (r == -1) {
             /* If we fail for any reason, just bail out and let our caller deal with having a
             * symlink database.
@@ -146,8 +149,8 @@ int parse(int argc, char **argv) {
            break;
         }
         target[r] = '\0';
-        free(options.data);
-        options.data = target;
+        free(options.db.path);
+        options.db.path = target;
     }
 
     if (options.jobs == 0) { // automatic

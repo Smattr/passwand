@@ -68,7 +68,7 @@ static int finalize(void) {
      */
     saved_entries[saved_entry_len - 1] = deleted;
 
-    passwand_error_t err = passwand_export(options.data, saved_entries, saved_entry_len - 1);
+    passwand_error_t err = passwand_export(options.db.path, saved_entries, saved_entry_len - 1);
     if (err != PW_OK) {
         eprint("failed to export entries: %s\n", passwand_error(err));
         return -1;

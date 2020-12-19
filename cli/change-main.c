@@ -27,7 +27,7 @@ static bool loop_condition(void) {
 static void loop_body(const char *space, const char *key, const char *value) {
 
     passwand_error_t e = passwand_entry_new(&new_entries[new_entry_index], new_main->main,
-      space, key, value, options.work_factor);
+      space, key, value, options.db.work_factor);
     if (e != PW_OK) {
         passwand_error_t none = PW_OK;
         if (atomic_compare_exchange_strong(&err, &none, e))
@@ -89,7 +89,7 @@ static int finalize(void) {
     new_main = NULL;
 
     if (err == PW_OK) {
-        err = passwand_export(options.data, new_entries, new_entries_len);
+        err = passwand_export(options.db.path, new_entries, new_entries_len);
         if (err != PW_OK)
             eprint("failed to export entries: %s\n", passwand_error(err));
     }

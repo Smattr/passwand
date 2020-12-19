@@ -226,8 +226,8 @@ int main(int argc, char **argv) {
         goto done;
 
     /* Take a lock on the database if it exists. */
-    if (access(options.data, R_OK) == 0) {
-        int fd = open(options.data, R_OK);
+    if (access(options.db.path, R_OK) == 0) {
+        int fd = open(options.db.path, R_OK);
         if (fd >= 0) {
             if (flock(fd, command->access | LOCK_NB) != 0) {
                 perror("failed to lock database");
@@ -236,8 +236,8 @@ int main(int argc, char **argv) {
         }
     }
 
-    if (access(options.data, F_OK) == 0) {
-        passwand_error_t err = passwand_import(options.data, &entries, &entry_len);
+    if (access(options.db.path, F_OK) == 0) {
+        passwand_error_t err = passwand_import(options.db.path, &entries, &entry_len);
         if (err != PW_OK) {
             eprint("failed to load database: %s\n", passwand_error(err));
             goto done;
@@ -245,7 +245,7 @@ int main(int argc, char **argv) {
     }
 
     for (size_t i = 0; i < entry_len; i++)
-        entries[i].work_factor = options.work_factor;
+        entries[i].work_factor = options.db.work_factor;
 
     /* Validate flags. */
 #define HANDLE(field) \
@@ -362,7 +362,7 @@ done:
     }
     free(entries);
 
-    free(options.data);
+    free(options.db.path);
     free(options.space);
     free(options.key);
     free(options.value);

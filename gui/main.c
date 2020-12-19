@@ -121,8 +121,8 @@ int main(int argc, char **argv) {
     flush_state();
 
     /* Lock database that we're about to access. */
-    if (access(options.data, R_OK) == 0) {
-        int fd = open(options.data, R_OK);
+    if (access(options.db.path, R_OK) == 0) {
+        int fd = open(options.db.path, R_OK);
         if (fd < 0)
             DIE("failed to open database");
         if (flock(fd, LOCK_EX | LOCK_NB) != 0)
@@ -130,12 +130,12 @@ int main(int argc, char **argv) {
     }
 
     /* Import the database. */
-    passwand_error_t err = passwand_import(options.data, &entries, &entry_len);
+    passwand_error_t err = passwand_import(options.db.path, &entries, &entry_len);
     if (err != PW_OK)
         DIE("failed to import database: %s", passwand_error(err));
 
     for (size_t i = 0; i < entry_len; i++)
-        entries[i].work_factor = options.work_factor;
+        entries[i].work_factor = options.db.work_factor;
 
     /* We now are ready to search for the entry, but let's parallelise it across as many cores as
      * we have to speed it up.
@@ -229,7 +229,7 @@ int main(int argc, char **argv) {
             entries[i] = entries[i - 1];
         entries[0] = found;
     }
-    (void)passwand_export(options.data, entries, entry_len);
+    (void)passwand_export(options.db.path, entries, entry_len);
 
     /* Cleanup to make us Valgrind-free in successful runs. */
     for (size_t i = 0; i < entry_len; i++) {
@@ -242,7 +242,7 @@ int main(int argc, char **argv) {
         free(entries[i].iv);
     }
     free(entries);
-    free(options.data);
+    free(options.db.path);
     free(options.space);
     free(options.key);
     free(options.value);

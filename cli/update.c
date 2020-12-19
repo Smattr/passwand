@@ -75,7 +75,7 @@ static int finalize(void) {
 
     passwand_entry_t e;
     if (passwand_entry_new(&e, saved_main->main, options.space, options.key, options.value,
-            options.work_factor) != PW_OK) {
+            options.db.work_factor) != PW_OK) {
         eprint("failed to create new entry\n");
         return -1;
     }
@@ -97,7 +97,7 @@ static int finalize(void) {
     }
     saved_entries[0] = e;
 
-    passwand_error_t err = passwand_export(options.data, saved_entries, saved_entry_len);
+    passwand_error_t err = passwand_export(options.db.path, saved_entries, saved_entry_len);
     if (err != PW_OK) {
         print("failed to export entries: %s\n", passwand_error(err));
         return -1;
