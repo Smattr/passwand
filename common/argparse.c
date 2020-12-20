@@ -109,7 +109,7 @@ int parse(int argc, char **argv) {
             case 'N': {
                 char *endptr;
                 unsigned long wf = strtoul(optarg, &endptr, 10);
-                if (endptr == optarg || *endptr != '\0' || wf == ULONG_MAX) {
+                if (endptr == optarg || *endptr != '\0' || wf < 10 || wf > 31) {
                     fprintf(stderr, "invalid argument to --work-factor\n");
                     return -1;
                 }

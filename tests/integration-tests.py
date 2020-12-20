@@ -2266,6 +2266,40 @@ class Cli(unittest.TestCase):
           # The database should not have been created.
           self.assertFalse(os.path.exists(data))
 
+    def test_work_factor_error(self):
+        '''
+        Passing an invalid --work-factor should result in a sensible error.
+        '''
+        data = os.path.join(self.tmp, 'cli_work_factor_error.json')
+
+        for args in (('change-main',),
+                     ('check',),
+                     ('delete', '--space', 'foo', '--key', 'bar'),
+                     ('get',    '--space', 'foo', '--key', 'bar'),
+                     ('list',),
+                     ('set',    '--space', 'foo', '--key', 'bar', '--value',
+                       'baz'),
+                     ('update', '--space', 'foo', '--key', 'bar', '--value',
+                       'baz')):
+            for wf in ('9', '32'):
+                argv = list(args) + ['--data', data, '--work-factor', wf]
+                p = pexpect.spawn('./pw-cli', argv, timeout=120)
+
+                # The command should error with something mentioning
+                # --work-factor.
+                try:
+                    p.expect('--work-factor')
+                except pexpect.EOF:
+                    self.fail('EOF while waiting for error message')
+                except pexpect.TIMEOUT:
+                    self.fail('timeout while waiting for error message')
+                p.expect(pexpect.EOF)
+                p.close()
+                self.assertNotEqual(p.exitstatus, 0)
+
+                # The database should not have been created.
+                self.assertFalse(os.path.exists(data))
+
     def tearDown(self):
         if hasattr(self, 'tmp') and os.path.exists(self.tmp):
             shutil.rmtree(self.tmp)
