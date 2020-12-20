@@ -44,6 +44,23 @@ static char *mainpass;
 static char *found_value;
 static size_t found_index;
 
+static void cleanup(void) {
+    for (size_t i = 0; i < entry_len; i++) {
+        free(entries[i].space);
+        free(entries[i].key);
+        free(entries[i].value);
+        free(entries[i].hmac);
+        free(entries[i].hmac_salt);
+        free(entries[i].salt);
+        free(entries[i].iv);
+    }
+    free(entries);
+    free(options.db.path);
+    free(options.space);
+    free(options.key);
+    free(options.value);
+}
+
 static void check(void *state, const char *space, const char *key, const char *value) {
     char **v = state;
 
@@ -232,20 +249,7 @@ int main(int argc, char **argv) {
     (void)passwand_export(options.db.path, entries, entry_len);
 
     /* Cleanup to make us Valgrind-free in successful runs. */
-    for (size_t i = 0; i < entry_len; i++) {
-        free(entries[i].space);
-        free(entries[i].key);
-        free(entries[i].value);
-        free(entries[i].hmac);
-        free(entries[i].hmac_salt);
-        free(entries[i].salt);
-        free(entries[i].iv);
-    }
-    free(entries);
-    free(options.db.path);
-    free(options.space);
-    free(options.key);
-    free(options.value);
+    cleanup();
 
     /* Reset the state of the allocator, freeing memory back to the operating
      * system, to pacify tools like Valgrind.
