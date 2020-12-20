@@ -245,8 +245,8 @@ int main(int argc, char **argv) {
         for (size_t i = found_index; i > 0; i--)
             entries[i] = entries[i - 1];
         entries[0] = found;
+        (void)passwand_export(options.db.path, entries, entry_len);
     }
-    (void)passwand_export(options.db.path, entries, entry_len);
 
     /* Cleanup to make us Valgrind-free in successful runs. */
     cleanup();
