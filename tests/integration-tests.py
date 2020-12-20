@@ -4,7 +4,15 @@
 Framework for writing integration tests.
 '''
 
-import json, os, pexpect, re, shutil, subprocess, sys, tempfile, unittest
+import json
+import os
+import pexpect
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import unittest
 
 class DummyTest(unittest.TestCase):
     def test_dummy(self):
