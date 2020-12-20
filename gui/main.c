@@ -217,7 +217,7 @@ int main(int argc, char **argv) {
     if (shown_error) {
         if (found_value != NULL)
             passwand_secure_free(found_value, strlen(found_value) + 1);
-        exit(FAILURE_CODE);
+        return FAILURE_CODE;
     }
 
     for (size_t i = 0; i < strlen(found_value); i++) {
