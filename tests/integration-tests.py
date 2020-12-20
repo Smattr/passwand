@@ -4,6 +4,7 @@
 Framework for writing integration tests.
 '''
 
+import itertools
 import json
 import os
 import pexpect
@@ -2238,6 +2239,33 @@ class Cli(unittest.TestCase):
             p.close()
             self.assertEqual(p.exitstatus, 0)
 
+    def test_chain_rejected(self):
+        '''
+        Test that all cli commands reject the --chain command line option.
+        '''
+        data = os.path.join(self.tmp, 'cli_chain_rejected.json')
+        chain = os.path.join(self.tmp, 'cli_chain_rejected_chain.json')
+
+        for args in (('change-main',),
+                     ('check',),
+                     ('delete', '--space', 'foo', '--key', 'bar'),
+                     ('get',    '--space', 'foo', '--key', 'bar'),
+                     ('list',),
+                     ('set',    '--space', 'foo', '--key', 'bar', '--value',
+                       'baz'),
+                     ('update', '--space', 'foo', '--key', 'bar', '--value',
+                       'baz')):
+          argv = list(args) + ['--data', data, '--chain', chain]
+          p = pexpect.spawn('./pw-cli', argv, timeout=120)
+
+          # The command should immediately error.
+          p.expect(pexpect.EOF)
+          p.close()
+          self.assertNotEqual(p.exitstatus, 0)
+
+          # The database should not have been created.
+          self.assertFalse(os.path.exists(data))
+
     def tearDown(self):
         if hasattr(self, 'tmp') and os.path.exists(self.tmp):
             shutil.rmtree(self.tmp)
@@ -2435,6 +2463,597 @@ class Gui(unittest.TestCase):
 
         # We should have only received a single line of error content.
         self.assertLess(stderr.count('\n'), 2)
+
+    def test_chain_basic(self):
+        '''
+        Basic expected usage of --chain.
+        '''
+        data = os.path.join(self.tmp, 'chain_basic.json')
+        chain = os.path.join(self.tmp, 'chain_basic_chain.json')
+
+        # Setup a database with a couple of entries.
+        for i in range(2):
+            args = ['set', '--data', data, '--space', 'space{}'.format(i),
+              '--key', 'key{}'.format(i), '--value', 'value{}'.format(i)]
+            p = pexpect.spawn('./pw-cli', args, timeout=120)
+
+            # Enter the main password.
+            try:
+                p.expect('main password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('foo')
+
+            # Confirm the main password.
+            try:
+                p.expect('confirm main password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('foo')
+
+            # Now passwand should exit with success.
+            p.expect(pexpect.EOF)
+            p.close()
+            self.assertEqual(p.exitstatus, 0)
+
+        # Setup the chain database.
+        args = ['set', '--data', chain, '--space', 'ignored', '--key',
+          'ignored', '--value', 'foo']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+
+        # Enter the main password.
+        try:
+            p.expect('main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('bar')
+
+        # Confirm the main password.
+        try:
+            p.expect('confirm main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('bar')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Confirm the we can now lookup both entries using the chain.
+        for i in range(2):
+            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
+              '--chain', chain], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+              stderr=subprocess.PIPE, universal_newlines=True)
+            stdout, stderr = p.communicate('space{}\n'
+                                           'key{}\n'
+                                           'bar\n'.format(i, i))
+            self.assertEqual(p.returncode, 0)
+            self.assertEqual(stdout, 'value{}\n'.format(i))
+
+            # The entries should *not* be retrievable using the primary
+            # database’s password.
+            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
+              '--chain', chain], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+              stderr=subprocess.PIPE, universal_newlines=True)
+            stdout, stderr = p.communicate('space{}\n'
+                                           'key{}\n'
+                                           'foo\n'.format(i, i))
+            if sys.platform == 'darwin':
+                self.assertEqual(p.returncode, 0)
+            else:
+                self.assertNotEqual(p.returncode, 0)
+            self.assertNotEqual(stdout, 'value{}\n'.format(i))
+            self.assertNotEqual(stderr, '')
+
+    def test_chain_double(self):
+        '''
+        It should be possible to use --chain multiple times.
+        '''
+        data = os.path.join(self.tmp, 'chain_double.json')
+        chain1 = os.path.join(self.tmp, 'chain_double_chain1.json')
+        chain2 = os.path.join(self.tmp, 'chain_double_chain2.json')
+
+        # Setup a database with a couple of entries.
+        for i in range(2):
+            args = ['set', '--data', data, '--space', 'space{}'.format(i),
+              '--key', 'key{}'.format(i), '--value', 'value{}'.format(i)]
+            p = pexpect.spawn('./pw-cli', args, timeout=120)
+
+            # Enter the main password.
+            try:
+                p.expect('main password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('foo')
+
+            # Confirm the main password.
+            try:
+                p.expect('confirm main password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('foo')
+
+            # Now passwand should exit with success.
+            p.expect(pexpect.EOF)
+            p.close()
+            self.assertEqual(p.exitstatus, 0)
+
+        # Setup the first chain database.
+        args = ['set', '--data', chain1, '--space', 'ignored', '--key',
+          'ignored', '--value', 'foo']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+
+        # Enter the main password.
+        try:
+            p.expect('main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('bar')
+
+        # Confirm the main password.
+        try:
+            p.expect('confirm main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('bar')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Setup the second chain database.
+        args = ['set', '--data', chain2, '--space', 'ignored', '--key',
+          'ignored', '--value', 'bar']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+
+        # Enter the main password.
+        try:
+            p.expect('main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('baz')
+
+        # Confirm the main password.
+        try:
+            p.expect('confirm main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('baz')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Confirm the we can now lookup both entries using the chain.
+        for i in range(2):
+            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
+              '--chain', chain2, '--chain', chain1], stdin=subprocess.PIPE,
+              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+              universal_newlines=True)
+            stdout, stderr = p.communicate('space{}\n'
+                                           'key{}\n'
+                                           'baz\n'.format(i, i))
+            self.assertEqual(p.returncode, 0)
+            self.assertEqual(stdout, 'value{}\n'.format(i))
+
+            # The entries should *not* be retrievable using the primary
+            # database’s password.
+            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
+              '--chain', chain2, '--chain', chain1], stdin=subprocess.PIPE,
+              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+              universal_newlines=True)
+            stdout, stderr = p.communicate('space{}\n'
+                                           'key{}\n'
+                                           'foo\n'.format(i, i))
+            if sys.platform == 'darwin':
+                self.assertEqual(p.returncode, 0)
+            else:
+                self.assertNotEqual(p.returncode, 0)
+            self.assertNotEqual(stdout, 'value{}\n'.format(i))
+            self.assertNotEqual(stderr, '')
+
+            # The entries should also not be retrievable using the main password
+            # of the intermediate chain database.
+            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
+              '--chain', chain2, '--chain', chain1], stdin=subprocess.PIPE,
+              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+              universal_newlines=True)
+            stdout, stderr = p.communicate('space{}\n'
+                                           'key{}\n'
+                                           'bar\n'.format(i, i))
+            if sys.platform == 'darwin':
+                self.assertEqual(p.returncode, 0)
+            else:
+                self.assertNotEqual(p.returncode, 0)
+            self.assertNotEqual(stdout, 'value{}\n'.format(i))
+            self.assertNotEqual(stderr, '')
+
+            # Passing the chain in the wrong order should also fail with any of
+            # the main passwords.
+            for mainpass in ('foo', 'bar', 'baz'):
+                p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
+                  '--chain', chain1, '--chain', chain2], stdin=subprocess.PIPE,
+                  stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                  universal_newlines=True)
+                stdout, stderr = p.communicate('space{}\n'
+                                               'key{}\n'
+                                               '{}\n'.format(i, i, mainpass))
+                if sys.platform == 'darwin':
+                    self.assertEqual(p.returncode, 0)
+                else:
+                    self.assertNotEqual(p.returncode, 0)
+                self.assertNotEqual(stdout, 'value{}\n'.format(i))
+                self.assertNotEqual(stderr, '')
+
+    def test_chain_self(self):
+        '''
+        Chaining a database to itself.
+        '''
+        # This makes no real sense, but there is no reason to prevent a user
+        # doing this.
+
+        data = os.path.join(self.tmp, 'chain_self.json')
+
+        # Setup a database with a sole entry.
+        args = ['set', '--data', data, '--space', 'space', '--key', 'key',
+          '--value', 'foo']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+
+        # Enter the main password.
+        try:
+            p.expect('main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('foo')
+
+        # Confirm the main password.
+        try:
+            p.expect('confirm main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('foo')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Now chain the database to itself and try to retrieve the entry.
+        p = subprocess.Popen(['./pw-gui-test-stub', '--data', data, '--chain',
+          data], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+          stderr=subprocess.PIPE, universal_newlines=True)
+        stdout, stderr = p.communicate('space\n'
+                                       'key\n'
+                                       'foo\n')
+        self.assertEqual(p.returncode, 0)
+        self.assertEqual(stdout, 'foo\n')
+
+    def test_chain_work_factor(self):
+        '''
+        Chaining multiple databases with different --work-factor settings.
+        '''
+        data = os.path.join(self.tmp, 'chain_work_factor.json')
+        chain1 = os.path.join(self.tmp, 'chain_work_factor_chain.json')
+        chain2 = os.path.join(self.tmp, 'chain_work_factor_chain2.json')
+
+        # Setup a database with a couple of entries.
+        for i in range(2):
+            args = ['set', '--work-factor', '10', '--data', data, '--space',
+              'space{}'.format(i), '--key', 'key{}'.format(i), '--value',
+              'value{}'.format(i)]
+            p = pexpect.spawn('./pw-cli', args, timeout=120)
+
+            # Enter the main password.
+            try:
+                p.expect('main password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('foo')
+
+            # Confirm the main password.
+            try:
+                p.expect('confirm main password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('foo')
+
+            # Now passwand should exit with success.
+            p.expect(pexpect.EOF)
+            p.close()
+            self.assertEqual(p.exitstatus, 0)
+
+        # Setup the first chain database.
+        args = ['set', '--work-factor', '11', '--data', chain1, '--space',
+          'ignored', '--key', 'ignored', '--value', 'foo']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+
+        # Enter the main password.
+        try:
+            p.expect('main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('bar')
+
+        # Confirm the main password.
+        try:
+            p.expect('confirm main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('bar')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Setup the second chain database.
+        args = ['set', '--work-factor', '12', '--data', chain2, '--space',
+          'ignored', '--key', 'ignored', '--value', 'bar']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+
+        # Enter the main password.
+        try:
+            p.expect('main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('baz')
+
+        # Confirm the main password.
+        try:
+            p.expect('confirm main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('baz')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Confirm the we can now lookup both entries using the chain.
+        for i in range(2):
+            for a, b, c in itertools.permutations(('10', '11', '12')):
+
+                p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
+                  '--work-factor', a, '--chain', chain2, '--work-factor', b,
+                  '--chain', chain1, '--work-factor', c], stdin=subprocess.PIPE,
+                  stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                  universal_newlines=True)
+                stdout, stderr = p.communicate('space{}\n'
+                                               'key{}\n'
+                                               'baz\n'.format(i, i))
+
+                # This should only succeed if we used the right work factors.
+                if a == '10' and b == '12' and c == '11':
+                    self.assertEqual(p.returncode, 0)
+                    self.assertEqual(stdout, 'value{}\n'.format(i))
+
+                else:
+                    if sys.platform == 'darwin':
+                        self.assertEqual(p.returncode, 0)
+                    else:
+                        self.assertNotEqual(p.returncode, 0)
+                    self.assertNotEqual(stdout, 'value{}\n'.format(i))
+                    self.assertNotEqual(stderr, '')
+
+    def test_chain_not_one(self):
+        '''
+        Chaining a database with more than one entry should fail.
+        '''
+        data = os.path.join(self.tmp, 'chain_not_one.json')
+        chain1 = os.path.join(self.tmp, 'chain_not_one_chain1.json')
+        chain2 = os.path.join(self.tmp, 'chain_not_one_chain2.json')
+
+        # Setup a database with a couple of entries.
+        for i in range(2):
+            args = ['set', '--data', data, '--space', 'space{}'.format(i),
+              '--key', 'key{}'.format(i), '--value', 'value{}'.format(i)]
+            p = pexpect.spawn('./pw-cli', args, timeout=120)
+
+            # Enter the main password.
+            try:
+                p.expect('main password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('foo')
+
+            # Confirm the main password.
+            try:
+                p.expect('confirm main password: ')
+            except pexpect.EOF:
+                self.fail('EOF while waiting for password prompt')
+            except pexpect.TIMEOUT:
+                self.fail('timeout while waiting for password prompt')
+            p.sendline('foo')
+
+            # Now passwand should exit with success.
+            p.expect(pexpect.EOF)
+            p.close()
+            self.assertEqual(p.exitstatus, 0)
+
+        # Setup the chain database.
+        args = ['set', '--data', chain1, '--space', 'space0', '--key',
+          'key0', '--value', 'foo']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+
+        # Enter the main password.
+        try:
+            p.expect('main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('bar')
+
+        # Confirm the main password.
+        try:
+            p.expect('confirm main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('bar')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Write a second entry to the chain database.
+        args = ['set', '--data', chain1, '--space', 'space1', '--key',
+          'key1', '--value', 'baz']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+
+        # Enter the main password.
+        try:
+            p.expect('main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('bar')
+
+        # Confirm the main password.
+        try:
+            p.expect('confirm main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('bar')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # We should be unable to use this as a chain.
+        for i in range(2):
+            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
+              '--chain', chain1], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+              stderr=subprocess.PIPE, universal_newlines=True)
+            stdout, stderr = p.communicate('space{}\n'
+                                           'key{}\n'
+                                           'bar\n'.format(i, i))
+            if sys.platform == 'darwin':
+                self.assertEqual(p.returncode, 0)
+            else:
+                self.assertNotEqual(p.returncode, 0)
+            self.assertNotEqual(stdout, 'value{}\n'.format(i))
+            self.assertNotEqual(stderr, '')
+
+        # Try the same, setting up the chain database entries in the opposite
+        # order just to make sure.
+        args = ['set', '--data', chain2, '--space', 'space0', '--key',
+          'key0', '--value', 'baz']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+
+        # Enter the main password.
+        try:
+            p.expect('main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('bar')
+
+        # Confirm the main password.
+        try:
+            p.expect('confirm main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('bar')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Write a second entry to the chain database.
+        args = ['set', '--data', chain2, '--space', 'space1', '--key',
+          'key1', '--value', 'foo']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+
+        # Enter the main password.
+        try:
+            p.expect('main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('bar')
+
+        # Confirm the main password.
+        try:
+            p.expect('confirm main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('bar')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # We should be unable to use this as a chain.
+        for i in range(2):
+            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
+              '--chain', chain2], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+              stderr=subprocess.PIPE, universal_newlines=True)
+            stdout, stderr = p.communicate('space{}\n'
+                                           'key{}\n'
+                                           'bar\n'.format(i, i))
+            if sys.platform == 'darwin':
+                self.assertEqual(p.returncode, 0)
+            else:
+                self.assertNotEqual(p.returncode, 0)
+            self.assertNotEqual(stdout, 'value{}\n'.format(i))
+            self.assertNotEqual(stderr, '')
 
     def tearDown(self):
         if hasattr(self, 'tmp') and os.path.exists(self.tmp):

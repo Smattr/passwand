@@ -63,6 +63,9 @@ static void cleanup(void) {
     free(options.space);
     free(options.key);
     free(options.value);
+    for (size_t i = 0; i < options.chain_len; ++i)
+        free(options.chain[i].path);
+    free(options.chain);
 }
 
 static void check(void *state, const char *space, const char *key, const char *value) {
@@ -120,6 +123,26 @@ static void *search(void *arg __attribute__((unused))) {
     return NULL;
 }
 
+/** Take a password entry from a chained database and consider it now the new main password
+ *
+ * @param value The password to update the main password to
+ */
+static void process_chain_link(void *state __attribute__((unused)),
+    const char *space __attribute__((unused)), const char *key __attribute__((unused)),
+    const char *value) {
+
+    /* Assume we no longer need the main password. */
+    assert(mainpass != NULL);
+    passwand_secure_free(mainpass, strlen(mainpass) + 1);
+    mainpass = NULL;
+
+    /* strdup() the replacement onto it. */
+    if (passwand_secure_malloc((void**)&mainpass, strlen(value) + 1) == PW_OK) {
+        assert(mainpass != NULL);
+        strcpy(mainpass, value);
+    }
+}
+
 int main(int argc, char **argv) {
 
     if (parse(argc, argv) != 0)
@@ -140,6 +163,54 @@ int main(int argc, char **argv) {
         return EXIT_SUCCESS;
 
     flush_state();
+
+    /* Process any chained databases. */
+    for (size_t i = 0; i < options.chain_len; ++i) {
+
+        /* Lock database that we're about to access. */
+        int fd = -1;
+        if (access(options.chain[i].path, R_OK) == 0) {
+            fd = open(options.chain[i].path, R_OK);
+            if (fd < 0)
+                DIE("failed to open database");
+            if (flock(fd, LOCK_SH | LOCK_NB) != 0)
+                DIE("failed to lock database: %s", strerror(errno));
+        }
+
+        /* Import the database. */
+        {
+            passwand_error_t err = passwand_import(options.chain[i].path, &entries, &entry_len);
+            if (err != PW_OK)
+                DIE("failed to import database: %s", passwand_error(err));
+        }
+
+        if (entry_len != 1)
+            DIE("chained database has more than one entry");
+
+        entries[0].work_factor = options.chain[i].work_factor;
+
+        /* Extract the password from this database to use as the new main password. */
+        passwand_error_t err = passwand_entry_do(mainpass, &entries[0], process_chain_link, NULL);
+
+        /* Discard this entry we no longer need. */
+        cleanup_entry(&entries[0]);
+        free(entries);
+        entries = NULL;
+        entry_len = 0;
+
+        /* Did we fail above? */
+        if (err != PW_OK)
+            DIE("failed to process chained database %s: %s", options.chain[i].path,
+              passwand_error(err));
+        if (mainpass == NULL)
+            DIE("out of memory while processing chained database %s", options.chain[i].path);
+
+        /* Unlock the database we no longer need. */
+        (void)flock(fd, LOCK_UN);
+        (void)close(fd);
+    }
+
+    assert(mainpass != NULL);
 
     /* Lock database that we're about to access. */
     if (access(options.db.path, R_OK) == 0) {

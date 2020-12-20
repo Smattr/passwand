@@ -36,6 +36,7 @@ int parse(int argc, char **argv) {
 
     while (true) {
         struct option opts[] = {
+            {"chain", required_argument, 0, 'c'},
             {"data", required_argument, 0, 'd'},
             {"jobs", required_argument, 0, 'j'},
             {"space", required_argument, 0, 's'},
@@ -46,7 +47,7 @@ int parse(int argc, char **argv) {
         };
 
         int index;
-        int c = getopt_long(argc, argv, "d:s:k:v:N:", opts, &index);
+        int c = getopt_long(argc, argv, "c:d:s:k:v:N:", opts, &index);
 
         if (c == -1)
             break;
@@ -62,6 +63,19 @@ int parse(int argc, char **argv) {
             return -1; \
         } \
     } while (0)
+
+            case 'c':
+                ++options.chain_len;
+                options.chain = realloc(options.chain,
+                  options.chain_len * sizeof(options.chain[0]));
+                if (options.chain == NULL) {
+                    fprintf(stderr, "out of memory\n");
+                    return -1;
+                }
+                options.chain[options.chain_len - 1].path = NULL;
+                options.chain[options.chain_len - 1].work_factor = DEFAULT_WORK_FACTOR;
+                HANDLE_ARG(chain[options.chain_len - 1].path);
+                break;
 
             case 'd':
                 HANDLE_ARG(db.path);
@@ -99,7 +113,12 @@ int parse(int argc, char **argv) {
                     fprintf(stderr, "invalid argument to --work-factor\n");
                     return -1;
                 }
-                options.db.work_factor = wf;
+                /* Should this apply to a chained database? */
+                if (options.chain_len > 0) {
+                    options.chain[options.chain_len - 1].work_factor = wf;
+                } else {
+                    options.db.work_factor = wf;
+                }
                 break;
             }
 

@@ -225,6 +225,11 @@ int main(int argc, char **argv) {
     if (parse(argc - 1, argv + 1) != 0)
         goto done;
 
+    if (options.chain_len > 0) {
+        eprint("%s does not support chained databases\n", argv[0]);
+        goto done;
+    }
+
     /* Take a lock on the database if it exists. */
     if (access(options.db.path, R_OK) == 0) {
         int fd = open(options.db.path, R_OK);
@@ -366,6 +371,9 @@ done:
     free(options.space);
     free(options.key);
     free(options.value);
+    for (size_t i = 0; i < options.chain_len; ++i)
+        free(options.chain[i].path);
+    free(options.chain);
 
     /* Reset the state of the allocator, freeing memory back to the operating
      * system, to pacify tools like Valgrind.

@@ -66,18 +66,40 @@ The following table summarises which other options are relevant for each
 command.
 .PP
 .TS
-allbox center; l || c c c .
-command	space	key	value
+allbox center; l || c c c c .
+command	space	key	value	chain
 =
-\fBpw-cli change-main\fR	disallowed	disallowed	disallowed
-\fBpw-cli check\fR	optional	optional	disallowed
-\fBpw-cli delete\fR	required	required	disallowed
-\fBpw-cli get\fR	required	required	disallowed
-\fBpw-cli list\fR	disallowed	disallowed	disallowed
-\fBpw-cli set\fR	required	required	required
-\fBps-cli update\fR	required	required	required
-\fBpw-gui\fR	optional	optional	disallowed
+\fBpw-cli change-main\fR	disallowed	disallowed	disallowed	disallowed
+\fBpw-cli check\fR	optional	optional	disallowed	disallowed
+\fBpw-cli delete\fR	required	required	disallowed	disallowed
+\fBpw-cli get\fR	required	required	disallowed	disallowed
+\fBpw-cli list\fR	disallowed	disallowed	disallowed	disallowed
+\fBpw-cli set\fR	required	required	required	disallowed
+\fBps-cli update\fR	required	required	required	disallowed
+\fBpw-gui\fR	optional	optional	disallowed	optional
 .TE
+.PP
+\fB--chain\fR \fIFILE\fR or \fB-c\fR \fIFILE\fR
+.RS
+An extra database to "layer" on top of the primary one. This first entry in this
+database will be assumed to have a value that is the main password to your
+primary database (the one provided to \fB--data\fR). This option can be given
+multiple times to accumulate layers. That is, the database passed to the first
+\fB--chain\fR option will be used first, then its first entry will be used to
+decrypt the database passed to the second \fB--chain\fR option, whose first
+entry will be used to decrypt the database passed to the third \fB--chain\fR,
+and so on until the list of chained databases is exhausted. Then the first entry
+from the final chained database will be used as the main password to the primary
+database. This option is only accepted by \fBpw-gui\fR, not by \fBpw-cli\fR.
+.PP
+The purpose of these chained databases is to support disposable secondary
+passwords. If your main password is "foo", you can encrypt this in the first
+entry of a database with main password "bar". Now you can use \fB--chain\fR to
+allow you to only enter "bar" to decrypt your main database. If your "bar"
+password is compromised, you simply delete the chained database to revoke "bar".
+The integrity of your main database remains intact as does the secrecy of your
+main password "foo".
+.RE
 .PP
 \fB--data\fR \fIFILE\fR or \fB-d\fR \fIFILE\fR
 .RS
@@ -113,6 +135,10 @@ number of scrypt rounds used during key derivation. A higher number results in
 slower operations but greater resistance to brute force attacks. For more
 information about this parameter, consult Scrypt documentation. This defaults to
 \fB14\fR if omitted.
+.PP
+If one or more \fB--chain\fR options were encountered prior to this option, the
+work factor is assumed to apply to the last entry of the chain. Otherwise, this
+option applies to your main database passed to \fB--data\fR.
 .RE
 .PP
 Technically Passwand can be used to store any arbitrary data. That is, the
