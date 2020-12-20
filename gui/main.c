@@ -45,16 +45,19 @@ static char *mainpass;
 static char *found_value;
 static size_t found_index;
 
+static void cleanup_entry(passwand_entry_t *e) {
+    free(e->space);
+    free(e->key);
+    free(e->value);
+    free(e->hmac);
+    free(e->hmac_salt);
+    free(e->salt);
+    free(e->iv);
+}
+
 static void cleanup(void) {
-    for (size_t i = 0; i < entry_len; i++) {
-        free(entries[i].space);
-        free(entries[i].key);
-        free(entries[i].value);
-        free(entries[i].hmac);
-        free(entries[i].hmac_salt);
-        free(entries[i].salt);
-        free(entries[i].iv);
-    }
+    for (size_t i = 0; i < entry_len; i++)
+        cleanup_entry(&entries[i]);
     free(entries);
     free(options.db.path);
     free(options.space);
