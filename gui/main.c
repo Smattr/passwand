@@ -158,14 +158,31 @@ int main(int argc, char **argv) {
     if (options.key == NULL)
         return EXIT_SUCCESS;
 
-    mainpass = get_text("Passwand", "Main passphrase?", NULL, true);
-    if (mainpass == NULL)
-        return EXIT_SUCCESS;
+    /* How many chained databases to skip. */
+    size_t chain_offset = 0;
+
+    do {
+        mainpass = get_text("Passwand", "Main passphrase?", NULL, true);
+        if (mainpass == NULL)
+            return EXIT_SUCCESS;
+
+        /* If the user entered an empty string, they want to skip a chained database. */
+        if (strcmp(mainpass, "") == 0) {
+            passwand_secure_free(mainpass, strlen(mainpass) + 1);
+            mainpass = NULL;
+
+            ++chain_offset;
+
+            if (chain_offset > options.chain_len)
+                DIE("cannot bypass %zu chained databases when there are only %zu", chain_offset,
+                  options.chain_len);
+        }
+    } while (mainpass == NULL);
 
     flush_state();
 
     /* Process any chained databases. */
-    for (size_t i = 0; i < options.chain_len; ++i) {
+    for (size_t i = chain_offset; i < options.chain_len; ++i) {
 
         /* Lock database that we're about to access. */
         int fd = -1;
