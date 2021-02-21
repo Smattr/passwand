@@ -36,8 +36,7 @@ TEST("import: with a missing field") {
   const char *data =
       "[{\"space\":\"aGVsbG8gd29ybGQ=\", \"key\":\"aGVsbG8gd29ybGQ=\", "
       "\"value\":\"aGVsbG8gd29ybGQ=\", \"hmac\":\"aGVsbG8gd29ybGQ=\", "
-      "\"hmac_salt\":"
-      "\"aGVsbG8gd29ybGQ=\", \"salt\":\"aGVsbG8gd29ybGQ=\"}]";
+      "\"hmac_salt\":\"aGVsbG8gd29ybGQ=\", \"salt\":\"aGVsbG8gd29ybGQ=\"}]";
 
   /* Create a temporary file. */
   char tmp[sizeof("/tmp/tmp.XXXXXX")];
@@ -61,8 +60,7 @@ TEST("import: basic functionality") {
   const char *data =
       "[{\"space\":\"aGVsbG8gd29ybGQ=\", \"key\":\"aGVsbG8gd29ybGQ=\", "
       "\"value\":\"aGVsbG8gd29ybGQ=\", \"hmac\":\"aGVsbG8gd29ybGQ=\", "
-      "\"hmac_salt\":"
-      "\"aGVsbG8gd29ybGQ=\", \"salt\":\"aGVsbG8gd29ybGQ=\", "
+      "\"hmac_salt\":\"aGVsbG8gd29ybGQ=\", \"salt\":\"aGVsbG8gd29ybGQ=\", "
       "\"iv\":\"aGVsbG8gd29ybGQ=\"}]";
 
   /* Create a temporary file. */
@@ -130,10 +128,8 @@ TEST("import: with an extra field") {
   const char *data =
       "[{\"space\":\"aGVsbG8gd29ybGQ=\", \"key\":\"aGVsbG8gd29ybGQ=\", "
       "\"value\":\"aGVsbG8gd29ybGQ=\", \"hmac\":\"aGVsbG8gd29ybGQ=\", "
-      "\"hmac_salt\":"
-      "\"aGVsbG8gd29ybGQ=\", \"salt\":\"aGVsbG8gd29ybGQ=\", "
-      "\"iv\":\"aGVsbG8gd29ybGQ=\","
-      "\"extra\":\"blah blah\"}]";
+      "\"hmac_salt\":\"aGVsbG8gd29ybGQ=\", \"salt\":\"aGVsbG8gd29ybGQ=\", "
+      "\"iv\":\"aGVsbG8gd29ybGQ=\",\"extra\":\"blah blah\"}]";
 
   /* Create a temporary file. */
   char tmp[sizeof("/tmp/tmp.XXXXXX")];
