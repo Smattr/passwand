@@ -16,7 +16,7 @@ passwand_error_t encode(const uint8_t *s, size_t len, char **e) {
   if (len > (size_t)INT_MAX)
     return PW_OVERFLOW;
 
-  // Create a base64 filter.
+  // create a base64 filter
   BIO *b64 = BIO_new(BIO_f_base64());
   if (b64 == NULL)
     return PW_NO_MEM;
@@ -24,7 +24,7 @@ passwand_error_t encode(const uint8_t *s, size_t len, char **e) {
 
   passwand_error_t rc = PW_OK;
 
-  // Create an in-memory sink to encode data into.
+  // create an in-memory sink to encode data into
   BIO *out = BIO_new(BIO_s_mem());
   if (out == NULL) {
     rc = PW_NO_MEM;
@@ -33,14 +33,14 @@ passwand_error_t encode(const uint8_t *s, size_t len, char **e) {
 
   b64 = BIO_push(b64, out);
 
-  // Encode the data.
+  // encode the data
   if (BIO_write(b64, s, len) != (int)len) {
     rc = PW_IO;
     goto done;
   }
   BIO_flush(b64);
 
-  // Extract it into a string.
+  // extract it into a string
   BUF_MEM *bptr;
   BIO_get_mem_ptr(out, &bptr);
 
@@ -70,7 +70,7 @@ passwand_error_t decode(const char *s, uint8_t **d, size_t *len) {
 
   *d = NULL;
 
-  // Create a base64 filter.
+  // create a base64 filter
   BIO *b64 = BIO_new(BIO_f_base64());
   if (b64 == NULL)
     return PW_NO_MEM;
@@ -78,7 +78,7 @@ passwand_error_t decode(const char *s, uint8_t **d, size_t *len) {
 
   passwand_error_t rc = PW_OK;
 
-  // Create a source to read encoded data from.
+  // create a source to read encoded data from
   BIO *in = BIO_new_mem_buf((void *)s, -1);
   if (in == NULL) {
     rc = PW_NO_MEM;
@@ -97,7 +97,7 @@ passwand_error_t decode(const char *s, uint8_t **d, size_t *len) {
     goto done;
   }
 
-  // Do the actual decoding.
+  // do the actual decoding
   int read = BIO_read(b64, *d, sz);
 
   assert((long)read <= sz);

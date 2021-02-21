@@ -40,7 +40,7 @@ TEST("decode: == base64") {
 
 TEST("decode: decode(encode(x)) == x") {
 
-  // Some basic text to encode.
+  // some basic text to encode
   const char *input =
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod "
       "tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim "
@@ -50,14 +50,14 @@ TEST("decode: decode(encode(x)) == x") {
       "occaecat cupidatat non proident, sunt in culpa qui officia deserunt "
       "mollit anim id est laborum.";
 
-  // Encode the text.
+  // encode the text
   char *encoded;
   passwand_error_t err =
       encode((const uint8_t *)input, strlen(input), &encoded);
   CU_ASSERT_EQUAL_FATAL(err, PW_OK);
   CU_ASSERT_PTR_NOT_NULL_FATAL(encoded);
 
-  // Now let's decode this.
+  // now let us decode this
   uint8_t *output;
   size_t output_len;
   err = decode(encoded, &output, &output_len);
@@ -66,7 +66,7 @@ TEST("decode: decode(encode(x)) == x") {
 
   free(encoded);
 
-  // We should have got back what we put in.
+  // we should have got back what we put in
   CU_ASSERT_EQUAL_FATAL(output_len, strlen(input));
   CU_ASSERT_EQUAL_FATAL(strncmp((const char *)output, input, output_len), 0);
 

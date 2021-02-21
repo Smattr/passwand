@@ -16,8 +16,8 @@ options_t options;
 static const unsigned DEFAULT_WORK_FACTOR = 14;
 
 // Overwrite command line arguments to conceal them from utils like `top`. This
-// isn't a good way to conceal this information from a concerted attacker, but
-// useful for more lazy snooping tools that aren't specifically targeting
+// is not a good way to conceal this information from a concerted attacker, but
+// useful for more lazy snooping tools that are not specifically targeting
 // Passwand.
 static void blank_arguments(int argc, char **argv) {
   for (size_t i = 0; i < (size_t)argc; i++) {
@@ -31,7 +31,7 @@ static void blank_arguments(int argc, char **argv) {
 int parse(int argc, char **argv) {
 
   options.db.work_factor = DEFAULT_WORK_FACTOR;
-  options.jobs = 0; // == "number of CPUs"
+  options.jobs = 0; // == “number of CPUs”
 
   while (true) {
     struct option opts[] = {
@@ -112,7 +112,7 @@ int parse(int argc, char **argv) {
         fprintf(stderr, "invalid argument to --work-factor\n");
         return -1;
       }
-      // Should this apply to a chained database?
+      // should this apply to a chained database?
       if (options.chain_len > 0) {
         options.chain[options.chain_len - 1].work_factor = wf;
       } else {
@@ -132,11 +132,11 @@ int parse(int argc, char **argv) {
   }
 
   if (options.db.path == NULL) {
-    // Setup default path.
+    // setup default path
     char *home = getenv_("HOME");
     if (home == NULL)
       return -1;
-    // Check for overflow.
+    // check for overflow
     if (SIZE_MAX - strlen(home) < strlen("/.passwand.json"))
       return -1;
     if (SIZE_MAX - strlen(home) - strlen("/.passwand.json") < 1)
@@ -160,8 +160,8 @@ int parse(int argc, char **argv) {
       return -1;
     ssize_t r = readlink(options.db.path, target, PATH_MAX + 1);
     if (r == -1) {
-      // If we fail for any reason, just bail out and let our caller deal with
-      // having a symlink database.
+      // if we fail for any reason, just bail out and let our caller deal with
+      // having a symlink database
       free(target);
       break;
     }

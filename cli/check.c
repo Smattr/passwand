@@ -39,7 +39,7 @@ static bool in_dictionary(const char *s) {
   // open the system dictionary
   FILE *f = fopen("/usr/share/dict/words", "r");
   if (f == NULL) {
-    // failed; perhaps the file doesn't exist
+    // failed; perhaps the file does not exist
     return false;
   }
 
@@ -123,7 +123,7 @@ static void skip_past(const char **p, char c) {
   skip_over(p, c);
 }
 
-// HIBP's DNS records. Access is protected by dns_lock below.
+// HIBP’s DNS records. Access is protected by dns_lock below.
 static struct addrinfo *dns_info;
 static bool dns_looked_up;
 
@@ -146,7 +146,7 @@ static char *hibp_data(const char *hex, const char **error) {
   if (!dns_looked_up) {
     assert(dns_info == NULL);
 
-    // lookup HIBP's IP address(es)
+    // lookup HIBP’s IP address(es)
     const struct addrinfo hints = {.ai_family = AF_UNSPEC,
                                    .ai_socktype = SOCK_STREAM,
                                    .ai_protocol = IPPROTO_TCP};

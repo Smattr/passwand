@@ -1,5 +1,5 @@
-// Implementation of the ../exe/gui.h API for the purposes of command line
-// testing.
+// implementation of the ../exe/gui.h API for the purposes of command line
+// testing
 
 #include "../gui/gui.h"
 #include <assert.h>

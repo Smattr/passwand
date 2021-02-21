@@ -16,7 +16,7 @@ typedef struct {
   uint8_t *value;
   size_t value_len;
 
-  // hmac fields
+  // HMAC fields
   uint8_t *hmac;
   size_t hmac_len;
   uint8_t *hmac_salt;
@@ -28,7 +28,7 @@ typedef struct {
   uint8_t *iv;
   size_t iv_len;
 
-  // fields that don't get exported
+  // fields that do not get exported
   unsigned work_factor;
 
 } passwand_entry_t;
@@ -58,10 +58,10 @@ typedef enum {
  */
 const char *passwand_error(passwand_error_t err);
 
-// Various other ungrouped constants
+// various other ungrouped constants
 enum {
-  PW_SALT_LEN = 8, // Length of salt added to the main passphrase
-  PW_IV_LEN = 16,  // Length of initialisation vector
+  PW_SALT_LEN = 8, // length of salt added to the main passphrase
+  PW_IV_LEN = 16,  // length of initialisation vector
 };
 
 /** Create a new entry

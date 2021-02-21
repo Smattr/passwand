@@ -8,7 +8,7 @@
 
 TEST("import: import(\"[]\")") {
 
-  // Create a temporary file.
+  // create a temporary file
   char tmp[sizeof("/tmp/tmp.XXXXXX")];
   strcpy(tmp, "/tmp/tmp.XXXXXX");
   int fd = mkstemp(tmp);
@@ -18,14 +18,14 @@ TEST("import: import(\"[]\")") {
     unlink(tmp);
   CU_ASSERT_EQUAL_FATAL(written, strlen("[]"));
 
-  // Now read in the entries
+  // now read in the entries
   passwand_entry_t *entries = NULL;
   size_t entry_len = 0;
   int r = passwand_import(tmp, &entries, &entry_len);
   unlink(tmp);
   CU_ASSERT_EQUAL_FATAL(r, 0);
 
-  // Check we got nothing
+  // check we got nothing
   CU_ASSERT_EQUAL_FATAL(entry_len, 0);
 
   // clean up
@@ -38,7 +38,7 @@ TEST("import: with a missing field") {
       "\"value\":\"aGVsbG8gd29ybGQ=\", \"hmac\":\"aGVsbG8gd29ybGQ=\", "
       "\"hmac_salt\":\"aGVsbG8gd29ybGQ=\", \"salt\":\"aGVsbG8gd29ybGQ=\"}]";
 
-  // Create a temporary file.
+  // create a temporary file
   char tmp[sizeof("/tmp/tmp.XXXXXX")];
   strcpy(tmp, "/tmp/tmp.XXXXXX");
   int fd = mkstemp(tmp);
@@ -48,7 +48,7 @@ TEST("import: with a missing field") {
     unlink(tmp);
   CU_ASSERT_EQUAL_FATAL((size_t)written, strlen(data));
 
-  // Now read in the entries
+  // now read in the entries
   passwand_entry_t *entries;
   size_t entry_len;
   int r = passwand_import(tmp, &entries, &entry_len);
@@ -63,7 +63,7 @@ TEST("import: basic functionality") {
       "\"hmac_salt\":\"aGVsbG8gd29ybGQ=\", \"salt\":\"aGVsbG8gd29ybGQ=\", "
       "\"iv\":\"aGVsbG8gd29ybGQ=\"}]";
 
-  // Create a temporary file.
+  // create a temporary file
   char tmp[sizeof("/tmp/tmp.XXXXXX")];
   strcpy(tmp, "/tmp/tmp.XXXXXX");
   int fd = mkstemp(tmp);
@@ -73,14 +73,14 @@ TEST("import: basic functionality") {
     unlink(tmp);
   CU_ASSERT_EQUAL_FATAL((size_t)written, strlen(data));
 
-  // Now read in the entries
+  // now read in the entries
   passwand_entry_t *entries = NULL;
   size_t entry_len = 0;
   int r = passwand_import(tmp, &entries, &entry_len);
   unlink(tmp);
   CU_ASSERT_EQUAL_FATAL(r, 0);
 
-  // Check we got an entry
+  // check we got an entry
   CU_ASSERT_EQUAL_FATAL(entry_len, 1);
   CU_ASSERT_EQUAL_FATAL(entries[0].space_len, strlen("hello world"));
   CU_ASSERT_EQUAL_FATAL(strncmp((const char *)entries[0].space, "hello world",
@@ -131,7 +131,7 @@ TEST("import: with an extra field") {
       "\"hmac_salt\":\"aGVsbG8gd29ybGQ=\", \"salt\":\"aGVsbG8gd29ybGQ=\", "
       "\"iv\":\"aGVsbG8gd29ybGQ=\",\"extra\":\"blah blah\"}]";
 
-  // Create a temporary file.
+  // create a temporary file
   char tmp[sizeof("/tmp/tmp.XXXXXX")];
   strcpy(tmp, "/tmp/tmp.XXXXXX");
   int fd = mkstemp(tmp);
@@ -141,14 +141,14 @@ TEST("import: with an extra field") {
     unlink(tmp);
   CU_ASSERT_EQUAL_FATAL((size_t)written, strlen(data));
 
-  // Now read in the entries
+  // now read in the entries
   passwand_entry_t *entries = NULL;
   size_t entry_len = 0;
   int r = passwand_import(tmp, &entries, &entry_len);
   unlink(tmp);
   CU_ASSERT_EQUAL_FATAL(r, 0);
 
-  // Check we got an entry
+  // check we got an entry
   CU_ASSERT_EQUAL_FATAL(entry_len, 1);
   CU_ASSERT_EQUAL_FATAL(entries[0].space_len, strlen("hello world"));
   CU_ASSERT_EQUAL_FATAL(strncmp((const char *)entries[0].space, "hello world",
@@ -194,7 +194,7 @@ TEST("import: with an extra field") {
 
 TEST("import: import(export(x)) == x") {
 
-  // First create a couple of entries that we're going to export.
+  // first create a couple of entries that we are going to export
   passwand_entry_t entries[] = {
       {
           .space = (uint8_t *)"hello world",
@@ -233,26 +233,26 @@ TEST("import: import(export(x)) == x") {
   };
   size_t entry_len = sizeof(entries) / sizeof(entries[0]);
 
-  // Create a temporary file to export to.
+  // create a temporary file to export to
   char tmp[] = "/tmp/tmp.XXXXXX";
   int fd = mkstemp(tmp);
   CU_ASSERT_NOT_EQUAL_FATAL(fd, -1);
   close(fd);
 
-  // Perform the export.
+  // perform the export
   passwand_error_t err = passwand_export(tmp, entries, entry_len);
   if (err != PW_OK)
     unlink(tmp);
   CU_ASSERT_EQUAL_FATAL(err, PW_OK);
 
-  // Now let's import them back in.
+  // now let us import them back in
   passwand_entry_t *new_entries;
   size_t new_entry_len;
   err = passwand_import(tmp, &new_entries, &new_entry_len);
   unlink(tmp);
   CU_ASSERT_EQUAL_FATAL(err, PW_OK);
 
-  // Now check we got back what we exported.
+  // now check we got back what we exported
   CU_ASSERT_EQUAL_FATAL(entry_len, new_entry_len);
   for (size_t i = 0; i < entry_len; i++) {
     CU_ASSERT_EQUAL_FATAL(entries[i].space_len, new_entries[i].space_len);
@@ -293,7 +293,7 @@ TEST("import: import(export(x)) == x") {
                           0);
   }
 
-  // Clean up.
+  // clean up
   for (size_t i = 0; i < new_entry_len; i++) {
     free(new_entries[i].space);
     free(new_entries[i].key);

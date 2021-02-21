@@ -53,7 +53,7 @@ static void loop_body(const char *space, const char *key,
   assert(key != NULL);
 
   if (strcmp(options.space, space) == 0 && strcmp(options.key, key) == 0) {
-    // This entry matches the one we're after. Mark it. This cmpxchg should
+    // This entry matches the one we are after. Mark it. This cmpxchg should
     // never fail because there should only ever be a single matching entry
     // (this one) but maybe we're operating on a tampered with or corrupted
     // database.
@@ -77,7 +77,7 @@ static int finalize(void) {
     return -1;
   }
 
-  // Cleanup the entry we're about to overwrite.
+  // cleanup the entry we are about to overwrite
   free(saved_entries[found_index].space);
   free(saved_entries[found_index].key);
   free(saved_entries[found_index].value);
@@ -86,8 +86,8 @@ static int finalize(void) {
   free(saved_entries[found_index].salt);
   free(saved_entries[found_index].iv);
 
-  // Insert the updated entry at the start of the list, as we assume we'll be
-  // looking it up in the near future.
+  // insert the updated entry at the start of the list, as we assume we will be
+  // looking it up in the near future
   for (size_t i = found_index; i > 0; i--) {
     saved_entries[i] = saved_entries[i - 1];
   }

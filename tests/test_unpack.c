@@ -9,7 +9,7 @@
 
 TEST("unpack: unpack(pack(x)) == x") {
 
-  // First pack something.
+  // first pack something
 
   char _pt[] = "hello world";
   pt_t p = {
@@ -24,7 +24,7 @@ TEST("unpack: unpack(pack(x)) == x") {
   CU_ASSERT_EQUAL_FATAL(r, PW_OK);
   CU_ASSERT_EQUAL_FATAL(pp.length > 0, true);
 
-  // Now try to unpack it.
+  // now try to unpack it
 
   pt_t out;
 

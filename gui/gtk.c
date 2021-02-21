@@ -1,4 +1,4 @@
-// Implementation of the API described in gui.h using GTK 2/3.
+// implementation of the API described in gui.h using GTK 2/3
 
 #include "../common/getenv.h"
 #include "gui.h"
@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-// A lock to ensure we prevent multiple concurrent calls to GTK or X11 APIs.
+// a lock to ensure we prevent multiple concurrent calls to GTK or X11 APIs
 static pthread_mutex_t gtk_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static bool inited;
@@ -44,18 +44,18 @@ char *get_text(const char *title, const char *message, const char *initial,
   if (!inited)
     init();
 
-  // Create dialog box.
+  // create dialog box
   GtkWidget *dialog =
       gtk_dialog_new_with_buttons(title, NULL, 0, "OK", GTK_RESPONSE_OK,
                                   "Cancel", GTK_RESPONSE_CANCEL, NULL);
   gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
 
-  // Add the text prompt.
+  // add the text prompt
   GtkWidget *label = gtk_label_new(message);
   GtkWidget *content = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
   gtk_container_add(GTK_CONTAINER(content), label);
 
-  // Add the input field.
+  // add the input field
   GtkWidget *textbox = gtk_entry_new();
   gtk_entry_set_activates_default(GTK_ENTRY(textbox), true);
   if (initial != NULL)
@@ -64,7 +64,7 @@ char *get_text(const char *title, const char *message, const char *initial,
     gtk_entry_set_visibility(GTK_ENTRY(textbox), false);
   gtk_container_add(GTK_CONTAINER(content), textbox);
 
-  // Display the dialog.
+  // display the dialog
   gtk_widget_show_all(dialog);
   gint result = gtk_dialog_run(GTK_DIALOG(dialog));
 
@@ -82,7 +82,7 @@ char *get_text(const char *title, const char *message, const char *initial,
       r = strdup(text);
     }
   } else {
-    // Cancel or dialog was closed.
+    // cancel or dialog was closed
     r = NULL;
   }
 
@@ -124,7 +124,7 @@ void flush_state(void) {
   int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);
   assert(err == 0);
 
-  // Make sure we flush all GTK operations to clear remaining dialog windows.
+  // make sure we flush all GTK operations to clear remaining dialog windows
   while (gtk_events_pending())
     gtk_main_iteration();
 
@@ -144,7 +144,7 @@ int send_text(const char *text) {
   if (!inited)
     init();
 
-  // Find the current display.
+  // find the current display
   const char *display = getenv_("DISPLAY");
   if (display == NULL)
     display = ":0";
@@ -154,7 +154,7 @@ int send_text(const char *text) {
     goto done;
   }
 
-  // Find the active window.
+  // find the active window
   Window win;
   int state;
   XGetInputFocus(d, &win, &state);

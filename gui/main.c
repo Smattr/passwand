@@ -15,7 +15,7 @@
 #ifdef __APPLE__
 // On macOS, assume we are being called by Automator that treats a non-zero
 // exit status as something that warrants a further error dialog. Because
-// we will have already told the user about the error, suppress Automator's
+// we will have already told the user about the error, suppress Automator’s
 // warning.
 #define FAILURE_CODE EXIT_SUCCESS
 #else
@@ -93,7 +93,7 @@ static void *search(void *arg __attribute__((unused))) {
     if (done)
       break;
 
-    // Get the next entry to check
+    // get the next entry to check
     size_t i = atomic_fetch_add(&entry_index, 1);
     if (i >= entry_len)
       break;
@@ -133,12 +133,12 @@ static void process_chain_link(void *state __attribute__((unused)),
                                const char *key __attribute__((unused)),
                                const char *value) {
 
-  // Assume we no longer need the main password.
+  // assume we no longer need the main password
   assert(mainpass != NULL);
   passwand_secure_free(mainpass, strlen(mainpass) + 1);
   mainpass = NULL;
 
-  // strdup() the replacement onto it.
+  // strdup() the replacement onto it
   if (passwand_secure_malloc((void **)&mainpass, strlen(value) + 1) == PW_OK) {
     assert(mainpass != NULL);
     strcpy(mainpass, value);
@@ -160,7 +160,7 @@ int main(int argc, char **argv) {
   if (options.key == NULL)
     return EXIT_SUCCESS;
 
-  // How many chained databases to skip.
+  // how many chained databases to skip
   size_t chain_offset = 0;
 
   do {
@@ -168,8 +168,8 @@ int main(int argc, char **argv) {
     if (mainpass == NULL)
       return EXIT_SUCCESS;
 
-    // If the user entered an empty string, they want to skip a chained
-    // database.
+    // if the user entered an empty string, they want to skip a chained
+    // database
     if (strcmp(mainpass, "") == 0) {
       passwand_secure_free(mainpass, strlen(mainpass) + 1);
       mainpass = NULL;
@@ -184,10 +184,10 @@ int main(int argc, char **argv) {
 
   flush_state();
 
-  // Process any chained databases.
+  // process any chained databases
   for (size_t i = chain_offset; i < options.chain_len; ++i) {
 
-    // Lock database that we're about to access.
+    // lock database that we are about to access
     int fd = -1;
     if (access(options.chain[i].path, R_OK) == 0) {
       fd = open(options.chain[i].path, R_OK);
@@ -197,7 +197,7 @@ int main(int argc, char **argv) {
         DIE("failed to lock database: %s", strerror(errno));
     }
 
-    // Import the database.
+    // import the database
     {
       passwand_error_t err =
           passwand_import(options.chain[i].path, &entries, &entry_len);
@@ -210,17 +210,17 @@ int main(int argc, char **argv) {
 
     entries[0].work_factor = options.chain[i].work_factor;
 
-    // Extract the password from this database to use as the new main password.
+    // extract the password from this database to use as the new main password
     passwand_error_t err =
         passwand_entry_do(mainpass, &entries[0], process_chain_link, NULL);
 
-    // Discard this entry we no longer need.
+    // discard this entry we no longer need
     cleanup_entry(&entries[0]);
     free(entries);
     entries = NULL;
     entry_len = 0;
 
-    // Did we fail above?
+    // did we fail above?
     if (err != PW_OK)
       DIE("failed to process chained database %s: %s", options.chain[i].path,
           passwand_error(err));
@@ -228,14 +228,14 @@ int main(int argc, char **argv) {
       DIE("out of memory while processing chained database %s",
           options.chain[i].path);
 
-    // Unlock the database we no longer need.
+    // unlock the database we no longer need
     (void)flock(fd, LOCK_UN);
     (void)close(fd);
   }
 
   assert(mainpass != NULL);
 
-  // Lock database that we're about to access.
+  // lock database that we are about to access
   if (access(options.db.path, R_OK) == 0) {
     int fd = open(options.db.path, R_OK);
     if (fd < 0)
@@ -244,7 +244,7 @@ int main(int argc, char **argv) {
       DIE("failed to lock database: %s", strerror(errno));
   }
 
-  // Import the database.
+  // import the database
   passwand_error_t err = passwand_import(options.db.path, &entries, &entry_len);
   if (err != PW_OK)
     DIE("failed to import database: %s", passwand_error(err));
@@ -252,8 +252,8 @@ int main(int argc, char **argv) {
   for (size_t i = 0; i < entry_len; i++)
     entries[i].work_factor = options.db.work_factor;
 
-  // We now are ready to search for the entry, but let's parallelise it across
-  // as many cores as we have to speed it up.
+  // we now are ready to search for the entry, but let us parallelise it across
+  // as many cores as we have to speed it up
 
   assert(options.jobs >= 1);
 
@@ -261,7 +261,7 @@ int main(int argc, char **argv) {
   if (threads == NULL)
     DIE("out of memory");
 
-  // Initialise and start threads.
+  // initialise and start threads
   for (size_t i = 0; i < options.jobs; i++) {
 
     if (i < options.jobs - 1) {
@@ -273,7 +273,7 @@ int main(int argc, char **argv) {
 
   bool shown_error = false;
 
-  // Join the other threads in searching.
+  // join the other threads in searching
   void *ret = search(NULL);
   if (ret != NULL) {
     show_error(ret);
@@ -281,7 +281,7 @@ int main(int argc, char **argv) {
     shown_error = true;
   }
 
-  // Collect threads.
+  // collect threads
   for (size_t i = 0; i < options.jobs - 1; i++) {
     int r = pthread_join(threads[i], &ret);
     if (r != 0) {
@@ -301,7 +301,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  // we don't need the main password anymore
+  // we do not need the main password anymore
   assert(mainpass != NULL);
   passwand_secure_free(mainpass, strlen(mainpass) + 1);
   mainpass = NULL;
@@ -347,11 +347,11 @@ int main(int argc, char **argv) {
     (void)passwand_export(options.db.path, entries, entry_len);
   }
 
-  // Cleanup to make us Valgrind-free in successful runs.
+  // cleanup to make us Valgrind-free in successful runs
   cleanup();
 
-  // Reset the state of the allocator, freeing memory back to the operating
-  // system, to pacify tools like Valgrind.
+  // reset the state of the allocator, freeing memory back to the operating
+  // system, to pacify tools like Valgrind
   {
     int rc __attribute__((unused)) = passwand_secure_malloc_reset();
     assert(rc == 0 && "allocator leak in cli");
