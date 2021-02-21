@@ -3,52 +3,52 @@
 #include <stdbool.h>
 
 static inline bool supported_lower(char c) {
-    switch (c) {
-        case 'a' ... 'z':
-        case '`':
-        case '0' ... '9':
-        case '-':
-        case '=':
-        case '[':
-        case ']':
-        case '\\':
-        case ';':
-        case '\'':
-        case ',':
-        case '.':
-        case '/':
-            return true;
-    }
-    return false;
+  switch (c) {
+  case 'a' ... 'z':
+  case '`':
+  case '0' ... '9':
+  case '-':
+  case '=':
+  case '[':
+  case ']':
+  case '\\':
+  case ';':
+  case '\'':
+  case ',':
+  case '.':
+  case '/':
+    return true;
+  }
+  return false;
 }
 
 static inline bool supported_upper(char c) {
-    switch (c) {
-        case 'A' ... 'Z':
-        case '~':
-        case '!':
-        case '@':
-        case '#':
-        case '$':
-        case '%':
-        case '^':
-        case '&':
-        case '*':
-        case '(':
-        case ')':
-        case '_':
-        case '+':
-        case '{':
-        case '}':
-        case '|':
-        case ':':
-        case '"':
-        case '<':
-        case '>':
-        case '?':
-            return true;
-    }
-    return false;
+  switch (c) {
+  case 'A' ... 'Z':
+  case '~':
+  case '!':
+  case '@':
+  case '#':
+  case '$':
+  case '%':
+  case '^':
+  case '&':
+  case '*':
+  case '(':
+  case ')':
+  case '_':
+  case '+':
+  case '{':
+  case '}':
+  case '|':
+  case ':':
+  case '"':
+  case '<':
+  case '>':
+  case '?':
+    return true;
+  }
+  return false;
 }
 
 /** Prompt the user to enter some text
@@ -59,7 +59,8 @@ static inline bool supported_upper(char c) {
  * @param hidden Whether to mask input characters
  * @return Entered text or NULL if the user cancelled.
  */
-char *get_text(const char *title, const char *message, const char *initial, bool hidden);
+char *get_text(const char *title, const char *message, const char *initial,
+               bool hidden);
 
 /** Type text into the active window
  *

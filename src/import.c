@@ -1,5 +1,5 @@
-#include <assert.h>
 #include "internal.h"
+#include <assert.h>
 #include <fcntl.h>
 #include <json.h>
 #include <passwand/passwand.h>
@@ -16,137 +16,139 @@
  */
 
 static void autoclose(void *p) {
-    assert(p != NULL);
-    int *f = p;
-    if (*f != -1)
-        close(*f);
+  assert(p != NULL);
+  int *f = p;
+  if (*f != -1)
+    close(*f);
 }
 
 typedef struct {
-    void *addr;
-    size_t length;
+  void *addr;
+  size_t length;
 } munmap_data_t;
 
 static void autounmap(void *p) {
-    assert(p != NULL);
-    munmap_data_t *m = p;
-    munmap(m->addr, m->length);
+  assert(p != NULL);
+  munmap_data_t *m = p;
+  munmap(m->addr, m->length);
 }
 
 static void autojsonfree(void *p) {
-    assert(p != NULL);
-    json_tokener **tok = p;
-    if (*tok != NULL)
-        json_tokener_free(*tok);
+  assert(p != NULL);
+  json_tokener **tok = p;
+  if (*tok != NULL)
+    json_tokener_free(*tok);
 }
 
 static void autojsonput(void *p) {
-    assert(p != NULL);
-    json_object **j = p;
-    if (*j != NULL)
-        json_object_put(*j);
+  assert(p != NULL);
+  json_object **j = p;
+  if (*j != NULL)
+    json_object_put(*j);
 }
 
 passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
-        size_t *entry_len) {
+                                 size_t *entry_len) {
 
-    assert(path != NULL);
-    assert(entries != NULL);
-    assert(entry_len != NULL);
+  assert(path != NULL);
+  assert(entries != NULL);
+  assert(entry_len != NULL);
 
-    /* MMap the input so JSON-C can stream it. */
-    int f __attribute__((cleanup(autoclose))) = open(path, O_RDONLY);
-    if (f == -1)
-        return PW_IO;
+  /* MMap the input so JSON-C can stream it. */
+  int f __attribute__((cleanup(autoclose))) = open(path, O_RDONLY);
+  if (f == -1)
+    return PW_IO;
 
-    struct stat st;
-    if (fstat(f, &st) != 0)
-        return PW_IO;
+  struct stat st;
+  if (fstat(f, &st) != 0)
+    return PW_IO;
 
-    void *p = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, f, 0);
-    if (p == MAP_FAILED)
-        return PW_IO;
-    munmap_data_t unmapper __attribute__((unused, cleanup(autounmap))) = {
-        .addr = p,
-        .length = st.st_size,
-    };
+  void *p = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, f, 0);
+  if (p == MAP_FAILED)
+    return PW_IO;
+  munmap_data_t unmapper __attribute__((unused, cleanup(autounmap))) = {
+      .addr = p,
+      .length = st.st_size,
+  };
 
-    /* Read the outer list. This should be the only item in the file. */
-    json_tokener *tok __attribute__((cleanup(autojsonfree))) = json_tokener_new();
-    if (tok == NULL)
-        return PW_NO_MEM;
+  /* Read the outer list. This should be the only item in the file. */
+  json_tokener *tok __attribute__((cleanup(autojsonfree))) = json_tokener_new();
+  if (tok == NULL)
+    return PW_NO_MEM;
 
-    json_object *j __attribute__((cleanup(autojsonput)))
-        = json_tokener_parse_ex(tok, p, st.st_size);
-    if (j == NULL)
-        return PW_BAD_JSON;
+  json_object *j __attribute__((cleanup(autojsonput))) =
+      json_tokener_parse_ex(tok, p, st.st_size);
+  if (j == NULL)
+    return PW_BAD_JSON;
 
-    if (!json_object_is_type(j, json_type_array))
-        return PW_BAD_JSON;
+  if (!json_object_is_type(j, json_type_array))
+    return PW_BAD_JSON;
 
-    /* We're now ready to start reading the entries themselves. */
+  /* We're now ready to start reading the entries themselves. */
 
-    *entry_len = json_object_array_length(j);
-    *entries = calloc(*entry_len, sizeof(passwand_entry_t));
-    if (*entries == NULL)
-        return PW_NO_MEM;
+  *entry_len = json_object_array_length(j);
+  *entries = calloc(*entry_len, sizeof(passwand_entry_t));
+  if (*entries == NULL)
+    return PW_NO_MEM;
 
-    for (size_t i = 0; i < *entry_len; i++) {
+  for (size_t i = 0; i < *entry_len; i++) {
 
-#define FREE_PRECEDING() \
-    do { \
-        for (size_t k = 0; k <= i; k++) { \
-            free((*entries)[k].space); \
-            free((*entries)[k].key); \
-            free((*entries)[k].value); \
-            free((*entries)[k].hmac); \
-            free((*entries)[k].hmac_salt); \
-            free((*entries)[k].salt); \
-            free((*entries)[k].iv); \
-        } \
-        free(*entries); \
-    } while (0)
+#define FREE_PRECEDING()                                                       \
+  do {                                                                         \
+    for (size_t k = 0; k <= i; k++) {                                          \
+      free((*entries)[k].space);                                               \
+      free((*entries)[k].key);                                                 \
+      free((*entries)[k].value);                                               \
+      free((*entries)[k].hmac);                                                \
+      free((*entries)[k].hmac_salt);                                           \
+      free((*entries)[k].salt);                                                \
+      free((*entries)[k].iv);                                                  \
+    }                                                                          \
+    free(*entries);                                                            \
+  } while (0)
 
-        json_object *m = json_object_array_get_idx(j, i);
-        assert(m != NULL);
-        if (!json_object_is_type(m, json_type_object)) {
-            /* One of the array entries was not an object (dictionary). */
-            FREE_PRECEDING();
-            return PW_BAD_JSON;
-        }
+    json_object *m = json_object_array_get_idx(j, i);
+    assert(m != NULL);
+    if (!json_object_is_type(m, json_type_object)) {
+      /* One of the array entries was not an object (dictionary). */
+      FREE_PRECEDING();
+      return PW_BAD_JSON;
+    }
 
-#define GET(field) \
-    do { \
-        json_object *v; \
-        if (!json_object_object_get_ex(m, #field, &v) || !json_object_is_type(v, json_type_string)) { \
-            /* The value of this member was not a string. */ \
-            FREE_PRECEDING(); \
-            return PW_BAD_JSON; \
-        } \
-        passwand_error_t err = decode(json_object_get_string(v), &((*entries)[i].field), &((*entries)[i].field##_len)); \
-        if (err == PW_IO) { \
-            /* The value was not valid base64 encoded. */ \
-            FREE_PRECEDING(); \
-            return PW_BAD_JSON; \
-        } else if (err != PW_OK) { \
-            FREE_PRECEDING(); \
-            return err; \
-        } \
-    } while (0)
+#define GET(field)                                                             \
+  do {                                                                         \
+    json_object *v;                                                            \
+    if (!json_object_object_get_ex(m, #field, &v) ||                           \
+        !json_object_is_type(v, json_type_string)) {                           \
+      /* The value of this member was not a string. */                         \
+      FREE_PRECEDING();                                                        \
+      return PW_BAD_JSON;                                                      \
+    }                                                                          \
+    passwand_error_t err =                                                     \
+        decode(json_object_get_string(v), &((*entries)[i].field),              \
+               &((*entries)[i].field##_len));                                  \
+    if (err == PW_IO) {                                                        \
+      /* The value was not valid base64 encoded. */                            \
+      FREE_PRECEDING();                                                        \
+      return PW_BAD_JSON;                                                      \
+    } else if (err != PW_OK) {                                                 \
+      FREE_PRECEDING();                                                        \
+      return err;                                                              \
+    }                                                                          \
+  } while (0)
 
-        GET(space);
-        GET(key);
-        GET(value);
-        GET(hmac);
-        GET(hmac_salt);
-        GET(salt);
-        GET(iv);
+    GET(space);
+    GET(key);
+    GET(value);
+    GET(hmac);
+    GET(hmac_salt);
+    GET(salt);
+    GET(iv);
 
 #undef GET
 
 #undef FREE_PRECEDING
+  }
 
-    }
-
-    return PW_OK;
+  return PW_OK;
 }

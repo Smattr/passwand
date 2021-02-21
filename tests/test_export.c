@@ -1,73 +1,73 @@
+#include "test.h"
 #include <CUnit/CUnit.h>
 #include <passwand/passwand.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "test.h"
 #include <unistd.h>
 
 TEST("export: 0 entries") {
 
-    /* Create a temporary path. */
-    char tmp[sizeof("/tmp/tmp.XXXXXX")];
-    strcpy(tmp, "/tmp/tmp.XXXXXX");
-    int fd = mkstemp(tmp);
-    CU_ASSERT_NOT_EQUAL_FATAL(fd, -1);
-    close(fd);
+  /* Create a temporary path. */
+  char tmp[sizeof("/tmp/tmp.XXXXXX")];
+  strcpy(tmp, "/tmp/tmp.XXXXXX");
+  int fd = mkstemp(tmp);
+  CU_ASSERT_NOT_EQUAL_FATAL(fd, -1);
+  close(fd);
 
-    /* Export to this path. */
-    int r = passwand_export(tmp, NULL, 0);
-    if (r != 0)
-        unlink(tmp);
-    CU_ASSERT_EQUAL_FATAL(r, 0);
-
-    /* Read back in the exported data. */
-    FILE *f = fopen(tmp, "r");
-    if (f == NULL)
-        unlink(tmp);
-    CU_ASSERT_PTR_NOT_NULL_FATAL(f);
-    char buffer[100];
-    char *p = fgets(buffer, sizeof(buffer), f);
-    fclose(f);
+  /* Export to this path. */
+  int r = passwand_export(tmp, NULL, 0);
+  if (r != 0)
     unlink(tmp);
+  CU_ASSERT_EQUAL_FATAL(r, 0);
 
-    /* Check we got what we expect. */
-    CU_ASSERT_PTR_NOT_NULL_FATAL(p);
-    CU_ASSERT_STRING_EQUAL(buffer, "[]");
+  /* Read back in the exported data. */
+  FILE *f = fopen(tmp, "r");
+  if (f == NULL)
+    unlink(tmp);
+  CU_ASSERT_PTR_NOT_NULL_FATAL(f);
+  char buffer[100];
+  char *p = fgets(buffer, sizeof(buffer), f);
+  fclose(f);
+  unlink(tmp);
+
+  /* Check we got what we expect. */
+  CU_ASSERT_PTR_NOT_NULL_FATAL(p);
+  CU_ASSERT_STRING_EQUAL(buffer, "[]");
 }
 
 TEST("export: basic functionality") {
 
-    /* Create a temporary path. */
-    char tmp[sizeof("/tmp/tmp.XXXXXX")];
-    strcpy(tmp, "/tmp/tmp.XXXXXX");
-    int fd = mkstemp(tmp);
-    CU_ASSERT_NOT_EQUAL_FATAL(fd, -1);
-    close(fd);
+  /* Create a temporary path. */
+  char tmp[sizeof("/tmp/tmp.XXXXXX")];
+  strcpy(tmp, "/tmp/tmp.XXXXXX");
+  int fd = mkstemp(tmp);
+  CU_ASSERT_NOT_EQUAL_FATAL(fd, -1);
+  close(fd);
 
-    /* Create an entry to export. */
-    passwand_entry_t entries[] = {
-        {
-            .space = (uint8_t*)"hello world",
-            .space_len = strlen("hello world"),
-            .key = (uint8_t*)"hello world",
-            .key_len = strlen("hello world"),
-            .value = (uint8_t*)"hello world",
-            .value_len = strlen("hello world"),
-            .hmac = (uint8_t*)"hello world",
-            .hmac_len = strlen("hello world"),
-            .hmac_salt = (uint8_t*)"hello world",
-            .hmac_salt_len = strlen("hello world"),
-            .salt = (uint8_t*)"hello world",
-            .salt_len = strlen("hello world"),
-            .iv = (uint8_t*)"hello world",
-            .iv_len = strlen("hello world"),
-            .work_factor = 0,
-        },
-    };
+  /* Create an entry to export. */
+  passwand_entry_t entries[] = {
+      {
+          .space = (uint8_t *)"hello world",
+          .space_len = strlen("hello world"),
+          .key = (uint8_t *)"hello world",
+          .key_len = strlen("hello world"),
+          .value = (uint8_t *)"hello world",
+          .value_len = strlen("hello world"),
+          .hmac = (uint8_t *)"hello world",
+          .hmac_len = strlen("hello world"),
+          .hmac_salt = (uint8_t *)"hello world",
+          .hmac_salt_len = strlen("hello world"),
+          .salt = (uint8_t *)"hello world",
+          .salt_len = strlen("hello world"),
+          .iv = (uint8_t *)"hello world",
+          .iv_len = strlen("hello world"),
+          .work_factor = 0,
+      },
+  };
 
-    /* Export to this path. */
-    int r = passwand_export(tmp, entries, sizeof(entries) / sizeof(entries[0]));
-    unlink(tmp);
-    CU_ASSERT_EQUAL_FATAL(r, 0);
+  /* Export to this path. */
+  int r = passwand_export(tmp, entries, sizeof(entries) / sizeof(entries[0]));
+  unlink(tmp);
+  CU_ASSERT_EQUAL_FATAL(r, 0);
 }
