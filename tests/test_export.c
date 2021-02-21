@@ -8,20 +8,20 @@
 
 TEST("export: 0 entries") {
 
-  /* Create a temporary path. */
+  // Create a temporary path.
   char tmp[sizeof("/tmp/tmp.XXXXXX")];
   strcpy(tmp, "/tmp/tmp.XXXXXX");
   int fd = mkstemp(tmp);
   CU_ASSERT_NOT_EQUAL_FATAL(fd, -1);
   close(fd);
 
-  /* Export to this path. */
+  // Export to this path.
   int r = passwand_export(tmp, NULL, 0);
   if (r != 0)
     unlink(tmp);
   CU_ASSERT_EQUAL_FATAL(r, 0);
 
-  /* Read back in the exported data. */
+  // Read back in the exported data.
   FILE *f = fopen(tmp, "r");
   if (f == NULL)
     unlink(tmp);
@@ -31,21 +31,21 @@ TEST("export: 0 entries") {
   fclose(f);
   unlink(tmp);
 
-  /* Check we got what we expect. */
+  // Check we got what we expect.
   CU_ASSERT_PTR_NOT_NULL_FATAL(p);
   CU_ASSERT_STRING_EQUAL(buffer, "[]");
 }
 
 TEST("export: basic functionality") {
 
-  /* Create a temporary path. */
+  // Create a temporary path.
   char tmp[sizeof("/tmp/tmp.XXXXXX")];
   strcpy(tmp, "/tmp/tmp.XXXXXX");
   int fd = mkstemp(tmp);
   CU_ASSERT_NOT_EQUAL_FATAL(fd, -1);
   close(fd);
 
-  /* Create an entry to export. */
+  // Create an entry to export.
   passwand_entry_t entries[] = {
       {
           .space = (uint8_t *)"hello world",
@@ -66,7 +66,7 @@ TEST("export: basic functionality") {
       },
   };
 
-  /* Export to this path. */
+  // Export to this path.
   int r = passwand_export(tmp, entries, sizeof(entries) / sizeof(entries[0]));
   unlink(tmp);
   CU_ASSERT_EQUAL_FATAL(r, 0);

@@ -25,7 +25,7 @@ int run(const char *command, char **output) {
     assert(read <= sizeof(window));
     size_t written = fwrite(window, 1, read, b);
     if (read != written) {
-      /* out of memory */
+      // out of memory
       fclose(b);
       free(*output);
       pclose(p);

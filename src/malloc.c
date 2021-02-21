@@ -1,25 +1,24 @@
-/* This file implements a malloc-style allocator with the following goal:
- *
- *  - Confidentiality and integrity of the backing memory. Currently this means
- *    the backing memory is not pageable. It is trivial to snoop the contents
- *    of the swap file, meaning any memory paged to disk is no longer
- *    confidential. We also make some cursory attempts to suppress ptrace
- *    peeking.
- *
- * The following are explicit non-goals:
- *
- *  - Low latency. It is assumed that the caller is never performing secure
- *    allocation on a critical path.
- *  - Large allocations. The allocator cannot provide memory greater than a
- *    page. An implicit assumption is that all your allocations are small (<256
- *    bytes). You can allocate more than this, but performance and availability
- *    will degrade. In an unprivileged environment, a process' total secure
- *    allocation will be limited to RLIMIT_MEMLOCK.
- *  - Resource balancing. The backing memory for this allocator can only ever
- *    grow. This can effectively DoS other process activities (mprotect, mlock)
- *    if the caller does not pay attention to the high watermark of their
- *    secure allocation.
- */
+// This file implements a malloc-style allocator with the following goal:
+//
+//  - Confidentiality and integrity of the backing memory. Currently this means
+//    the backing memory is not pageable. It is trivial to snoop the contents
+//    of the swap file, meaning any memory paged to disk is no longer
+//    confidential. We also make some cursory attempts to suppress ptrace
+//    peeking.
+//
+// The following are explicit non-goals:
+//
+//  - Low latency. It is assumed that the caller is never performing secure
+//    allocation on a critical path.
+//  - Large allocations. The allocator cannot provide memory greater than a
+//    page. An implicit assumption is that all your allocations are small (<256
+//    bytes). You can allocate more than this, but performance and availability
+//    will degrade. In an unprivileged environment, a process' total secure
+//    allocation will be limited to RLIMIT_MEMLOCK.
+//  - Resource balancing. The backing memory for this allocator can only ever
+//    grow. This can effectively DoS other process activities (mprotect, mlock)
+//    if the caller does not pay attention to the high watermark of their
+//    secure allocation.
 
 #include <assert.h>
 #include <passwand/passwand.h>
@@ -35,7 +34,7 @@
 #include <sys/prctl.h>
 #endif
 
-/* Basic no-init-required spinlock implementation. */
+// Basic no-init-required spinlock implementation.
 static atomic_long l;
 static void lock(void) {
   long expected;
@@ -55,20 +54,19 @@ static void lock_release(void *p __attribute__((unused))) { unlock(); }
   lock();                                                                      \
   int _lock __attribute__((unused, cleanup(lock_release)));
 
-/* Expected hardware page size. This is checked at runtime. */
+// Expected hardware page size. This is checked at runtime.
 #define EXPECTED_PAGE_SIZE 4096
 
-/* We store the allocator's backing memory as a linked-list of "chunks," each of
- * `EXPECTED_PAGE_SIZE` bytes. The status of the bytes within each chunk is
- * tracked per "block," where blocks are `sizeof(long long)`. Each chunk
- * contains a bitmap of its blocks with 0 indicating a free block and 1
- * indicating an allocated block. A side-effect of this scheme is that we can
- * detect when a caller returns memory to us that we never allocated.
- *
- * The `last_index` member tracks the last index of the bitmap we examined. It
- * is purely an optimisation (to resume searches for new allocations where the
- * last left off) and could be removed to simplify the implementation.
- */
+// We store the allocator's backing memory as a linked-list of "chunks," each of
+// `EXPECTED_PAGE_SIZE` bytes. The status of the bytes within each chunk is
+// tracked per "block," where blocks are `sizeof(long long)`. Each chunk
+// contains a bitmap of its blocks with 0 indicating a free block and 1
+// indicating an allocated block. A side-effect of this scheme is that we can
+// detect when a caller returns memory to us that we never allocated.
+//
+// The `last_index` member tracks the last index of the bitmap we examined. It
+// is purely an optimisation (to resume searches for new allocations where the
+// last left off) and could be removed to simplify the implementation.
 typedef struct chunk_ {
   void *base;
   uint8_t free[EXPECTED_PAGE_SIZE / sizeof(long long) / 8];
@@ -93,9 +91,8 @@ static void write_bitmap(chunk_t *c, unsigned index, bool value) {
 
 static chunk_t *freelist;
 
-/* This will only become set if the allocator detects inappropriate (potentially
- * malicious) calls.
- */
+// This will only become set if the allocator detects inappropriate (potentially
+// malicious) calls.
 static bool disabled;
 
 static size_t pagesize(void) {
@@ -117,7 +114,7 @@ static int morecore(void **p) {
 
   assert(page % sizeof(long long) == 0);
 
-  /* Allocate a new mlocked page. */
+  // Allocate a new mlocked page.
   if (posix_memalign(p, page, page) != 0)
     return -1;
   if (mlock(*p, page) != 0) {
@@ -128,12 +125,11 @@ static int morecore(void **p) {
   return 0;
 }
 
-/* The following logic prevents other processes attaching to us with
- * PTRACE_ATTACH. This goes someway towards preventing an attack whereby a
- * colocated process peeks at the secure heap while we're running. Note that
- * this is not a fool proof method and leaves other avenues (e.g. /proc) open by
- * which this can be accomplished.
- */
+// The following logic prevents other processes attaching to us with
+// PTRACE_ATTACH. This goes someway towards preventing an attack whereby a
+// colocated process peeks at the secure heap while we're running. Note that
+// this is not a fool proof method and leaves other avenues (e.g. /proc) open by
+// which this can be accomplished.
 static bool ptrace_disabled;
 static int disable_ptrace(void) {
   int r = 0;
@@ -175,9 +171,8 @@ int passwand_secure_malloc(void **p, size_t size) {
     if (disable_ptrace() != 0)
       return -1;
 
-  /* Don't allow allocations greater than a page. This avoids having to cope
-   * with allocations that would span multiple chunks.
-   */
+  // Don't allow allocations greater than a page. This avoids having to cope
+  // with allocations that would span multiple chunks.
   if (size > EXPECTED_PAGE_SIZE)
     return -1;
 
@@ -188,12 +183,12 @@ int passwand_secure_malloc(void **p, size_t size) {
 
     while (n->last_index < sizeof(n->free) * 8) {
 
-      /* Look for an unset bit. */
+      // Look for an unset bit.
       while (n->last_index < sizeof(n->free) * 8 &&
              read_bitmap(n, n->last_index))
         n->last_index++;
 
-      /* Scan for `size` unset bits. */
+      // Scan for `size` unset bits.
       unsigned offset;
       for (offset = 0; offset * sizeof(long long) < size &&
                        n->last_index + offset < sizeof(n->free) * 8;
@@ -203,7 +198,7 @@ int passwand_secure_malloc(void **p, size_t size) {
       }
 
       if (offset * sizeof(long long) == size) {
-        /* We found enough contiguous free bits! */
+        // We found enough contiguous free bits!
         for (unsigned i = 0; i * sizeof(long long) < size; i++)
           write_bitmap(n, n->last_index + i, true);
         *p = n->base + n->last_index * sizeof(long long);
@@ -211,27 +206,26 @@ int passwand_secure_malloc(void **p, size_t size) {
         return 0;
       }
 
-      /* Jump past the region we just scanned. */
+      // Jump past the region we just scanned.
       n->last_index += offset;
     }
 
-    /* Reset the index for any future scans. */
+    // Reset the index for any future scans.
     n->last_index = 0;
 
     if (first_index * sizeof(long long) >= size)
-      /* There's entries at the front of the bitmap we haven't scanned that
-       * cover enough memory to possibly fill this request.
-       */
+      // There's entries at the front of the bitmap we haven't scanned that
+      // cover enough memory to possibly fill this request.
       goto retry;
   }
 
-  /* Didn't find anything useful in the freelist. Acquire some more secure
-   * memory. */
+  // Didn't find anything useful in the freelist. Acquire some more secure
+  // memory.
   void *q;
   if (morecore(&q) != 0)
     return -1;
 
-  /* Fill this allocation using the end of the memory just acquired. */
+  // Fill this allocation using the end of the memory just acquired.
   chunk_t *c = calloc(1, sizeof(*c));
   if (c == NULL) {
     int r __attribute__((unused)) = munlock(q, EXPECTED_PAGE_SIZE);
@@ -268,15 +262,15 @@ void passwand_secure_free(void *p, size_t size) {
   if (disabled)
     return;
 
-  /* Find the chunk this allocation came from. */
+  // Find the chunk this allocation came from.
   for (chunk_t *c = freelist; c != NULL; c = c->next) {
     if (p >= c->base && p + size <= c->base + EXPECTED_PAGE_SIZE) {
-      /* It came from this chunk. */
+      // It came from this chunk.
       unsigned offset = (p - c->base) / sizeof(long long);
       for (unsigned index = 0; index * sizeof(long long) < size; index++) {
         assert(read_bitmap(c, index + offset));
         if (!read_bitmap(c, index + offset)) {
-          /* This memory was not in use. Double free? */
+          // This memory was not in use. Double free?
           disabled = true;
           return;
         }
@@ -287,7 +281,7 @@ void passwand_secure_free(void *p, size_t size) {
     }
   }
 
-  /* If we reached here, the given blocks do not lie in the secure heap. */
+  // If we reached here, the given blocks do not lie in the secure heap.
   assert(!"free of non-heap memory");
   disabled = true;
 }
@@ -299,17 +293,17 @@ int passwand_secure_malloc_reset(void) {
   if (disabled)
     return -1;
 
-  /* Scan all chunks for occupied blocks. */
+  // Scan all chunks for occupied blocks.
   for (chunk_t *c = freelist; c != NULL; c = c->next) {
     for (unsigned i = 0; i < sizeof(c->free) * 8; i++) {
       if (read_bitmap(c, i)) {
-        /* We found an in-use block. */
+        // We found an in-use block.
         return -1;
       }
     }
   }
 
-  /* Now we can free all chunks. */
+  // Now we can free all chunks.
   for (chunk_t *c = freelist; c != NULL;) {
     int r __attribute__((unused)) = munlock(c->base, EXPECTED_PAGE_SIZE);
     assert(r == 0 && "munlock unexpectedly failed");
@@ -319,7 +313,7 @@ int passwand_secure_malloc_reset(void) {
     c = next;
   }
 
-  /* Reset the freelist head. */
+  // Reset the freelist head.
   freelist = NULL;
 
   return 0;

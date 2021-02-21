@@ -10,7 +10,7 @@
 
 TEST("decrypt: decrypt(encrypt(x)) == x") {
 
-  /* First let's encrypt something. */
+  // First let's encrypt something.
 
   const k_t key = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11,
                    12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
@@ -41,7 +41,7 @@ TEST("decrypt: decrypt(encrypt(x)) == x") {
 
   CU_ASSERT_EQUAL_FATAL(c.length > 0, true);
 
-  /* Now, decrypting it should give us the original packed plain text. */
+  // Now, decrypting it should give us the original packed plain text.
 
   EVP_CIPHER_CTX_free(ctx);
   ctx = EVP_CIPHER_CTX_new();
@@ -97,7 +97,7 @@ TEST("decrypt: with bad key") {
 
   CU_ASSERT_EQUAL_FATAL(c.length > 0, true);
 
-  /* Now modify the key and try to decrypt with it. */
+  // Now modify the key and try to decrypt with it.
 
   EVP_CIPHER_CTX_free(ctx);
   ctx = EVP_CIPHER_CTX_new();
@@ -112,8 +112,8 @@ TEST("decrypt: with bad key") {
 
   err = aes_decrypt(ctx, &c, &out);
 
-  /* Decrypting with a bad key should either (a) fail or (b) succeed but return
-   * incorrect data. */
+  // Decrypting with a bad key should either (a) fail or (b) succeed but return
+  // incorrect data.
 
   if (err == PW_OK) {
 
@@ -158,7 +158,7 @@ TEST("decrypt: with bad initialisation vector") {
 
   CU_ASSERT_EQUAL_FATAL(c.length > 0, true);
 
-  /* Now modify the IV and try to decrypt with it. */
+  // Now modify the IV and try to decrypt with it.
 
   EVP_CIPHER_CTX_free(ctx);
   ctx = EVP_CIPHER_CTX_new();
@@ -173,8 +173,8 @@ TEST("decrypt: with bad initialisation vector") {
 
   err = aes_decrypt(ctx, &c, &out);
 
-  /* Decrypting with a bad IV should either (a) fail or (b) succeed but return
-   * incorrect data. */
+  // Decrypting with a bad IV should either (a) fail or (b) succeed but return
+  // incorrect data.
 
   if (err == PW_OK) {
 

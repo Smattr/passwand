@@ -27,7 +27,7 @@ static int initialize(const main_t *mainpass __attribute__((unused)),
                       passwand_entry_t *entries __attribute__((unused)),
                       size_t entry_len __attribute__((unused))) {
 
-  /* initialize OpenSSL */
+  // initialize OpenSSL
   SSL_load_error_strings();
   SSL_library_init();
 
@@ -36,10 +36,10 @@ static int initialize(const main_t *mainpass __attribute__((unused)),
 
 static bool in_dictionary(const char *s) {
 
-  /* open the system dictionary */
+  // open the system dictionary
   FILE *f = fopen("/usr/share/dict/words", "r");
   if (f == NULL) {
-    /* failed; perhaps the file doesn't exist */
+    // failed; perhaps the file doesn't exist
     return false;
   }
 
@@ -50,12 +50,12 @@ static bool in_dictionary(const char *s) {
   for (;;) {
     ssize_t r = getline(&line, &size, f);
     if (r < 0) {
-      /* done or error */
+      // done or error
       break;
     }
 
     if (r > 0) {
-      /* delete the trailing \n */
+      // delete the trailing \n
       if (line[strlen(line) - 1] == '\n')
         line[strlen(line) - 1] = '\0';
 
@@ -76,11 +76,11 @@ static void hash(const char *s, char hex[static SHA_DIGEST_LENGTH * 2 + 1]) {
 
   assert(hex != NULL);
 
-  /* calculate the SHA1 hash of the input */
+  // calculate the SHA1 hash of the input
   unsigned char digest[SHA_DIGEST_LENGTH];
   SHA1((const unsigned char *)s, strlen(s), digest);
 
-  /* convert the digest to hex digits */
+  // convert the digest to hex digits
   for (size_t i = 0; i < sizeof(digest); i++)
     sprintf(&hex[i * 2], "%02X", (int)digest[i]);
 }
@@ -123,7 +123,7 @@ static void skip_past(const char **p, char c) {
   skip_over(p, c);
 }
 
-/* HIBP's DNS records. Access is protected by dns_lock below. */
+// HIBP's DNS records. Access is protected by dns_lock below.
 static struct addrinfo *dns_info;
 static bool dns_looked_up;
 
@@ -141,12 +141,12 @@ static char *hibp_data(const char *hex, const char **error) {
     assert(res == 0);
   }
 
-  /* wrap the DNS lookup to ensure we only do it once across threads */
+  // wrap the DNS lookup to ensure we only do it once across threads
   int r = 0;
   if (!dns_looked_up) {
     assert(dns_info == NULL);
 
-    /* lookup HIBP's IP address(es) */
+    // lookup HIBP's IP address(es)
     const struct addrinfo hints = {.ai_family = AF_UNSPEC,
                                    .ai_socktype = SOCK_STREAM,
                                    .ai_protocol = IPPROTO_TCP};
@@ -168,7 +168,7 @@ static char *hibp_data(const char *hex, const char **error) {
     return NULL;
   }
 
-  /* open a TCP socket */
+  // open a TCP socket
   int fd = -1;
   for (const struct addrinfo *i = ai; i != NULL; i = i->ai_next) {
 
@@ -185,14 +185,14 @@ static char *hibp_data(const char *hex, const char **error) {
   }
 
   if (fd < 0) {
-    /* failed to connect to any returned IPs */
+    // failed to connect to any returned IPs
     if (error != NULL)
       *error =
           "failed to find a reachable IP address for api.pwnedpasswords.com";
     return NULL;
   }
 
-  /* setup an SSL context */
+  // setup an SSL context
   SSL_CTX *ctx = SSL_CTX_new(SSLv23_client_method());
   if (ctx == NULL) {
     close(fd);
@@ -201,7 +201,7 @@ static char *hibp_data(const char *hex, const char **error) {
     return NULL;
   }
 
-  /* attach an SSL connection to the socket */
+  // attach an SSL connection to the socket
   SSL *ssl = SSL_new(ctx);
   if (ssl == NULL) {
     SSL_CTX_free(ctx);
@@ -219,7 +219,7 @@ static char *hibp_data(const char *hex, const char **error) {
     return NULL;
   }
 
-  /* negotiate the SSL handshake */
+  // negotiate the SSL handshake
   if (SSL_connect(ssl) != 1) {
     SSL_free(ssl);
     SSL_CTX_free(ctx);
@@ -229,7 +229,7 @@ static char *hibp_data(const char *hex, const char **error) {
     return NULL;
   }
 
-  /* send the request */
+  // send the request
   {
     char buffer[sizeof(
         "GET /range/XXXXX HTTP/1.0\r\n"
@@ -260,7 +260,7 @@ static char *hibp_data(const char *hex, const char **error) {
     }
   }
 
-  /* receive the response */
+  // receive the response
   char *data = NULL;
   {
     char *response = malloc(BUFSIZ);
@@ -315,7 +315,7 @@ static char *hibp_data(const char *hex, const char **error) {
   SSL_CTX_free(ctx);
   close(fd);
 
-  /* read the response line, skipping over the HTTP version */
+  // read the response line, skipping over the HTTP version
   const char *p = data;
   skip_past(&p, ' ');
   if (strncmp(p, "200 ", sizeof("200 ") - 1) != 0) {
@@ -325,7 +325,7 @@ static char *hibp_data(const char *hex, const char **error) {
     return NULL;
   }
 
-  /* skip over the header to the response body */
+  // skip over the header to the response body
   bool empty_line = false;
   while (!empty_line && *p != '\0') {
     empty_line = true;
@@ -335,7 +335,7 @@ static char *hibp_data(const char *hex, const char **error) {
     skip_over(&p, '\n');
   }
 
-  /* shuffle the content so the caller gets only the body */
+  // shuffle the content so the caller gets only the body
   memmove(data, p, strlen(p) + 1);
 
   return data;
@@ -346,11 +346,11 @@ static void loop_body(const char *space, const char *key, const char *value) {
   assert(key != NULL);
   assert(value != NULL);
 
-  /* if we were given a space, check that this entry is within it */
+  // if we were given a space, check that this entry is within it
   if (options.space != NULL && strcmp(options.space, space) != 0)
     return;
 
-  /* if we were given a key, check that this entry matches it */
+  // if we were given a key, check that this entry matches it
   if (options.key != NULL && strcmp(options.key, key) != 0)
     return;
 
@@ -359,11 +359,11 @@ static void loop_body(const char *space, const char *key, const char *value) {
     found_weak = true;
   } else {
 
-    /* hash the password */
+    // hash the password
     char h[SHA_DIGEST_LENGTH * 2 + 1];
     hash(value, h);
 
-    /* ask what Have I Been Pwned knows about this hash */
+    // ask what Have I Been Pwned knows about this hash
     const char *error = NULL;
     char *data = hibp_data(h, &error);
 
@@ -373,7 +373,7 @@ static void loop_body(const char *space, const char *key, const char *value) {
       return;
     }
 
-    /* check if the suffix of our hash was in the HIBP data */
+    // check if the suffix of our hash was in the HIBP data
     size_t candidates = 0;
     bool found = false;
     unsigned long count = ULONG_MAX;

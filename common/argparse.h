@@ -14,9 +14,8 @@ typedef struct {
   char *value;
   unsigned long jobs;
 
-  /* Extra indirect databases to go through to get the main password for the
-   * primary database above.
-   */
+  // Extra indirect databases to go through to get the main password for the
+  // primary database above.
   database_t *chain;
   size_t chain_len;
 } options_t;

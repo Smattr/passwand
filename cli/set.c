@@ -51,11 +51,10 @@ static void loop_body(const char *space, const char *key,
   assert(key != NULL);
 
   if (strcmp(options.space, space) == 0 && strcmp(options.key, key) == 0) {
-    /* This entry matches the one we are trying to set. This cmpxchg should
-     * never fail because there should only ever be a single matching entry
-     * (this one) but maybe we're operating on a tampered with or corrupted
-     * database.
-     */
+    // This entry matches the one we are trying to set. This cmpxchg should
+    // never fail because there should only ever be a single matching entry
+    // (this one) but maybe we're operating on a tampered with or corrupted
+    // database.
     bool expected = false;
     (void)atomic_compare_exchange_strong(&found, &expected, true);
   }
@@ -82,9 +81,8 @@ static int finalize(void) {
     return -1;
   }
 
-  /* Insert the new or updated entry at the start of the list, as we assume
-   * we'll be looking it up in the near future.
-   */
+  // Insert the new or updated entry at the start of the list, as we assume
+  // we'll be looking it up in the near future.
   new_entries[0] = e;
   for (size_t index = 0; index < saved_entry_len; index++) {
     assert(index + 1 < new_entry_len);

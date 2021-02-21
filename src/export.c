@@ -12,7 +12,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-/* Free a JSON object. See usage of this below in cleanup attributes. */
+// Free a JSON object. See usage of this below in cleanup attributes.
 static void disown(void *p) {
   assert(p != NULL);
   json_object **j = p;
@@ -27,23 +27,23 @@ static void autofree(void *p) {
     free(q);
 }
 
-/* Add a given key and value to a JSON dictionary. Returns 0 on success. */
+// Add a given key and value to a JSON dictionary. Returns 0 on success.
 static passwand_error_t add_to_dict(json_object *d, const char *key,
                                     const uint8_t *value, size_t value_len) {
 
-  /* First encode the value which may contain arbitrary data. */
+  // First encode the value which may contain arbitrary data.
   char *encoded;
   passwand_error_t err = encode(value, value_len, &encoded);
   if (err != PW_OK)
     return err;
 
-  /* Encapsulate the value in a JSON object. */
+  // Encapsulate the value in a JSON object.
   json_object *v = json_object_new_string(encoded);
   free(encoded);
   if (v == NULL)
     return PW_NO_MEM;
 
-  /* Add the key and value to the dictionary. */
+  // Add the key and value to the dictionary.
   json_object_object_add(d, key, v);
 
   return PW_OK;
@@ -55,14 +55,14 @@ passwand_error_t passwand_export(const char *path, passwand_entry_t *entries,
   assert(path != NULL);
   assert(entries != NULL || entry_len == 0);
 
-  /* Create a new array as the top level JSON object in the export file. */
+  // Create a new array as the top level JSON object in the export file.
   json_object *j __attribute__((cleanup(disown))) = json_object_new_array();
   if (j == NULL)
     return PW_NO_MEM;
 
   for (size_t i = 0; i < entry_len; i++) {
 
-    /* Encapsulate each entry in a JSON dictionary. */
+    // Encapsulate each entry in a JSON dictionary.
     json_object *d = json_object_new_object();
     if (d == NULL)
       return PW_NO_MEM;
@@ -90,7 +90,7 @@ passwand_error_t passwand_export(const char *path, passwand_entry_t *entries,
     json_object_array_add(j, d);
   }
 
-  /* Now write out the array to the given file. */
+  // Now write out the array to the given file.
 
   size_t path_len = strlen(path);
   if (SIZE_MAX - path_len < 2)

@@ -1,12 +1,11 @@
-/* Implementation of the gui.h API using osascript, the Open Scripting
- * Architecture utility for MacOS.
- *
- * XXX: Shelling out to an interpreter that we then pipe commands into is a very
- * odd way of building a GUI work flow. However, I can't find any proper API
- * Apple exposes to C programs. The only official answer seems to be "use
- * Objective-C". Given the fragility of this technique, we should exercise an
- * above average level of paranoia in this code.
- */
+// Implementation of the gui.h API using osascript, the Open Scripting
+// Architecture utility for MacOS.
+//
+// XXX: Shelling out to an interpreter that we then pipe commands into is a very
+// odd way of building a GUI work flow. However, I can't find any proper API
+// Apple exposes to C programs. The only official answer seems to be "use
+// Objective-C". Given the fragility of this technique, we should exercise an
+// above average level of paranoia in this code.
 
 #include "gui.h"
 #include <assert.h>
@@ -30,9 +29,8 @@
 
 static char **get_environ() {
 #if __APPLE__
-  /* Bizarrely Apple don't give programs a symbol for environ, but have an
-   * indirect way of accessing it.
-   */
+  // Bizarrely Apple don't give programs a symbol for environ, but have an
+  // indirect way of accessing it.
   return *_NSGetEnviron();
 #else
   return environ;
@@ -68,23 +66,22 @@ static int osascript_pipe(proc_t *proc) {
     goto done;
   }
 
-  /* Close the FDs we don't need. */
+  // Close the FDs we don't need.
   if ((rc = posix_spawn_file_actions_addclose(&actions, in[1])))
     goto done;
   if ((rc = posix_spawn_file_actions_addclose(&actions, out[0])))
     goto done;
 
-  /* Redirect stdin from the input pipe. */
+  // Redirect stdin from the input pipe.
   if ((rc = posix_spawn_file_actions_adddup2(&actions, in[0], STDIN_FILENO)))
     goto done;
 
-  /* Redirect stdout to the output pipe. */
+  // Redirect stdout to the output pipe.
   if ((rc = posix_spawn_file_actions_adddup2(&actions, out[1], STDOUT_FILENO)))
     goto done;
 
-  /* Redirect stderr to /dev/null. You may want to comment this out if you are
-   * debugging.
-   */
+  // Redirect stderr to /dev/null. You may want to comment this out if you are
+  // debugging.
   if ((rc = posix_spawn_file_actions_addopen(
            &actions, STDERR_FILENO, "/dev/null", O_WRONLY,
            S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)))
@@ -115,9 +112,8 @@ done:
 
 static int osascript(const struct iovec *iov, size_t iovcnt, char **out) {
 
-  /* Lock that we use to prevent multiple concurrent osascript tasks. It is OK
-   * to run osascript multiple times, but the effect may confuse the user.
-   */
+  // Lock that we use to prevent multiple concurrent osascript tasks. It is OK
+  // to run osascript multiple times, but the effect may confuse the user.
   static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
   assert(iov != NULL);
@@ -149,14 +145,14 @@ static int osascript(const struct iovec *iov, size_t iovcnt, char **out) {
   size_t size;
   FILE *buffer = open_memstream(&buf, &size);
   if (buffer != NULL) {
-    /* open_memstream succeeded. */
+    // open_memstream succeeded.
     ssize_t r;
     do {
       char chunk[BUFSIZ];
       r = read(proc.out, chunk, sizeof(chunk));
       if (r > 0) {
         size_t w = fwrite(chunk, (size_t)r, 1, buffer);
-        if (w == 0) /* Error */
+        if (w == 0) // Error
           r = -1;
       }
     } while (r > 0 || (r == -1 && errno == EINTR));
@@ -164,7 +160,7 @@ static int osascript(const struct iovec *iov, size_t iovcnt, char **out) {
     fclose(buffer);
 
     if (r == -1) {
-      /* Somewhere in the read loop we failed. */
+      // Somewhere in the read loop we failed.
       free(buf);
       buf = NULL;
     }
@@ -187,13 +183,13 @@ static int osascript(const struct iovec *iov, size_t iovcnt, char **out) {
     rc = WEXITSTATUS(status);
   }
 
-  /* If we've reached here, we failed. E.g. because the user clicked Cancel. */
+  // If we've reached here, we failed. E.g. because the user clicked Cancel.
 done:
   free(buf);
   return rc;
 }
 
-/* Escape a string that is to be passed to osascript. */
+// Escape a string that is to be passed to osascript.
 static char *escape(const char *s) {
 
   assert(s != NULL);
@@ -247,14 +243,14 @@ char *get_text(const char *title, const char *message, const char *initial,
     iov[7] = IOV(" with hidden answer");
 
   char *result = NULL;
-  /* Ignore failure, as we will signal it by returning NULL. */
+  // Ignore failure, as we will signal it by returning NULL.
   (void)osascript(iov, sizeof(iov) / sizeof(iov[0]), &result);
 
   free(i);
   free(m);
   free(t);
 
-  /* We need to strip the tailing newline to avoid confusing our caller. */
+  // We need to strip the tailing newline to avoid confusing our caller.
   if (result != NULL && strcmp(result, "") != 0) {
     assert(result[strlen(result) - 1] == '\n');
     result[strlen(result) - 1] = '\0';

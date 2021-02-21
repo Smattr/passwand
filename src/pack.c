@@ -37,7 +37,7 @@ passwand_error_t pack_data(const pt_t *p, const iv_t iv, ppt_t *pp) {
   assert(iv != NULL);
   assert(pp != NULL);
 
-  /* Calculate the final length of the unpadded data. */
+  // Calculate the final length of the unpadded data.
   if (SIZE_MAX - strlen(HEADER) < sizeof(uint64_t))
     return PW_OVERFLOW;
   if (SIZE_MAX - strlen(HEADER) - sizeof(uint64_t) < PW_IV_LEN)
@@ -46,10 +46,10 @@ passwand_error_t pack_data(const pt_t *p, const iv_t iv, ppt_t *pp) {
     return PW_OVERFLOW;
   size_t length = strlen(HEADER) + sizeof(uint64_t) + PW_IV_LEN + p->length;
 
-  /* The padding needs to align the final data to a 16-byte boundary. */
+  // The padding needs to align the final data to a 16-byte boundary.
   size_t padding_len = AES_BLOCK_SIZE - length % AES_BLOCK_SIZE;
 
-  /* Allocate enough space for the packed data. */
+  // Allocate enough space for the packed data.
 
   if (SIZE_MAX - length < padding_len)
     return PW_OVERFLOW;
@@ -58,27 +58,26 @@ passwand_error_t pack_data(const pt_t *p, const iv_t iv, ppt_t *pp) {
   if (passwand_secure_malloc((void **)&pp->data, pp->length) != 0)
     return PW_NO_MEM;
 
-  /* We're now ready to write the packed data. */
+  // We're now ready to write the packed data.
 
   size_t offset = 0;
 
   memcpy(pp->data, HEADER, strlen(HEADER));
   offset += strlen(HEADER);
 
-  /* Pack the length of the plain text as a little endian 8-byte number. */
+  // Pack the length of the plain text as a little endian 8-byte number.
   uint64_t encoded_pt_len = htole64_(p->length);
   memcpy(pp->data + offset, &encoded_pt_len, sizeof(encoded_pt_len));
   offset += sizeof(encoded_pt_len);
 
-  /* Pack the initialisation vector. */
+  // Pack the initialisation vector.
   memcpy(pp->data + offset, iv, PW_IV_LEN);
   offset += PW_IV_LEN;
 
-  /* Generate the padding. Agile Bits considers the padding scheme from IETF
-   * draft AEAD-AES-CBC-HMAC-SHA as a more suitable replacement, but I'm not
-   * sure why. It involves deterministic bytes that seems inherently less
-   * secure.
-   */
+  // Generate the padding. Agile Bits considers the padding scheme from IETF
+  // draft AEAD-AES-CBC-HMAC-SHA as a more suitable replacement, but I'm not
+  // sure why. It involves deterministic bytes that seems inherently less
+  // secure.
   passwand_error_t r = random_bytes(pp->data + offset, padding_len);
   if (r != PW_OK) {
     passwand_secure_free(pp->data, pp->length);
@@ -86,7 +85,7 @@ passwand_error_t pack_data(const pt_t *p, const iv_t iv, ppt_t *pp) {
   }
   offset += padding_len;
 
-  /* Pack the plain text itself. */
+  // Pack the plain text itself.
   if (p->length > 0)
     memcpy(pp->data + offset, p->data, p->length);
   offset += p->length;
@@ -106,14 +105,14 @@ passwand_error_t unpack_data(const ppt_t *pp, const iv_t iv, pt_t *p) {
 
   ppt_t d = *pp;
 
-  /* Check we have the correct header. */
+  // Check we have the correct header.
   if (d.length < strlen(HEADER) ||
       strncmp((const char *)d.data, HEADER, strlen(HEADER)) != 0)
     return PW_HEADER_MISMATCH;
   d.data += strlen(HEADER);
   d.length -= strlen(HEADER);
 
-  /* Unpack the size of the original plain text. */
+  // Unpack the size of the original plain text.
   uint64_t encoded_pt_len;
   if (d.length < sizeof(encoded_pt_len))
     return PW_TRUNCATED;
@@ -122,7 +121,7 @@ passwand_error_t unpack_data(const ppt_t *pp, const iv_t iv, pt_t *p) {
   d.data += sizeof(encoded_pt_len);
   d.length -= sizeof(encoded_pt_len);
 
-  /* Check the initialisation vector matches. */
+  // Check the initialisation vector matches.
   if (d.length < PW_IV_LEN)
     return PW_TRUNCATED;
   if (memcmp(d.data, iv, PW_IV_LEN) != 0)
@@ -130,15 +129,15 @@ passwand_error_t unpack_data(const ppt_t *pp, const iv_t iv, pt_t *p) {
   d.data += PW_IV_LEN;
   d.length -= PW_IV_LEN;
 
-  /* Check we do indeed have enough space for the plain text left. */
+  // Check we do indeed have enough space for the plain text left.
   if (d.length < p->length)
     return PW_TRUNCATED;
 
-  /* Check the data was padded correctly. */
+  // Check the data was padded correctly.
   if (d.length - p->length > AES_BLOCK_SIZE)
     return PW_BAD_PADDING;
 
-  /* Now we're ready to unpack it. */
+  // Now we're ready to unpack it.
   if (passwand_secure_malloc((void **)&p->data, p->length) != 0)
     return PW_NO_MEM;
   if (p->length > 0)

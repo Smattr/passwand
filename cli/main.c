@@ -46,9 +46,8 @@ main_t *getpassword(const char *prompt) {
 
   static const size_t EXPECTED_PAGE_SIZE = 4096;
 
-  /* Initial allocation size. We only support allocating a page, so clamp it
-   * at the expected page size if necessary.
-   */
+  // Initial allocation size. We only support allocating a page, so clamp it
+  // at the expected page size if necessary.
   size_t size = BUFSIZ > EXPECTED_PAGE_SIZE ? EXPECTED_PAGE_SIZE : BUFSIZ;
 
   char *m;
@@ -93,9 +92,8 @@ main_t *getpassword(const char *prompt) {
     index++;
     if (index >= size) {
       size_t new_size = size + BUFSIZ;
-      /* If we're increasing our allocation to more than one page, first
-       * clamp to one page for the reasons described above.
-       */
+      // If we're increasing our allocation to more than one page, first
+      // clamp to one page for the reasons described above.
       if (size < EXPECTED_PAGE_SIZE && new_size > EXPECTED_PAGE_SIZE)
         new_size = EXPECTED_PAGE_SIZE;
       char *n;
@@ -138,8 +136,8 @@ void discard_main(main_t *m) {
   passwand_secure_free(m, sizeof(*m));
 }
 
-/* Juggle the calling convention to a function for processing an entry that
- * doesn't need the state parameter. */
+// Juggle the calling convention to a function for processing an entry that
+// doesn't need the state parameter.
 static void entry_trampoline(void *state, const char *space, const char *key,
                              const char *value) {
   void (*f)(const char *, const char *, const char *) = state;
@@ -195,7 +193,7 @@ static void *thread_loop(void *arg) {
 
 int main(int argc, char **argv) {
 
-  /* we need to make a network call if we're checking a password */
+  // we need to make a network call if we're checking a password
   bool need_network = argc >= 2 && strcmp(argv[1], "check") == 0;
 
   if (drop_privileges(need_network) != 0) {
@@ -216,7 +214,7 @@ int main(int argc, char **argv) {
   int ret = EXIT_FAILURE;
   unsigned errors = 0;
 
-  /* Figure out which command to run. */
+  // Figure out which command to run.
   command = command_for(argv[1]);
   if (command == NULL) {
     eprint("invalid action: %s\n", argv[1]);
@@ -231,7 +229,7 @@ int main(int argc, char **argv) {
     goto done;
   }
 
-  /* Take a lock on the database if it exists. */
+  // Take a lock on the database if it exists.
   if (access(options.db.path, R_OK) == 0) {
     int fd = open(options.db.path, R_OK);
     if (fd >= 0) {
@@ -254,7 +252,7 @@ int main(int argc, char **argv) {
   for (size_t i = 0; i < entry_len; i++)
     entries[i].work_factor = options.db.work_factor;
 
-    /* Validate flags. */
+    // Validate flags.
 #define HANDLE(field)                                                          \
   do {                                                                         \
     if (command->need_##field == REQUIRED && options.field == NULL) {          \
@@ -276,21 +274,21 @@ int main(int argc, char **argv) {
     goto done;
   }
 
-  /* Setup command. */
+  // Setup command.
   assert(command->initialize != NULL);
   int r = command->initialize(mainpass, entries, entry_len);
   if (r != 0)
     goto done;
   command_initialized = true;
 
-  /* Allocate thread data */
+  // Allocate thread data
   tses = calloc(options.jobs, sizeof(tses[0]));
   if (tses == NULL) {
     eprint("out of memory\n");
     goto done;
   }
 
-  /* Setup thread data. */
+  // Setup thread data.
   atomic_size_t index = 0;
   for (size_t i = 0; i < options.jobs; i++) {
     tses[i].index = &index;
@@ -303,7 +301,7 @@ int main(int argc, char **argv) {
     tses[i].created = false;
   }
 
-  /* Allocate threads. */
+  // Allocate threads.
   assert(options.jobs >= 1);
   threads = calloc(options.jobs - 1, sizeof(threads[0]));
   if (threads == NULL) {
@@ -311,7 +309,7 @@ int main(int argc, char **argv) {
     goto done;
   }
 
-  /* Start threads. */
+  // Start threads.
   for (size_t i = 1; i < options.jobs; i++) {
     r = pthread_create(&threads[i - 1], NULL, thread_loop, &tses[i]);
     if (r == 0) {
@@ -321,7 +319,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  /* Join the other threads. */
+  // Join the other threads.
   r = (int)(intptr_t)thread_loop(&tses[0]);
   if (r != 0) {
     eprint("failed to handle entry %zu: %s\n", tses[0].error_index,
@@ -329,7 +327,7 @@ int main(int argc, char **argv) {
     errors++;
   }
 
-  /* Collect the secondary threads. */
+  // Collect the secondary threads.
   for (size_t i = 1; i < options.jobs; i++) {
     if (tses[i].created) {
       void *retu;
@@ -377,9 +375,8 @@ done:
     free(options.chain[i].path);
   free(options.chain);
 
-  /* Reset the state of the allocator, freeing memory back to the operating
-   * system, to pacify tools like Valgrind.
-   */
+  // Reset the state of the allocator, freeing memory back to the operating
+  // system, to pacify tools like Valgrind.
   {
     int rc __attribute__((unused)) = passwand_secure_malloc_reset();
     assert(rc == 0 && "allocator leak in cli");

@@ -11,9 +11,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-/* The following are some helpers so we can use pervasive RAII in the import
- * function.
- */
+// The following are some helpers so we can use pervasive RAII in the import
+// function.
 
 static void autoclose(void *p) {
   assert(p != NULL);
@@ -54,7 +53,7 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
   assert(entries != NULL);
   assert(entry_len != NULL);
 
-  /* MMap the input so JSON-C can stream it. */
+  // MMap the input so JSON-C can stream it.
   int f __attribute__((cleanup(autoclose))) = open(path, O_RDONLY);
   if (f == -1)
     return PW_IO;
@@ -71,7 +70,7 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
       .length = st.st_size,
   };
 
-  /* Read the outer list. This should be the only item in the file. */
+  // Read the outer list. This should be the only item in the file.
   json_tokener *tok __attribute__((cleanup(autojsonfree))) = json_tokener_new();
   if (tok == NULL)
     return PW_NO_MEM;
@@ -84,7 +83,7 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
   if (!json_object_is_type(j, json_type_array))
     return PW_BAD_JSON;
 
-  /* We're now ready to start reading the entries themselves. */
+  // We're now ready to start reading the entries themselves.
 
   *entry_len = json_object_array_length(j);
   *entries = calloc(*entry_len, sizeof(passwand_entry_t));
@@ -110,7 +109,7 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
     json_object *m = json_object_array_get_idx(j, i);
     assert(m != NULL);
     if (!json_object_is_type(m, json_type_object)) {
-      /* One of the array entries was not an object (dictionary). */
+      // One of the array entries was not an object (dictionary).
       FREE_PRECEDING();
       return PW_BAD_JSON;
     }

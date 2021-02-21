@@ -1,6 +1,5 @@
-/* Note that we avoid OpenSSL's RAND_bytes because it does not contain as much
- * entropy as it claims (https://eprint.iacr.org/2016/367).
- */
+// Note that we avoid OpenSSL's RAND_bytes because it does not contain as much
+// entropy as it claims (https://eprint.iacr.org/2016/367).
 
 #include "internal.h"
 #include <assert.h>
@@ -16,7 +15,7 @@
     (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 25))
 #include <sys/random.h>
 #else
-/* Before Glibc 2.25 we don't have a syscall wrapper for getrandom(). */
+// Before Glibc 2.25 we don't have a syscall wrapper for getrandom().
 #include <linux/random.h>
 #include <sys/syscall.h>
 

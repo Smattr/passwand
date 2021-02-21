@@ -8,7 +8,7 @@
 
 typedef struct {
 
-  /* encrypted fields */
+  // encrypted fields
   uint8_t *space;
   size_t space_len;
   uint8_t *key;
@@ -16,39 +16,39 @@ typedef struct {
   uint8_t *value;
   size_t value_len;
 
-  /* hmac fields */
+  // hmac fields
   uint8_t *hmac;
   size_t hmac_len;
   uint8_t *hmac_salt;
   size_t hmac_salt_len;
 
-  /* other core fields */
+  // other core fields
   uint8_t *salt;
   size_t salt_len;
   uint8_t *iv;
   size_t iv_len;
 
-  /* fields that don't get exported */
+  // fields that don't get exported
   unsigned work_factor;
 
 } passwand_entry_t;
 
 typedef enum {
-  PW_OK = 0,          /* no error */
-  PW_IO = EIO,        /* I/O error */
-  PW_NO_MEM = ENOMEM, /* out of memory */
-  PW_OVERFLOW,        /* integer overflow */
-  PW_BAD_KEY_SIZE,    /* incorrect key length */
-  PW_BAD_IV_SIZE,     /* incorrect initialisation vector length */
-  PW_BAD_WF,          /* incorrect work factor */
-  PW_UNALIGNED,       /* unaligned data */
-  PW_CRYPTO,          /* failure in underlying crypto library */
-  PW_HEADER_MISMATCH, /* mismatched header value */
-  PW_IV_MISMATCH,     /* mismatched initialisation vector */
-  PW_TRUNCATED,       /* data was too short */
-  PW_BAD_PADDING,     /* data was incorrectly padded */
-  PW_BAD_JSON,        /* imported data did not conform to expected schema */
-  PW_BAD_HMAC,        /* message failed authentication */
+  PW_OK = 0,          // no error
+  PW_IO = EIO,        // I/O error
+  PW_NO_MEM = ENOMEM, // out of memory
+  PW_OVERFLOW,        // integer overflow
+  PW_BAD_KEY_SIZE,    // incorrect key length
+  PW_BAD_IV_SIZE,     // incorrect initialisation vector length
+  PW_BAD_WF,          // incorrect work factor
+  PW_UNALIGNED,       // unaligned data
+  PW_CRYPTO,          // failure in underlying crypto library
+  PW_HEADER_MISMATCH, // mismatched header value
+  PW_IV_MISMATCH,     // mismatched initialisation vector
+  PW_TRUNCATED,       // data was too short
+  PW_BAD_PADDING,     // data was incorrectly padded
+  PW_BAD_JSON,        // imported data did not conform to expected schema
+  PW_BAD_HMAC,        // message failed authentication
 } passwand_error_t;
 
 /** Translate an error code into a string
@@ -58,10 +58,10 @@ typedef enum {
  */
 const char *passwand_error(passwand_error_t err);
 
-/* Various other ungrouped constants */
+// Various other ungrouped constants
 enum {
-  PW_SALT_LEN = 8, /* Length of salt added to the main passphrase */
-  PW_IV_LEN = 16,  /* Length of initialisation vector */
+  PW_SALT_LEN = 8, // Length of salt added to the main passphrase
+  PW_IV_LEN = 16,  // Length of initialisation vector
 };
 
 /** Create a new entry

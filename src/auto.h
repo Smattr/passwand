@@ -1,4 +1,4 @@
-/* Helpers for RAII */
+// Helpers for RAII
 
 #pragma once
 

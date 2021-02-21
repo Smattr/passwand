@@ -28,7 +28,7 @@ static void unmake_m_t(void *p) {
 #define AUTO_M_T(name, mainpass)                                               \
   m_t *name __attribute__((cleanup(unmake_m_t))) = make_m_t(mainpass)
 
-/* Auto-destruct infrastructure for use below. */
+// Auto-destruct infrastructure for use below.
 typedef struct {
   bool live;
   EVP_CIPHER_CTX *ctx;
@@ -62,7 +62,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
 
   memset(e, 0, sizeof(*e));
 
-  /* Generate a random 8-byte salt. */
+  // Generate a random 8-byte salt.
   uint8_t _salt[PW_SALT_LEN];
   passwand_error_t err = random_bytes(_salt, sizeof(_salt));
   if (err != PW_OK)
@@ -72,7 +72,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
       .length = sizeof(_salt),
   };
 
-  /* Make an encryption key. */
+  // Make an encryption key.
   AUTO_M_T(m, mainpass);
   if (m == NULL)
     return PW_NO_MEM;
@@ -83,13 +83,13 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
   if (err != PW_OK)
     return err;
 
-  /* Generate a random 16-byte initialisation vector. */
+  // Generate a random 16-byte initialisation vector.
   iv_t iv;
   err = random_bytes(iv, sizeof(iv));
   if (err != PW_OK)
     return err;
 
-  /* Setup an encryption context. */
+  // Setup an encryption context.
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
   if (ctx == NULL)
     return PW_NO_MEM;
@@ -99,7 +99,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
     return err;
   }
 
-  /* Auto-destruct the context on exit from this scope. */
+  // Auto-destruct the context on exit from this scope.
   ctx_destructor_args_t ctx_destruct
       __attribute__((cleanup(ctx_destructor_encrypt))) = {
           .live = true,
@@ -123,7 +123,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
     FREE(space);                                                               \
   } while (0)
 
-  /* Now pack and encrypt each field. */
+  // Now pack and encrypt each field.
 #define ENC(field)                                                             \
   do {                                                                         \
     pt_t *p;                                                                   \
@@ -164,7 +164,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
 
 #undef ENC
 
-  /* No longer need the encryption context. */
+  // No longer need the encryption context.
   err = aes_encrypt_deinit(ctx);
   EVP_CIPHER_CTX_free(ctx);
   ctx_destruct.live = false;
@@ -173,13 +173,13 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
     return err;
   }
 
-  /* Figure out what work factor make_key would have used. */
+  // Figure out what work factor make_key would have used.
   if (work_factor == -1)
     work_factor = 14;
   assert(work_factor >= 10 && work_factor <= 31);
   e->work_factor = work_factor;
 
-  /* Save the salt. */
+  // Save the salt.
   e->salt = malloc(sizeof(_salt));
   if (e->salt == NULL) {
     CLEANUP();
@@ -188,7 +188,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
   memcpy(e->salt, &_salt, sizeof(_salt));
   e->salt_len = sizeof(_salt);
 
-  /* Save the IV. */
+  // Save the IV.
   e->iv = malloc(sizeof(iv));
   if (e->iv == NULL) {
     CLEANUP();
@@ -197,7 +197,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
   memcpy(e->iv, iv, sizeof(iv));
   e->iv_len = sizeof(iv);
 
-  /* Set the HMAC. */
+  // Set the HMAC.
   err = passwand_entry_set_mac(mainpass, e);
   if (err != PW_OK) {
     CLEANUP();
@@ -220,7 +220,7 @@ static passwand_error_t get_mac(const char *mainpass, const passwand_entry_t *e,
       .length = e->hmac_salt_len,
   };
 
-  /* Concatenate all the field data we'll MAC. */
+  // Concatenate all the field data we'll MAC.
   if (SIZE_MAX - e->space_len < e->key_len)
     return PW_OVERFLOW;
   if (SIZE_MAX - e->space_len - e->key_len < e->value_len)
@@ -255,7 +255,7 @@ static passwand_error_t get_mac(const char *mainpass, const passwand_entry_t *e,
     memcpy(_data, e->iv, e->iv_len);
   _data += e->iv_len;
 
-  /* Now generate the MAC. */
+  // Now generate the MAC.
   AUTO_M_T(m, mainpass);
   if (m == NULL) {
     free(data.data);
@@ -280,7 +280,7 @@ passwand_error_t passwand_entry_set_mac(const char *mainpass,
     e->hmac = NULL;
   }
   if (e->hmac_salt == NULL) {
-    /* No existing salt; generate one now. */
+    // No existing salt; generate one now.
     uint8_t *s = malloc(HMAC_SALT_LEN);
     if (s == NULL)
       return PW_NO_MEM;
@@ -326,7 +326,7 @@ passwand_error_t passwand_entry_check_mac(const char *mainpass,
   return r ? PW_OK : PW_BAD_HMAC;
 }
 
-/* Auto-free functionality for use below. */
+// Auto-free functionality for use below.
 static void auto_secure_free(void *p) {
   assert(p != NULL);
   char *s = *(char **)p;
@@ -344,12 +344,12 @@ passwand_entry_do(const char *mainpass, const passwand_entry_t *e,
   assert(e != NULL);
   assert(action != NULL);
 
-  /* First check the MAC. */
+  // First check the MAC.
   passwand_error_t err = passwand_entry_check_mac(mainpass, e);
   if (err != PW_OK)
     return err;
 
-  /* Generate the encryption key. */
+  // Generate the encryption key.
   AUTO_M_T(m, mainpass);
   if (m == NULL)
     return PW_NO_MEM;
@@ -366,13 +366,13 @@ passwand_entry_do(const char *mainpass, const passwand_entry_t *e,
   if (err != PW_OK)
     return err;
 
-  /* Extract the leading initialisation vector. */
+  // Extract the leading initialisation vector.
   if (e->iv_len != PW_IV_LEN)
     return PW_IV_MISMATCH;
   iv_t iv;
   memcpy(iv, e->iv, e->iv_len);
 
-  /* Setup a decryption context. */
+  // Setup a decryption context.
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
   if (ctx == NULL)
     return PW_NO_MEM;
@@ -382,7 +382,7 @@ passwand_entry_do(const char *mainpass, const passwand_entry_t *e,
     return err;
   }
 
-  /* Auto-destruct the context on scope exit. */
+  // Auto-destruct the context on scope exit.
   ctx_destructor_args_t ctx_destruct
       __attribute__((cleanup(ctx_destructor_decrypt))) = {
           .live = true,
@@ -453,10 +453,9 @@ passwand_entry_do(const char *mainpass, const passwand_entry_t *e,
 
 #undef DEC
 
-  /* If we decrypted all the fields successfully, we can eagerly destroy the
-   * decryption context. The advantage of this is that we can pass any error
-   * back to the caller.
-   */
+  // If we decrypted all the fields successfully, we can eagerly destroy the
+  // decryption context. The advantage of this is that we can pass any error
+  // back to the caller.
   err = aes_decrypt_deinit(ctx);
   EVP_CIPHER_CTX_free(ctx);
   ctx_destruct.live = false;

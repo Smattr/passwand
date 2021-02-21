@@ -15,11 +15,10 @@ options_t options;
 // default to use if --work-factor is not supplied
 static const unsigned DEFAULT_WORK_FACTOR = 14;
 
-/* Overwrite command line arguments to conceal them from utils like `top`. This
- * isn't a good way to conceal this information from a concerted attacker, but
- * useful for more lazy snooping tools that aren't specifically targeting
- * Passwand.
- */
+// Overwrite command line arguments to conceal them from utils like `top`. This
+// isn't a good way to conceal this information from a concerted attacker, but
+// useful for more lazy snooping tools that aren't specifically targeting
+// Passwand.
 static void blank_arguments(int argc, char **argv) {
   for (size_t i = 0; i < (size_t)argc; i++) {
     size_t len = strlen(argv[i]);
@@ -113,7 +112,7 @@ int parse(int argc, char **argv) {
         fprintf(stderr, "invalid argument to --work-factor\n");
         return -1;
       }
-      /* Should this apply to a chained database? */
+      // Should this apply to a chained database?
       if (options.chain_len > 0) {
         options.chain[options.chain_len - 1].work_factor = wf;
       } else {
@@ -133,11 +132,11 @@ int parse(int argc, char **argv) {
   }
 
   if (options.db.path == NULL) {
-    /* Setup default path. */
+    // Setup default path.
     char *home = getenv_("HOME");
     if (home == NULL)
       return -1;
-    /* Check for overflow. */
+    // Check for overflow.
     if (SIZE_MAX - strlen(home) < strlen("/.passwand.json"))
       return -1;
     if (SIZE_MAX - strlen(home) - strlen("/.passwand.json") < 1)
@@ -150,21 +149,19 @@ int parse(int argc, char **argv) {
     options.db.path = path;
   }
 
-  /* Try to resolve the path to its ultimate target if it is a symbolic link.
-   * The purpose of this is so our caller can update the database by creating a
-   * temporary file and renaming it to the target. Without resolving symlinks,
-   * the temporary file may end up on a different partition to the target and
-   * the rename will fail.
-   */
+  // Try to resolve the path to its ultimate target if it is a symbolic link.
+  // The purpose of this is so our caller can update the database by creating a
+  // temporary file and renaming it to the target. Without resolving symlinks,
+  // the temporary file may end up on a different partition to the target and
+  // the rename will fail.
   for (;;) {
     char *target = malloc(PATH_MAX + 1);
     if (target == NULL)
       return -1;
     ssize_t r = readlink(options.db.path, target, PATH_MAX + 1);
     if (r == -1) {
-      /* If we fail for any reason, just bail out and let our caller deal with
-       * having a symlink database.
-       */
+      // If we fail for any reason, just bail out and let our caller deal with
+      // having a symlink database.
       free(target);
       break;
     }
