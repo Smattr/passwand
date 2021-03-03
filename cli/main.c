@@ -11,6 +11,7 @@
 #include "set.h"
 #include "update.h"
 #include <assert.h>
+#include <errno.h>
 #include <passwand/passwand.h>
 #include <pthread.h>
 #include <stdatomic.h>
@@ -61,14 +62,14 @@ main_t *getpassword(const char *prompt) {
 
   struct termios old;
   if (tcgetattr(STDOUT_FILENO, &old) != 0) {
-    eprint("failed to get stdout attributes\n");
+    eprint("failed to get stdout attributes: %s\n", strerror(errno));
     passwand_secure_free(m, size);
     return NULL;
   }
   struct termios new = old;
   cfmakeraw(&new);
   if (tcsetattr(STDOUT_FILENO, 0, &new) != 0) {
-    eprint("failed to set stdout attributes\n");
+    eprint("failed to set stdout attributes: %s\n", strerror(errno));
     passwand_secure_free(m, size);
     return NULL;
   }
