@@ -57,31 +57,52 @@ main_t *getpassword(const char *prompt) {
     return NULL;
   }
 
-  print("%s", prompt == NULL ? "main password: " : prompt);
-  fflush(stdout);
+  // open the controlling TTY that we will use to prompt the user, so they see
+  // it even when piping pw-cli into something else
+  FILE *devtty = fopen("/dev/tty", "w");
+  if (devtty == NULL) {
+    eprint("failed to open /dev/tty: %s\n", strerror(errno));
+    passwand_secure_free(m, size);
+    return NULL;
+  }
+
+  fprintf(devtty, "%s", prompt == NULL ? "main password: " : prompt);
+  fflush(devtty);
+  fclose(devtty);
+
+  // similarly use the controlling TTY for reading the password to ensure it
+  // comes from the user, not something piped into pw-cli
+  devtty = fopen("/dev/tty", "r");
+  if (devtty == NULL) {
+    eprint("failed to open /dev/tty: %s\n", strerror(errno));
+    passwand_secure_free(m, size);
+    return NULL;
+  }
 
   struct termios old;
-  if (tcgetattr(STDOUT_FILENO, &old) != 0) {
-    eprint("failed to get stdout attributes: %s\n", strerror(errno));
+  if (tcgetattr(fileno(devtty), &old) != 0) {
+    eprint("failed to get /dev/tty attributes: %s\n", strerror(errno));
+    fclose(devtty);
     passwand_secure_free(m, size);
     return NULL;
   }
   struct termios new = old;
   cfmakeraw(&new);
-  if (tcsetattr(STDOUT_FILENO, 0, &new) != 0) {
-    eprint("failed to set stdout attributes: %s\n", strerror(errno));
+  if (tcsetattr(fileno(devtty), 0, &new) != 0) {
+    eprint("failed to set /dev/tty attributes: %s\n", strerror(errno));
+    fclose(devtty);
     passwand_secure_free(m, size);
     return NULL;
   }
 
   size_t index = 0;
   for (;;) {
-    int c = getchar();
+    int c = getc(devtty);
 
     if (c == EOF) {
-      fflush(stdout);
-      tcsetattr(STDOUT_FILENO, 0, &old);
       eprint("truncated input\n");
+      tcsetattr(fileno(devtty), 0, &old);
+      fclose(devtty);
       passwand_secure_free(m, size);
       return NULL;
     }
@@ -99,9 +120,9 @@ main_t *getpassword(const char *prompt) {
         new_size = EXPECTED_PAGE_SIZE;
       char *n;
       if (passwand_secure_malloc((void **)&n, new_size) != 0) {
-        fflush(stdout);
-        tcsetattr(STDOUT_FILENO, 0, &old);
         eprint("failed to reallocate secure memory\n");
+        tcsetattr(fileno(devtty), 0, &old);
+        fclose(devtty);
         passwand_secure_free(m, size);
         return NULL;
       }
@@ -112,9 +133,17 @@ main_t *getpassword(const char *prompt) {
     }
   }
 
-  fflush(stdout);
-  tcsetattr(STDOUT_FILENO, 0, &old);
-  print("\n");
+  tcsetattr(fileno(devtty), 0, &old);
+  fclose(devtty);
+
+  // newline for feedback to the user that they hit enter, but ignore failure
+  // because this is non-critical
+  devtty = fopen("/dev/tty", "w");
+  if (devtty != NULL) {
+    fprintf(devtty, "\n");
+    fflush(devtty);
+    fclose(devtty);
+  }
 
   m[index] = '\0';
 
