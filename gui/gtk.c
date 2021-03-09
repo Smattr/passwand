@@ -1,6 +1,7 @@
 // implementation of the API described in gui.h using GTK 2/3
 
 #include "../common/getenv.h"
+#include "gtk_lock.h"
 #include "gui.h"
 #include <X11/Xlib.h>
 #include <assert.h>
@@ -13,7 +14,7 @@
 #include <string.h>
 
 // a lock to ensure we prevent multiple concurrent calls to GTK or X11 APIs
-static pthread_mutex_t gtk_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t gtk_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static bool inited;
 
