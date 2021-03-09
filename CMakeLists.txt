@@ -91,7 +91,7 @@ elseif (OSASCRIPT)
   add_executable (pw-gui gui/main.c gui/osascript.c common/argparse.c)
 endif ()
 
-if (((GTK3_FOUND OR GTK2_FOUND) AND X11_FOUND) OR OSASCRIPT)
+if (TARGET pw-gui)
   target_link_libraries (pw-gui passwand ${GTK_LIBRARIES} ${X11_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
   install (TARGETS pw-gui RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif ()
