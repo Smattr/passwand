@@ -85,8 +85,10 @@ endif (GTK3_FOUND)
 
 find_package (Threads)
 
-if ((GTK3_FOUND OR GTK2_FOUND) AND X11_FOUND)
-  add_executable (pw-gui gui/main.c gui/gtk.c common/argparse.c)
+if (GTK3_FOUND OR GTK2_FOUND)
+  if (X11_FOUND)
+    add_executable (pw-gui gui/main.c gui/gtk.c gui/x11.c common/argparse.c)
+  endif ()
 elseif (OSASCRIPT)
   add_executable (pw-gui gui/main.c gui/osascript.c common/argparse.c)
 endif ()
