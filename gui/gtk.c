@@ -160,6 +160,7 @@ int send_text(const char *text) {
   int state;
   XGetInputFocus(d, &win, &state);
   if (win == None) {
+    XCloseDisplay(d);
     show_error_core("no window focused");
     goto done;
   }
@@ -169,10 +170,10 @@ int send_text(const char *text) {
     send_char(d, win, text[i]);
   }
 
+  XCloseDisplay(d);
   ret = 0;
 
 done:
-  XCloseDisplay(d);
   err = pthread_mutex_unlock(&gtk_lock);
   assert(err == 0);
   return ret;
