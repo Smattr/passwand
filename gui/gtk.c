@@ -98,7 +98,6 @@ char *get_text(const char *title, const char *message, const char *initial,
 static void send_char(Display *display, Window window, char c) {
 
   assert(supported_upper(c) || supported_lower(c));
-  assert(inited);
 
   XKeyEvent e = {
       .display = display,
@@ -139,9 +138,6 @@ int send_text(const char *text) {
 
   int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);
   assert(err == 0);
-
-  if (!inited)
-    init();
 
   // find the current display
   const char *display = getenv_("DISPLAY");
