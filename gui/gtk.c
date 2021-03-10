@@ -140,8 +140,6 @@ int send_text(const char *text) {
   int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);
   assert(err == 0);
 
-  int ret = -1;
-
   if (!inited)
     init();
 
@@ -151,8 +149,10 @@ int send_text(const char *text) {
     display = ":0";
   Display *d = XOpenDisplay(display);
   if (d == NULL) {
-    show_error_core("failed to open X11 display");
-    goto done;
+    err = pthread_mutex_unlock(&gtk_lock);
+    assert(err == 0);
+    show_error("failed to open X11 display");
+    return -1;
   }
 
   // find the active window
@@ -161,8 +161,10 @@ int send_text(const char *text) {
   XGetInputFocus(d, &win, &state);
   if (win == None) {
     XCloseDisplay(d);
-    show_error_core("no window focused");
-    goto done;
+    err = pthread_mutex_unlock(&gtk_lock);
+    assert(err == 0);
+    show_error("no window focused");
+    return -1;
   }
 
   for (size_t i = 0; i < strlen(text); i++) {
@@ -171,12 +173,11 @@ int send_text(const char *text) {
   }
 
   XCloseDisplay(d);
-  ret = 0;
 
-done:
   err = pthread_mutex_unlock(&gtk_lock);
   assert(err == 0);
-  return ret;
+
+  return 0;
 }
 
 void show_error(const char *message) {
