@@ -114,7 +114,7 @@ static const struct { char key; int code; bool shift; } keys[] = {
   { 'x',  KEY_X,          false },
   { 'y',  KEY_Y,          false },
   { 'z',  KEY_Z,          false },
-  { '{',  KEY_LEFTBRACE,  false },
+  { '{',  KEY_LEFTBRACE,  true  },
   { '|',  KEY_BACKSLASH,  true  },
   { '}',  KEY_RIGHTBRACE, true  },
   { '~',  KEY_GRAVE,      true  },
