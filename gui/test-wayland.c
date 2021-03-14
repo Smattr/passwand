@@ -51,7 +51,7 @@ static const struct { char key; int code; bool shift; } keys[] = {
   { '9',  KEY_9,          false },
   { ':',  KEY_SEMICOLON,  true  },
   { ';',  KEY_SEMICOLON,  false },
-  { '<',  KEY_COMMA,      false },
+  { '<',  KEY_COMMA,      true  },
   { '=',  KEY_EQUAL,      false },
   { '>',  KEY_DOT,        true  },
   { '?',  KEY_SLASH,      true  },
