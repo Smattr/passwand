@@ -179,7 +179,8 @@ int main(int argc, char **argv) {
     for (size_t j = i + 1; j < sizeof(keys) / sizeof(keys[0]); ++j) {
       if (keys[i].key == keys[j].key ||
           (keys[i].code == keys[j].code && keys[i].shift == keys[j].shift)) {
-        fprintf(stderr, "duplicate key table entry: [%zu] and [%zu]\n", i, j);
+        fprintf(stderr, "duplicate key table entry, '%c': [%zu] and [%zu]\n",
+                keys[i].key, i, j);
         return EXIT_FAILURE;
       }
     }
