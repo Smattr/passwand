@@ -7,6 +7,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <linux/uinput.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,7 +30,7 @@ static const struct { char key; int code; bool shift; } keys[] = {
   { '$',  KEY_4,          true  },
   { '%',  KEY_5,          true  },
   { '&',  KEY_7,          true  },
-  { '\''  KEY_APOSTROPHE, false },
+  { '\'', KEY_APOSTROPHE, false },
   { '(',  KEY_9,          true  },
   { ')',  KEY_0,          true  },
   { '*',  KEY_8,          true  },
@@ -142,22 +143,22 @@ static void type(int uinput, char c) {
 
       // do we need to hold Shift while pressing this key?
       if (keys[i].shift) {
-        emit(fd, EV_KEY, KEY_LEFTSHIFT, 1);
-        emit(fd, EV_SYN, SYN_REPORT, 0);
+        emit(uinput, EV_KEY, KEY_LEFTSHIFT, 1);
+        emit(uinput, EV_SYN, SYN_REPORT, 0);
       }
 
       // press the key itself
-      emit(fd, EV_KEY, keys[i].code, 1);
-      emit(fd, EV_KEY, SYN_REPORT, 0);
+      emit(uinput, EV_KEY, keys[i].code, 1);
+      emit(uinput, EV_KEY, SYN_REPORT, 0);
 
       // release the key
-      emit(fd, EV_KEY, keys[i].code, 0);
-      emit(fd, EV_KEY, SYN_REPORT, 0);
+      emit(uinput, EV_KEY, keys[i].code, 0);
+      emit(uinput, EV_KEY, SYN_REPORT, 0);
 
       // release shift if we have it held
       if (keys[i].shift) {
-        emit(fd, EV_KEY, KEY_LEFTSHIFT, 0);
-        emit(fd, EV_SYN, SYN_REPORT, 0);
+        emit(uinput, EV_KEY, KEY_LEFTSHIFT, 0);
+        emit(uinput, EV_SYN, SYN_REPORT, 0);
       }
 
       return;
@@ -185,7 +186,7 @@ int main(int argc, char **argv) {
   }
 
   // check we were not passed anything we do not know how to type
-  for (const char *p = argv[1], *p != '\0', ++p) {
+  for (const char *p = argv[1]; *p != '\0'; ++p) {
     bool ok = false;
     for (size_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++i) {
       if (keys[i].key == *p) {
@@ -239,7 +240,7 @@ int main(int argc, char **argv) {
 
   // create the device
   if (ioctl(fd, UI_DEV_SETUP, &config) < 0 || ioctl(fd, UI_DEV_CREATE) < 0) {
-    fprintf(stderr, "failed to create virtual device: %s\n", strerror(errnor));
+    fprintf(stderr, "failed to create virtual device: %s\n", strerror(errno));
     close(fd);
     return EXIT_FAILURE;
   }
@@ -249,7 +250,7 @@ int main(int argc, char **argv) {
 
   // type the user’s text
   for (const char *p = argv[1]; *p != '\0'; ++p)
-    type(*p);
+    type(fd, *p);
 
   // stall to drain the event queue
   sleep(1);
