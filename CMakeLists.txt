@@ -70,6 +70,7 @@ find_path (SCRYPTKDF_INCLUDE_DIRS scrypt-kdf.h
 pkg_check_modules (X11 x11)
 
 # Try to find Wayland uinput.
+include (CheckIncludeFile)
 check_include_file ("linux/uinput.h" HAS_UINPUT)
 
 # Try to find a GUI solution. In order of preference: GTK3, GTK2, osascript
