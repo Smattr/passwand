@@ -1,13 +1,16 @@
-/** test utility for probing Wayland support
+/** implementation of part of the API described n gui.h using Wayland uinput
  *
- * This is not part of pw-cli or pw-gui, but rather a standalone tool for
- * checking whether we can type characters in a Wayland environment. The code is
- * based on https://www.kernel.org/doc/html/v4.12/input/uinput.html.
+ * This is based on https://www.kernel.org/doc/html/v4.12/input/uinput.html.
  */
 
+#include "gtk_lock.h"
+#include "gui.h"
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <linux/uinput.h>
+#include <pthread.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,8 +18,22 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-static bool streq(const char *a, const char *b) {
-  return strcmp(a, b) == 0;
+static __attribute__((format(printf, 1, 2))) void error(const char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+#ifdef TEST_WAYLAND
+  vfprintf(stderr, fmt, ap);
+  fprintf(stderr, "\n");
+#else
+  char *msg;
+  if (vasprintf(&msg, fmt, ap) < 0) {
+    show_error("out of memory");
+  } else {
+    show_error(msg);
+    free(msg);
+  }
+#endif
+  va_end(ap);
 }
 
 // all the keys this program may wish to type, with mapping to a US keyboard
@@ -166,11 +183,78 @@ static void type(int uinput, char c) {
   }
 }
 
+static int make_dev(void) {
+
+  // connect to uinput
+  int fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
+  if (fd < 0) {
+    error("failed to open /dev/uinput: %s", strerror(errno));
+    return -1;
+  }
+
+  // enable key press events
+  if (ioctl(fd, UI_SET_EVBIT, EV_KEY) < 0) {
+    close(fd);
+    error("failed to enable key events: %s", strerror(errno));
+    return -1;
+  }
+
+  // enable all the keys we may wish to type
+  for (size_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++i) {
+    if (ioctl(fd, UI_SET_KEYBIT, keys[i].code) < 0) {
+      close(fd);
+      error("failed to enable key '%c': %s", keys[i].key, strerror(errno));
+      return -1;
+    }
+  }
+  if (ioctl(fd, UI_SET_KEYBIT, KEY_LEFTSHIFT) < 0) {
+    close(fd);
+    error("failed to enable key shift: %s", strerror(errno));
+    return -1;
+  }
+
+  // describe a virtual keyboard
+  struct uinput_setup config;
+  memset(&config, 0, sizeof(config));
+  config.id.bustype = BUS_USB;
+  config.id.vendor = 0x7770; // "pw"
+  config.id.product = 0x7770;
+  _Static_assert(sizeof("passwand virtual keyboard") <= sizeof(config.name));
+  strcpy(config.name, "passwand virtual keyboard");
+
+  // create the device
+  if (ioctl(fd, UI_DEV_SETUP, &config) < 0 || ioctl(fd, UI_DEV_CREATE) < 0) {
+    close(fd);
+    error("failed to create virtual device: %s", strerror(errno));
+    return -1;
+  }
+
+  // stall to give userspace a chance to detect and initialise the device
+  sleep(1);
+
+  return fd;
+}
+
+static void destroy_dev(int dev) {
+  // stall to drain the event queue
+  sleep(1);
+
+  // destroy the device
+  (void)ioctl(dev, UI_DEV_DESTROY);
+  close(dev);
+
+}
+
+static __attribute__((unused)) bool streq(const char *a, const char *b) {
+  return strcmp(a, b) == 0;
+}
+
+#ifdef TEST_WAYLAND
 int main(int argc, char **argv) {
 
   if (argc != 2 || streq(argv[1], "-?") || streq(argv[1], "--help")) {
-    fprintf(stderr, "usage: %s string\n"
-                    "  test utility for typing on Wayland\n", argv[0]);
+    error("usage: %s string\n"
+          "  test utility for typing on Wayland", argv[0]);
     return EXIT_FAILURE;
   }
 
@@ -179,8 +263,8 @@ int main(int argc, char **argv) {
     for (size_t j = i + 1; j < sizeof(keys) / sizeof(keys[0]); ++j) {
       if (keys[i].key == keys[j].key ||
           (keys[i].code == keys[j].code && keys[i].shift == keys[j].shift)) {
-        fprintf(stderr, "duplicate key table entry, '%c': [%zu] and [%zu]\n",
-                keys[i].key, i, j);
+        error("duplicate key table entry, '%c': [%zu] and [%zu]", keys[i].key,
+              i, j);
         return EXIT_FAILURE;
       }
     }
@@ -196,69 +280,49 @@ int main(int argc, char **argv) {
       }
     }
     if (!ok) {
-      fprintf(stderr, "I do not know how to type '%c'\n", *p);
+      error("I do not know how to type '%c'", *p);
       return EXIT_FAILURE;
     }
   }
 
-  // connect to uinput
-  int fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
-  if (fd < 0) {
-    fprintf(stderr, "failed to open /dev/uinput: %s\n", strerror(errno));
+  // create a uinput device
+  int fd = make_dev();
+  if (fd < 0)
     return EXIT_FAILURE;
-  }
-
-  // enable key press events
-  if (ioctl(fd, UI_SET_EVBIT, EV_KEY) < 0) {
-    fprintf(stderr, "failed to enable key events: %s\n", strerror(errno));
-    close(fd);
-    return EXIT_FAILURE;
-  }
-
-  // enable all the keys we may wish to type
-  for (size_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++i) {
-    if (ioctl(fd, UI_SET_KEYBIT, keys[i].code) < 0) {
-      fprintf(stderr, "failed to enable key '%c': %s\n", keys[i].key,
-              strerror(errno));
-      close(fd);
-      return EXIT_FAILURE;
-    }
-  }
-  if (ioctl(fd, UI_SET_KEYBIT, KEY_LEFTSHIFT) < 0) {
-    fprintf(stderr, "failed to enable key shift: %s\n", strerror(errno));
-    close(fd);
-    return EXIT_FAILURE;
-  }
-
-  // describe a virtual keyboard
-  struct uinput_setup config;
-  memset(&config, 0, sizeof(config));
-  config.id.bustype = BUS_USB;
-  config.id.vendor = 0x7770; // "pw"
-  config.id.product = 0x7770;
-  _Static_assert(sizeof("passwand test") <= sizeof(config.name));
-  strcpy(config.name, "passwand test");
-
-  // create the device
-  if (ioctl(fd, UI_DEV_SETUP, &config) < 0 || ioctl(fd, UI_DEV_CREATE) < 0) {
-    fprintf(stderr, "failed to create virtual device: %s\n", strerror(errno));
-    close(fd);
-    return EXIT_FAILURE;
-  }
-
-  // stall to give userspace a chance to detect and initialise the device
-  sleep(1);
 
   // type the user’s text
   for (const char *p = argv[1]; *p != '\0'; ++p)
     type(fd, *p);
 
-  // stall to drain the event queue
-  sleep(1);
-
-  // destroy the device
-  (void)ioctl(fd, UI_DEV_DESTROY);
-  close(fd);
+  // remove the uinput device
+  destroy_dev(fd);
 
   return EXIT_SUCCESS;
 }
+
+#else
+int send_text(const char *text) {
+
+  assert(text != NULL);
+
+  // create a uinput device
+  int fd = make_dev();
+  if (fd < 0)
+    return -1;
+
+  int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);
+  assert(err == 0);
+
+  // type the user’s text
+  for (const char *p = text; *p != '\0'; ++p)
+    type(fd, *p);
+
+  err = pthread_mutex_unlock(&gtk_lock);
+  assert(err == 0);
+
+  // remove the uinput device
+  destroy_dev(fd);
+
+  return 0;
+}
+#endif
