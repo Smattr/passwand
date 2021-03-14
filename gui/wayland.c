@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <linux/uinput.h>
+#include <pthread.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -244,32 +245,6 @@ static void destroy_dev(int dev) {
 
 }
 
-int send_text(const char *text) {
-
-  assert(text != NULL);
-
-  // create a uinput device
-  int fd = make_dev();
-  if (fd < 0)
-    return -1;
-  }
-
-  int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);
-  assert(err == 0);
-
-  // type the user’s text
-  for (const char *p = text; *p != '\0'; ++p)
-    type(fd, *p);
-
-  err = pthread_mutex_unlock(&gtk_lock);
-  assert(err == 0);
-
-  // remove the uinput device
-  destroy_dev(fd);
-
-  return 0;
-}
-
 static __attribute__((unused)) bool streq(const char *a, const char *b) {
   return strcmp(a, b) == 0;
 }
@@ -324,5 +299,32 @@ int main(int argc, char **argv) {
   destroy_dev(fd);
 
   return EXIT_SUCCESS;
+}
+
+#else
+int send_text(const char *text) {
+
+  assert(text != NULL);
+
+  // create a uinput device
+  int fd = make_dev();
+  if (fd < 0)
+    return -1;
+  }
+
+  int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);
+  assert(err == 0);
+
+  // type the user’s text
+  for (const char *p = text; *p != '\0'; ++p)
+    type(fd, *p);
+
+  err = pthread_mutex_unlock(&gtk_lock);
+  assert(err == 0);
+
+  // remove the uinput device
+  destroy_dev(fd);
+
+  return 0;
 }
 #endif
