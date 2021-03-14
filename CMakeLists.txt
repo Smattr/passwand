@@ -46,6 +46,8 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--as-needed")
 endif ()
 
+option (USE_WAYLAND "prefer Wayland over X11 for GUI input")
+
 # Disable __builtin_memset when we need it not to be optimised out.
 set_source_files_properties (src/erase.c PROPERTIES COMPILE_FLAGS -fno-builtin-memset)
 
@@ -67,6 +69,10 @@ find_path (SCRYPTKDF_INCLUDE_DIRS scrypt-kdf.h
 # Try to find X11.
 pkg_check_modules (X11 x11)
 
+# Try to find Wayland uinput.
+include (CheckIncludeFile)
+check_include_file ("linux/uinput.h" HAS_UINPUT)
+
 # Try to find a GUI solution. In order of preference: GTK3, GTK2, osascript
 # (MacOS). If none are found, just disable building the GUI client.
 pkg_check_modules (GTK3 gtk+-3.0)
@@ -86,8 +92,10 @@ endif (GTK3_FOUND)
 find_package (Threads)
 
 if (GTK3_FOUND OR GTK2_FOUND)
-  if (X11_FOUND)
+  if (NOT USE_WAYLAND AND X11_FOUND)
     add_executable (pw-gui gui/main.c gui/gtk.c gui/x11.c common/argparse.c)
+  elseif (USE_WAYLAND AND HAS_UINPUT)
+    add_executable (pw-gui gui/main.c gui/gtk.c gui/wayland.c common/argparse.c)
   endif ()
 elseif (OSASCRIPT)
   add_executable (pw-gui gui/main.c gui/osascript.c common/argparse.c)
