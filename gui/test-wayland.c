@@ -149,11 +149,11 @@ static void type(int uinput, char c) {
 
       // press the key itself
       emit(uinput, EV_KEY, keys[i].code, 1);
-      emit(uinput, EV_KEY, SYN_REPORT, 0);
+      emit(uinput, EV_SYN, SYN_REPORT, 0);
 
       // release the key
       emit(uinput, EV_KEY, keys[i].code, 0);
-      emit(uinput, EV_KEY, SYN_REPORT, 0);
+      emit(uinput, EV_SYN, SYN_REPORT, 0);
 
       // release shift if we have it held
       if (keys[i].shift) {
