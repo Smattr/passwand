@@ -23,7 +23,7 @@ static __attribute__((format(printf, 1, 2))) void error(const char *fmt, ...) {
   va_start(ap, fmt);
 #ifdef TEST_WAYLAND
   vfprintf(stderr, fmt, ap);
-  fprintff(stderr, "\n");
+  fprintf(stderr, "\n");
 #else
   char *msg;
   if (vasprintf(&msg, fmt, ap) < 0) {
@@ -289,7 +289,6 @@ int main(int argc, char **argv) {
   int fd = make_dev();
   if (fd < 0)
     return EXIT_FAILURE;
-  }
 
   // type the user’s text
   for (const char *p = argv[1]; *p != '\0'; ++p)
@@ -310,7 +309,6 @@ int send_text(const char *text) {
   int fd = make_dev();
   if (fd < 0)
     return -1;
-  }
 
   int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);
   assert(err == 0);
