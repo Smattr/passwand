@@ -102,7 +102,10 @@ elseif(OSASCRIPT)
 endif()
 
 if(TARGET pw-gui)
-  target_link_libraries(pw-gui passwand ${GTK_LIBRARIES} ${X11_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries(pw-gui passwand ${GTK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+  if(NOT USE_WAYLAND)
+    target_link_libraries(pw-gui ${X11_LIBRARIES})
+  endif()
   install(TARGETS pw-gui RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
