@@ -16,7 +16,7 @@
 #endif
 
 static uint64_t htole64_(uint64_t host_64bits) {
-#if defined(__APPLE__)
+#ifdef __APPLE__
   return OSSwapHostToLittleInt64(host_64bits);
 #else
   return htole64(host_64bits);
@@ -24,7 +24,7 @@ static uint64_t htole64_(uint64_t host_64bits) {
 }
 
 static uint64_t le64toh_(uint64_t little_endian_64bits) {
-#if defined(__APPLE__)
+#ifdef __APPLE__
   return OSSwapLittleToHostInt64(little_endian_64bits);
 #else
   return le64toh(little_endian_64bits);
