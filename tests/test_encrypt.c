@@ -18,7 +18,7 @@ static jmp_buf env;
 static bool is_expected_signal(int signum) {
   if (signum == SIGSEGV)
     return true;
-#if __APPLE__
+#ifdef __APPLE__
   // on MacOS, accesses to PROT_NONE mmaped regions are reported to userspace
   // as SIGBUS, not SIGSEGV
   if (signum == SIGBUS)
@@ -50,7 +50,7 @@ static int register_handler(void) {
   };
   if (sigaction(SIGSEGV, &sa, NULL))
     return -1;
-#if __APPLE__
+#ifdef __APPLE__
   if (sigaction(SIGBUS, &sa, NULL)) {
     (void)deregister_handler();
     return -1;

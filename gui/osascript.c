@@ -28,7 +28,7 @@
 #endif
 
 static char **get_environ() {
-#if __APPLE__
+#ifdef __APPLE__
   // bizarrely Apple do not give programs a symbol for environ, but have an
   // indirect way of accessing it
   return *_NSGetEnviron();
