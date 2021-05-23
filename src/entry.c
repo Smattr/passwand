@@ -64,7 +64,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
 
   // generate a random 8-byte salt
   uint8_t _salt[PW_SALT_LEN];
-  passwand_error_t err = random_bytes(_salt, sizeof(_salt));
+  passwand_error_t err = passwand_random_bytes(_salt, sizeof(_salt));
   if (err != PW_OK)
     return err;
   const salt_t salt = {
@@ -85,7 +85,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
 
   // generate a random 16-byte initialisation vector
   iv_t iv;
-  err = random_bytes(iv, sizeof(iv));
+  err = passwand_random_bytes(iv, sizeof(iv));
   if (err != PW_OK)
     return err;
 
@@ -284,7 +284,7 @@ passwand_error_t passwand_entry_set_mac(const char *mainpass,
     uint8_t *s = malloc(HMAC_SALT_LEN);
     if (s == NULL)
       return PW_NO_MEM;
-    passwand_error_t err = random_bytes(s, HMAC_SALT_LEN);
+    passwand_error_t err = passwand_random_bytes(s, HMAC_SALT_LEN);
     if (err != PW_OK) {
       free(s);
       return err;

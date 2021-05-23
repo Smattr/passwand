@@ -181,3 +181,11 @@ int passwand_secure_malloc_reset(void);
  * @param f File to print to
  */
 void passwand_secure_heap_print(FILE *f);
+
+/** Generate some random bytes
+ *
+ * @param[out] buffer Random data
+ * @param buffer_len  Number of bytes requested
+ * @return            PW_OK on success
+ */
+passwand_error_t passwand_random_bytes(void *buffer, size_t buffer_len);

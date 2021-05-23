@@ -78,7 +78,7 @@ passwand_error_t pack_data(const pt_t *p, const iv_t iv, ppt_t *pp) {
   // draft AEAD-AES-CBC-HMAC-SHA as a more suitable replacement, but I am not
   // sure why. It involves deterministic bytes that seems inherently less
   // secure.
-  passwand_error_t r = random_bytes(pp->data + offset, padding_len);
+  passwand_error_t r = passwand_random_bytes(pp->data + offset, padding_len);
   if (r != PW_OK) {
     passwand_secure_free(pp->data, pp->length);
     return r;

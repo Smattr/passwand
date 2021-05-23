@@ -116,15 +116,6 @@ passwand_error_t pack_data(const pt_t *p, const iv_t iv, ppt_t *pp)
 passwand_error_t unpack_data(const ppt_t *pp, const iv_t iv, pt_t *p)
     __attribute__((visibility("internal")));
 
-/** Generate some random bytes
- *
- * @param[out] buffer Random data
- * @param buffer_len  Number of bytes requested
- * @return            PW_OK on success
- */
-passwand_error_t random_bytes(void *buffer, size_t buffer_len)
-    __attribute__((visibility("internal")));
-
 passwand_error_t encode(const uint8_t *s, size_t len, char **e)
     __attribute__((visibility("internal")));
 

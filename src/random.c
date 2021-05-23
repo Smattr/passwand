@@ -1,7 +1,6 @@
 // Note that we avoid OpenSSL’s RAND_bytes because it does not contain as much
 // entropy as it claims (https://eprint.iacr.org/2016/367).
 
-#include "internal.h"
 #include <assert.h>
 #include <errno.h>
 #include <passwand/passwand.h>
@@ -26,7 +25,7 @@ static ssize_t getrandom(void *buf, size_t buflen, unsigned int flags) {
 #endif
 #endif
 
-passwand_error_t random_bytes(void *buffer, size_t buffer_len) {
+passwand_error_t passwand_random_bytes(void *buffer, size_t buffer_len) {
 
   assert(buffer != NULL);
 
