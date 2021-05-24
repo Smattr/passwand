@@ -48,6 +48,10 @@ and the Have I Been Pwned website. Report any weak entries.
 .IP \[bu]
 \fBdelete\fR - Remove an existing entry from the database.
 .IP \[bu]
+\fBgenerate\fR - Create a new entry in the database with random data as the
+value. This is useful for generating strong passwords. This will fail if there
+is an already existing entry with the same namespace and key.
+.IP \[bu]
 \fBget\fR - Retrieve and display an existing entry from the database.
 .IP \[bu]
 \fBlist\fR - List all entries in the given database.
@@ -66,17 +70,18 @@ The following table summarises which other options are relevant for each
 command.
 .PP
 .TS
-allbox center; l || c c c c .
-command	space	key	value	chain
+allbox center; l || c c c c c .
+command	space	key	value	length	chain
 =
-\fBpw-cli change-main\fR	disallowed	disallowed	disallowed	disallowed
-\fBpw-cli check\fR	optional	optional	disallowed	disallowed
-\fBpw-cli delete\fR	required	required	disallowed	disallowed
-\fBpw-cli get\fR	required	required	disallowed	disallowed
-\fBpw-cli list\fR	disallowed	disallowed	disallowed	disallowed
-\fBpw-cli set\fR	required	required	required	disallowed
-\fBps-cli update\fR	required	required	required	disallowed
-\fBpw-gui\fR	optional	optional	disallowed	optional
+\fBpw-cli change-main\fR	disallowed	disallowed	disallowed	disallowed	disallowed
+\fBpw-cli check\fR	optional	optional	disallowed	disallowed	disallowed
+\fBpw-cli delete\fR	required	required	disallowed	disallowed	disallowed
+\fBpw-cli generate\fR	required	required	disallowed	optional	disallowed
+\fBpw-cli get\fR	required	required	disallowed	disallowed	disallowed	disallowed
+\fBpw-cli list\fR	disallowed	disallowed	disallowed	disallowed	disallowed
+\fBpw-cli set\fR	required	required	required	disallowed	disallowed
+\fBps-cli update\fR	required	required	required	disallowed	disallowed
+\fBpw-gui\fR	optional	optional	disallowed	disallowed	optional
 .TE
 .PP
 \fB--chain\fR \fIFILE\fR or \fB-c\fR \fIFILE\fR
@@ -116,6 +121,12 @@ passwand to use a number of threads equal to the number of available CPUs.
 \fB--key\fR \fIKEY\fR or \fB-k\fR \fIKEY\fR
 .RS
 Name of the key to be looked up or stored.
+.RE
+.PP
+\fB--length\fR \fINUMBER\fR or \fB-l\fR \fINUMBER\fR
+.RS
+Length of random value to generate. This argument is only relevant for the
+\fBgenerate\fR command.
 .RE
 .PP
 \fB--space\fR \fISPACE\fR or \fB-s\fR \fISPACE\fR

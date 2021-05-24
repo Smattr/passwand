@@ -4,6 +4,7 @@
 #include "check.h"
 #include "cli.h"
 #include "delete.h"
+#include "generate.h"
 #include "get.h"
 #include "help.h"
 #include "list.h"
@@ -29,6 +30,7 @@ static const struct {
     {"change-main", &change_main},
     {"check", &check},
     {"delete", &delete},
+    {"generate", &generate},
     {"get", &get},
     {"list", &list},
     {"set", &set},

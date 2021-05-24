@@ -124,8 +124,8 @@ add_custom_command(
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/common)
 
 add_executable(pw-cli cli/change-main.c cli/check.c cli/delete.c cli/get.c
-  cli/help.c cli/list.c cli/main.c cli/print.c cli/set.c cli/update.c
-  common/argparse.c common/${PRIVILEGE_C} manpage.c)
+  cli/generate.c cli/help.c cli/list.c cli/main.c cli/print.c cli/set.c
+  cli/update.c common/argparse.c common/${PRIVILEGE_C} manpage.c)
 target_link_libraries(pw-cli passwand ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
 install(TARGETS pw-cli RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 

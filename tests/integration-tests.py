@@ -360,6 +360,265 @@ class Cli(unittest.TestCase):
         if j[0]['value'] != value:
             self.assertEqual(j[1]['value'], value)
 
+    def test_generate_basic(self):
+        '''
+        Test generation of a password.
+        '''
+        data = os.path.join(self.tmp, 'test_generate_basic.json')
+        self.generate_basic(True, data)
+
+    def test_generate_basic_single_threaded(self):
+        '''
+        Test generation of a password.
+        '''
+        data = os.path.join(self.tmp,
+          'test_generate_basic_single_threaded.json')
+        self.generate_basic(False, data)
+
+    def generate_basic(self, multithreaded, data):
+
+        # Request generation of a password.
+        args = ['generate', '--data', data, '--space', 'foo', '--key', 'bar']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+
+        # Enter the main password.
+        try:
+            p.expect('main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Confirm the main password.
+        try:
+            p.expect('confirm main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Check the file was actually written.
+        self.assertTrue(os.path.exists(data))
+        with open(data, 'rt') as f:
+            j = json.load(f)
+        self.assertIsInstance(j, list)
+        self.assertEqual(len(j), 1)
+        self.assertIsInstance(j[0], dict)
+        self.assertIn('space', j[0].keys())
+        self.assertIn('key', j[0].keys())
+        self.assertIn('value', j[0].keys())
+
+        # Try to read the generated password.
+        args = ['get', '--data', data, '--space', 'foo', '--key', 'bar']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+
+        # Enter the main password.
+        try:
+            p.expect('main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Passwand should output the value and exit with success.
+        v = p.read()
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # The value should have some reasonable default length.
+        self.assertGreater(len(v.strip()), 10)
+
+        # The value should exhibit some basic variation.
+        self.assertTrue(any(x != v[0] for x in v[1:10]))
+
+    def test_generate_length(self):
+        '''
+        Test generation of a password with set length.
+        '''
+        data = os.path.join(self.tmp, 'test_generate_length.json')
+        self.generate_length(True, data)
+
+    def test_generate_length_single_threaded(self):
+        '''
+        Test generation of a password with set length.
+        '''
+        data = os.path.join(self.tmp,
+          'test_generate_length_single_threaded.json')
+        self.generate_length(False, data)
+
+    def generate_length(self, multithreaded, data):
+
+        # Pick some arbitrary non-default length to request
+        length = 42
+
+        # Request generation of a password.
+        args = ['generate', '--data', data, '--space', 'foo', '--key', 'bar',
+                '--length', str(length)]
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+
+        # Enter the main password.
+        try:
+            p.expect('main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Confirm the main password.
+        try:
+            p.expect('confirm main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Check the file was actually written.
+        self.assertTrue(os.path.exists(data))
+        with open(data, 'rt') as f:
+            j = json.load(f)
+        self.assertIsInstance(j, list)
+        self.assertEqual(len(j), 1)
+        self.assertIsInstance(j[0], dict)
+        self.assertIn('space', j[0].keys())
+        self.assertIn('key', j[0].keys())
+        self.assertIn('value', j[0].keys())
+
+        # Try to read the generated password.
+        args = ['get', '--data', data, '--space', 'foo', '--key', 'bar']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+
+        # Enter the main password.
+        try:
+            p.expect('main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Passwand should output the value and exit with success.
+        v = p.read()
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # The value should have the length requested.
+        self.assertEqual(len(v.strip()), length)
+
+        # The value should exhibit some basic variation.
+        self.assertTrue(any(x != v[0] for x in v[1:10]))
+
+    def test_generate_long(self):
+        '''
+        Test generation of a long password.
+        '''
+        data = os.path.join(self.tmp, 'test_generate_long.json')
+        self.generate_long(True, data)
+
+    def test_generate_long_single_threaded(self):
+        '''
+        Test generation of a long password.
+        '''
+        data = os.path.join(self.tmp, 'test_generate_long_single_threaded.json')
+        self.generate_long(False, data)
+
+    def generate_long(self, multithreaded, data):
+
+        # A length that exceeds the passwand_random_bytes() limit (256).
+        length = 4000
+
+        # Request generation of a password.
+        args = ['generate', '--data', data, '--space', 'foo', '--key', 'bar',
+                '--length', str(length)]
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+
+        # Enter the main password.
+        try:
+            p.expect('main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Confirm the main password.
+        try:
+            p.expect('confirm main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Now passwand should exit with success.
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # Check the file was actually written.
+        self.assertTrue(os.path.exists(data))
+        with open(data, 'rt') as f:
+            j = json.load(f)
+        self.assertIsInstance(j, list)
+        self.assertEqual(len(j), 1)
+        self.assertIsInstance(j[0], dict)
+        self.assertIn('space', j[0].keys())
+        self.assertIn('key', j[0].keys())
+        self.assertIn('value', j[0].keys())
+
+        # Try to read the generated password.
+        args = ['get', '--data', data, '--space', 'foo', '--key', 'bar']
+        if not multithreaded:
+            args += ['--jobs', '1']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+
+        # Enter the main password.
+        try:
+            p.expect('main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('test')
+
+        # Passwand should output the value and exit with success.
+        v = p.read()
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # The value should have the length requested.
+        self.assertEqual(len(v.strip()), length)
+
+        # The value should exhibit some basic variation.
+        self.assertTrue(any(x != v[0] for x in v[1:10]))
+
     def test_change_main_empty(self):
         '''
         Test changing the main password on an empty database.
