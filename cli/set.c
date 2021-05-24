@@ -68,9 +68,11 @@ int set_finalize(void) {
   }
 
   passwand_entry_t e;
-  if (passwand_entry_new(&e, saved_main->main, options.space, options.key,
-                         options.value, options.db.work_factor) != PW_OK) {
-    eprint("failed to create new entry\n");
+  passwand_error_t err =
+      passwand_entry_new(&e, saved_main->main, options.space, options.key,
+                         options.value, options.db.work_factor);
+  if (err != PW_OK) {
+    eprint("failed to create new entry: %s\n", passwand_error(err));
     return -1;
   }
 
@@ -89,8 +91,7 @@ int set_finalize(void) {
     new_entries[index + 1] = saved_entries[index];
   }
 
-  passwand_error_t err =
-      passwand_export(options.db.path, new_entries, new_entry_len);
+  err = passwand_export(options.db.path, new_entries, new_entry_len);
   free(new_entries);
   free(e.space);
   free(e.key);
