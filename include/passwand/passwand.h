@@ -188,4 +188,4 @@ void passwand_secure_heap_print(FILE *f);
  * @param buffer_len  Number of bytes requested
  * @return            PW_OK on success
  */
-passwand_error_t passwand_random_bytes(void *buffer, size_t buffer_len);
+passwand_error_t passwand_random_bytes(void *buffer, uint8_t buffer_len);

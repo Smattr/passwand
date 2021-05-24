@@ -25,7 +25,7 @@ static ssize_t getrandom(void *buf, size_t buflen, unsigned int flags) {
 #endif
 #endif
 
-passwand_error_t passwand_random_bytes(void *buffer, size_t buffer_len) {
+passwand_error_t passwand_random_bytes(void *buffer, uint8_t buffer_len) {
 
   assert(buffer != NULL);
 
@@ -37,8 +37,6 @@ passwand_error_t passwand_random_bytes(void *buffer, size_t buffer_len) {
 
 #elif defined(__linux__) && LINUX_VERSION_CODE >= KERNEL_VERSION(3, 17, 0)
 
-  assert(buffer_len <= 256 && "call to getrandom() may be interrupted");
-
   ssize_t r;
   do {
     r = getrandom(buffer, buffer_len, 0);
@@ -47,7 +45,7 @@ passwand_error_t passwand_random_bytes(void *buffer, size_t buffer_len) {
   if (r < 0)
     return PW_IO;
 
-  assert((size_t)r == buffer_len &&
+  assert(r <= UINT8_MAX && (uint8_t)r == buffer_len &&
          "unexpected number of bytes from getrandom()");
 
   return PW_OK;
