@@ -146,6 +146,13 @@ Technically Passwand can be used to store any arbitrary data. That is, the
 recommended to attempt this. Obviously \fBpw-gui\fR will be unable to "type"
 some of these entries and any \fBNUL\fR bytes in your data will cause these
 fields to be truncated when storing to the database.
+.PP
+Further limiting the storing of arbitrary data, Passwand is unable to store
+values greater than 4096 bytes. If you attempt to create an entry with a value
+larger than this, it will fail with \fBPW_NO_MEM\fR. Passwand attempts to
+precisely scope the in-memory residency of sensitive data like entry values. It
+does this on a per-page basis, hence most such sensitive data cannot be larger
+than the hardware page size.
 .SH AUTHOR
 All comments, questions and complaints should be directed to Matthew Fernandez
 <matthew.fernandez@gmail.com>.
