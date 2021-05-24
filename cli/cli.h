@@ -23,9 +23,10 @@ typedef enum {
 
 // a subcommand of this tool
 typedef struct {
-  arg_required_t need_space; // whether the command uses the --space argument
-  arg_required_t need_key;   // whether the command uses the --key argument
-  arg_required_t need_value; // whether the command uses the --value argument
+  arg_required_t need_space;  // whether the command uses the --space argument
+  arg_required_t need_key;    // whether the command uses the --key argument
+  arg_required_t need_value;  // whether the command uses the --value argument
+  arg_required_t need_length; // whether the command uses the --length argument
 
   // mode to access the database in:
   //  LOCK_SH - shared (read)

@@ -107,6 +107,7 @@ const command_t update = {
     .need_space = REQUIRED,
     .need_key = REQUIRED,
     .need_value = REQUIRED,
+    .need_length = DISALLOWED,
     .access = LOCK_EX,
     .initialize = initialize,
     .loop_notify = loop_notify,

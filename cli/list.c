@@ -26,6 +26,7 @@ const command_t list = {
     .need_space = DISALLOWED,
     .need_key = DISALLOWED,
     .need_value = DISALLOWED,
+    .need_length = DISALLOWED,
     .access = LOCK_SH,
     .initialize = initialize,
     .loop_body = loop_body,

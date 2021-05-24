@@ -111,6 +111,7 @@ const command_t set = {
     .need_space = REQUIRED,
     .need_key = REQUIRED,
     .need_value = REQUIRED,
+    .need_length = DISALLOWED,
     .access = LOCK_EX,
     .initialize = initialize,
     .loop_notify = loop_notify,

@@ -111,6 +111,7 @@ const command_t change_main = {
     .need_space = DISALLOWED,
     .need_key = DISALLOWED,
     .need_value = DISALLOWED,
+    .need_length = DISALLOWED,
     .access = LOCK_EX,
     .initialize = initialize,
     .loop_notify = loop_notify,

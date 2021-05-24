@@ -44,6 +44,7 @@ const command_t get = {
     .need_space = REQUIRED,
     .need_key = REQUIRED,
     .need_value = DISALLOWED,
+    .need_length = DISALLOWED,
     .access = LOCK_SH,
     .initialize = initialize,
     .loop_condition = loop_condition,

@@ -38,6 +38,7 @@ int parse(int argc, char **argv) {
         {"chain", required_argument, 0, 'c'},
         {"data", required_argument, 0, 'd'},
         {"jobs", required_argument, 0, 'j'},
+        {"length", required_argument, 0, 'l'},
         {"space", required_argument, 0, 's'},
         {"key", required_argument, 0, 'k'},
         {"value", required_argument, 0, 'v'},
@@ -46,7 +47,7 @@ int parse(int argc, char **argv) {
     };
 
     int index;
-    int c = getopt_long(argc, argv, "c:d:s:k:v:N:", opts, &index);
+    int c = getopt_long(argc, argv, "c:d:l:s:k:v:N:", opts, &index);
 
     if (c == -1)
       break;
@@ -88,6 +89,18 @@ int parse(int argc, char **argv) {
         return -1;
       }
       options.jobs = jobs;
+      break;
+    }
+
+    case 'l': {
+      char *endptr;
+      unsigned long length = strtoul(optarg, &endptr, 10);
+      if (endptr == optarg || *endptr != '\0' || length == 0 ||
+          length == ULONG_MAX || length > SIZE_MAX) {
+        fprintf(stderr, "invalid argument to --length\n");
+        return -1;
+      }
+      options.length = length;
       break;
     }
 

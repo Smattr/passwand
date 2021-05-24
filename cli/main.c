@@ -297,6 +297,13 @@ int main(int argc, char **argv) {
   HANDLE(key);
   HANDLE(value);
 #undef HANDLE
+  if (command->need_length == REQUIRED && options.length == 0) {
+    eprint("missing required argument --length\n");
+    goto done;
+  } else if (command->need_length == DISALLOWED && options.length != 0) {
+    eprint("irrelevant argument --length\n");
+    goto done;
+  }
 
   mainpass = getpassword(NULL);
   if (mainpass == NULL) {

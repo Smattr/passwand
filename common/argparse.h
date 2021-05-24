@@ -13,6 +13,7 @@ typedef struct {
   char *key;
   char *value;
   unsigned long jobs;
+  size_t length;
 
   // extra indirect databases to go through to get the main password for the
   // primary database above

@@ -150,6 +150,9 @@ int main(int argc, char **argv) {
   if (parse(argc, argv) != 0)
     return EXIT_FAILURE;
 
+  if (options.length != 0)
+    DIE("--length is not accepted by pw-gui");
+
   if (options.space == NULL)
     options.space = get_text("Passwand", "Name space?", NULL, false);
   if (options.space == NULL)

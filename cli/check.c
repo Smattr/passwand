@@ -411,6 +411,7 @@ const command_t check = {
     .need_space = OPTIONAL,
     .need_key = OPTIONAL,
     .need_value = DISALLOWED,
+    .need_length = DISALLOWED,
     .access = LOCK_SH,
     .initialize = initialize,
     .loop_body = loop_body,
