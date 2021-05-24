@@ -5,7 +5,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <passwand/passwand.h>
-#include <stddef.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #ifdef __linux__
