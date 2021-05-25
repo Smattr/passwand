@@ -441,6 +441,9 @@ class Cli(unittest.TestCase):
         # The value should have some reasonable default length.
         self.assertGreater(len(v.strip()), 10)
 
+        # All characters should be in the expected allowed set.
+        self.assertIsNotNone(re.match(b'[a-zA-Z\\d_]+$', v.strip()))
+
         # The value should exhibit some basic variation.
         self.assertTrue(any(x != v[0] for x in v[1:10]))
 
@@ -529,6 +532,9 @@ class Cli(unittest.TestCase):
         # The value should have the length requested.
         self.assertEqual(len(v.strip()), length)
 
+        # All characters should be in the expected allowed set.
+        self.assertIsNotNone(re.match(b'[a-zA-Z\\d_]+$', v.strip()))
+
         # The value should exhibit some basic variation.
         self.assertTrue(any(x != v[0] for x in v[1:10]))
 
@@ -615,6 +621,9 @@ class Cli(unittest.TestCase):
 
         # The value should have the length requested.
         self.assertEqual(len(v.strip()), length)
+
+        # All characters should be in the expected allowed set.
+        self.assertIsNotNone(re.match(b'[a-zA-Z\\d_]+$', v.strip()))
 
         # The value should exhibit some basic variation.
         self.assertTrue(any(x != v[0] for x in v[1:10]))
