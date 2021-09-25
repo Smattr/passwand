@@ -18,7 +18,7 @@
 #include <linux/random.h>
 #include <sys/syscall.h>
 
-static ssize_t getrandom(void *buf, size_t buflen, unsigned int flags) {
+static ssize_t getrandom(void *buf, size_t buflen, unsigned flags) {
   return (ssize_t)syscall(SYS_getrandom, buf, buflen, flags);
 }
 #endif
