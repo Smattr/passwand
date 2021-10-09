@@ -1648,23 +1648,14 @@ class Cli(unittest.TestCase):
             p.close()
             self.assertEqual(p.exitstatus, 0)
 
-        # Try to read the value that should be last in the database. This should
-        # ensure a long running 'get'.
+        # Try to read the value that should be last in the database.
         args = ['get', '--data', data, '--space', 'space0', '--key', 'key0']
         if not multithreaded:
             args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args, timeout=120)
+        get = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
-
-        # Now try setting an entry while the 'get' is still running.
+        # Instead of entering the password immediately, try starting a 'set'
+        # operation.
         args = ['set', '--data', data, '--space', 'space', '--key', 'key',
           '--value', 'value']
         if not multithreaded:
@@ -1676,9 +1667,19 @@ class Cli(unittest.TestCase):
         s.close()
         self.assertNotEqual(s.exitstatus, 0)
 
-        # Cleanup the 'get'.
-        p.expect(pexpect.EOF)
-        p.close()
+        # Return to the 'get' and Enter the main password.
+        try:
+            get.expect('main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        get.sendline('test')
+
+        # The 'get' should finish and succeed.
+        get.expect(pexpect.EOF)
+        get.close()
+        self.assertEqual(get.exitstatus, 0)
 
     def test_check_basic(self):
         '''
