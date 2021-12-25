@@ -13,6 +13,7 @@
 #include "update.h"
 #include <assert.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <passwand/passwand.h>
 #include <pthread.h>
 #include <stdatomic.h>
@@ -286,7 +287,7 @@ int main(int argc, char **argv) {
 
   // take a lock on the database if it exists
   if (access(options.db.path, R_OK) == 0) {
-    int fd = open(options.db.path, R_OK);
+    int fd = open(options.db.path, O_RDONLY);
     if (fd >= 0) {
       if (flock(fd, command->access | LOCK_NB) != 0) {
         eprint("failed to lock database: %s\n", strerror(errno));
