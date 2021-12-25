@@ -256,6 +256,29 @@ int main(int argc, char **argv) {
   if (parse(argc - 1, argv + 1) != 0)
     goto done;
 
+    // validate flags
+#define HANDLE(field)                                                          \
+  do {                                                                         \
+    if (command->need_##field == REQUIRED && options.field == NULL) {          \
+      eprint("missing required argument --" #field "\n");                      \
+      goto done;                                                               \
+    } else if (command->need_##field == DISALLOWED && options.field != NULL) { \
+      eprint("irrelevant argument --" #field "\n");                            \
+      goto done;                                                               \
+    }                                                                          \
+  } while (0)
+  HANDLE(space);
+  HANDLE(key);
+  HANDLE(value);
+#undef HANDLE
+  if (command->need_length == REQUIRED && options.length == 0) {
+    eprint("missing required argument --length\n");
+    goto done;
+  } else if (command->need_length == DISALLOWED && options.length != 0) {
+    eprint("irrelevant argument --length\n");
+    goto done;
+  }
+
   if (options.chain_len > 0) {
     eprint("%s does not support chained databases\n", argv[0]);
     goto done;
@@ -283,29 +306,6 @@ int main(int argc, char **argv) {
 
   for (size_t i = 0; i < entry_len; i++)
     entries[i].work_factor = options.db.work_factor;
-
-    // validate flags
-#define HANDLE(field)                                                          \
-  do {                                                                         \
-    if (command->need_##field == REQUIRED && options.field == NULL) {          \
-      eprint("missing required argument --" #field "\n");                      \
-      goto done;                                                               \
-    } else if (command->need_##field == DISALLOWED && options.field != NULL) { \
-      eprint("irrelevant argument --" #field "\n");                            \
-      goto done;                                                               \
-    }                                                                          \
-  } while (0)
-  HANDLE(space);
-  HANDLE(key);
-  HANDLE(value);
-#undef HANDLE
-  if (command->need_length == REQUIRED && options.length == 0) {
-    eprint("missing required argument --length\n");
-    goto done;
-  } else if (command->need_length == DISALLOWED && options.length != 0) {
-    eprint("irrelevant argument --length\n");
-    goto done;
-  }
 
   mainpass = getpassword(NULL);
   if (mainpass == NULL) {
