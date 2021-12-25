@@ -17,6 +17,7 @@ void print(const char *fmt, ...) {
   va_start(ap, fmt);
   lock();
   (void)vprintf(fmt, ap);
+  fflush(stdout);
   unlock();
   va_end(ap);
 }
@@ -26,6 +27,7 @@ void eprint(const char *fmt, ...) {
   va_start(ap, fmt);
   lock();
   (void)vfprintf(stderr, fmt, ap);
+  fflush(stderr);
   unlock();
   va_end(ap);
 }
