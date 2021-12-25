@@ -289,7 +289,7 @@ int main(int argc, char **argv) {
     int fd = open(options.db.path, R_OK);
     if (fd >= 0) {
       if (flock(fd, command->access | LOCK_NB) != 0) {
-        perror("failed to lock database");
+        eprint("failed to lock database: %s\n", strerror(errno));
         goto done;
       }
     }
