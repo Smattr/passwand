@@ -1,11 +1,11 @@
-#include <assert.h>
-#include "cli.h"
-#include "../common/argparse.h"
-#include <ctype.h>
 #include "generate.h"
-#include <passwand/passwand.h>
+#include "../common/argparse.h"
+#include "cli.h"
 #include "print.h"
 #include "set.h"
+#include <assert.h>
+#include <ctype.h>
+#include <passwand/passwand.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -69,14 +69,14 @@ static int initialize(const main_t *mainpass, passwand_entry_t *entries,
 }
 
 const command_t generate = {
-  .need_space = REQUIRED,
-  .need_key = REQUIRED,
-  .need_value = DISALLOWED,
-  .need_length = OPTIONAL,
-  .access = LOCK_EX,
-  .initialize = initialize,
-  .loop_notify = set_loop_notify,
-  .loop_condition = set_loop_condition,
-  .loop_body = set_loop_body,
-  .finalize = set_finalize,
+    .need_space = REQUIRED,
+    .need_key = REQUIRED,
+    .need_value = DISALLOWED,
+    .need_length = OPTIONAL,
+    .access = LOCK_EX,
+    .initialize = initialize,
+    .loop_notify = set_loop_notify,
+    .loop_condition = set_loop_condition,
+    .loop_body = set_loop_body,
+    .finalize = set_finalize,
 };

@@ -1,6 +1,6 @@
-#include <passwand/passwand.h>
 #include "test.h"
 #include <CUnit/CUnit.h>
+#include <passwand/passwand.h>
 
 TEST("random_bytes: basic functionality") {
   uint8_t buffer[10] = {0};

@@ -37,6 +37,7 @@ static __attribute__((format(printf, 1, 2))) void error(const char *fmt, ...) {
 }
 
 // all the keys this program may wish to type, with mapping to a US keyboard
+// clang-format off
 static const struct { char key; int code; bool shift; } keys[] = {
   { '\t', KEY_TAB,        false },
   { '\r', KEY_ENTER,      false },
@@ -136,21 +137,22 @@ static const struct { char key; int code; bool shift; } keys[] = {
   { '}',  KEY_RIGHTBRACE, true  },
   { '~',  KEY_GRAVE,      true  },
 };
+// clang-format on
 
 // send a key event
 static void emit(int fd, int category, int code, int value) {
 
-   struct input_event ev;
+  struct input_event ev;
 
-   ev.type = category;
-   ev.code = code;
-   ev.value = value;
+  ev.type = category;
+  ev.code = code;
+  ev.value = value;
 
-   // timestamps ignored
-   ev.time.tv_sec = 0;
-   ev.time.tv_usec = 0;
+  // timestamps ignored
+  ev.time.tv_sec = 0;
+  ev.time.tv_usec = 0;
 
-   write(fd, &ev, sizeof(ev));
+  write(fd, &ev, sizeof(ev));
 }
 
 // type a single character
@@ -242,7 +244,6 @@ static void destroy_dev(int dev) {
   // destroy the device
   (void)ioctl(dev, UI_DEV_DESTROY);
   close(dev);
-
 }
 
 static __attribute__((unused)) bool streq(const char *a, const char *b) {
@@ -254,7 +255,8 @@ int main(int argc, char **argv) {
 
   if (argc != 2 || streq(argv[1], "-?") || streq(argv[1], "--help")) {
     error("usage: %s string\n"
-          "  test utility for typing on Wayland", argv[0]);
+          "  test utility for typing on Wayland",
+          argv[0]);
     return EXIT_FAILURE;
   }
 
