@@ -49,9 +49,9 @@ task:
       install_script: apt-get update -y && apt-get install --no-install-recommends -y cmake libcunit1-dev libgtk-3-dev libjson-c-dev libscrypt-kdf1 libscrypt-kdf-dev man-db python3-pexpect xxd
       test_script: uname -sr && python3 --version && mkdir build && cd build && cmake .. && cmake --build . -- pw-cli pw-gui-test-stub pw-gui passwand-tests && ./passwand-tests && ../tests/integration-tests.py --verbose && cmake --build . -- install
 
-    - name: macOS, XCode 12.1, Homebrew
+    - name: macOS, XCode 13.2, Homebrew
       osx_instance:
-        image: catalina-xcode-12.1
+        image: monterey-xcode-13.2
       environment:
         CFLAGS: -I/usr/local/opt/openssl/include -I/usr/local/include -g
         LDFLAGS: -L/usr/local/opt/openssl/lib -L/usr/local/lib
