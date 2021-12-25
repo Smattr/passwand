@@ -1,29 +1,31 @@
 #include "print.h"
-#include <assert.h>
-#include <pthread.h>
 #include <stdarg.h>
 #include <stdio.h>
 
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static void lock(void) {
+  flockfile(stdout);
+  flockfile(stderr);
+}
+
+static void unlock(void) {
+  funlockfile(stderr);
+  funlockfile(stdout);
+}
 
 void print(const char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
-  int r __attribute__((unused)) = pthread_mutex_lock(&mutex);
-  assert(r == 0);
+  lock();
   (void)vprintf(fmt, ap);
-  r = pthread_mutex_unlock(&mutex);
-  assert(r == 0);
+  unlock();
   va_end(ap);
 }
 
 void eprint(const char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
-  int r __attribute__((unused)) = pthread_mutex_lock(&mutex);
-  assert(r == 0);
+  lock();
   (void)vfprintf(stderr, fmt, ap);
-  r = pthread_mutex_unlock(&mutex);
-  assert(r == 0);
+  unlock();
   va_end(ap);
 }
