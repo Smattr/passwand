@@ -1654,6 +1654,15 @@ class Cli(unittest.TestCase):
             args += ['--jobs', '1']
         get = pexpect.spawn('./pw-cli', args, timeout=120)
 
+        # Wait for the password prompt to ensure the 'get' has locked the
+        # database.
+        try:
+            get.expect('main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+
         # Instead of entering the password immediately, try starting a 'set'
         # operation.
         args = ['set', '--data', data, '--space', 'space', '--key', 'key',
@@ -1668,12 +1677,6 @@ class Cli(unittest.TestCase):
         self.assertNotEqual(s.exitstatus, 0)
 
         # Return to the 'get' and Enter the main password.
-        try:
-            get.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
         get.sendline('test')
 
         # The 'get' should finish and succeed.
