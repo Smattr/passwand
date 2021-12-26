@@ -2518,6 +2518,28 @@ class Cli(unittest.TestCase):
         data = os.path.join(self.tmp, 'cli_chain_rejected.json')
         chain = os.path.join(self.tmp, 'cli_chain_rejected_chain.json')
 
+        # Create the chained database with a single entry.
+        args = ['set', '--data', chain, '--space', 'space', '--key', 'key',
+          '--value', 'chain password']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+        try:
+            p.expect('main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('main password')
+        try:
+            p.expect('confirm main password: ')
+        except pexpect.EOF:
+            self.fail('EOF while waiting for password prompt')
+        except pexpect.TIMEOUT:
+            self.fail('timeout while waiting for password prompt')
+        p.sendline('main password')
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
         for args in (('change-main',),
                      ('check',),
                      ('delete', '--space', 'foo', '--key', 'bar'),
