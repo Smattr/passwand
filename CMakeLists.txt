@@ -169,6 +169,6 @@ install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/passwand.1.gz
   DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
-enable_testing()
-add_test(UnitTests passwand-tests)
-add_test(IntegrationTests ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration-tests.py)
+add_custom_target(check
+  COMMAND passwand-tests
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration-tests.py --verbose)
