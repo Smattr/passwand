@@ -169,6 +169,22 @@ void discard_main(main_t *m) {
   passwand_secure_free(m, sizeof(*m));
 }
 
+static void discard_entries(passwand_entry_t **entries, size_t *entry_len) {
+  for (size_t i = 0; i < *entry_len; i++) {
+    free((*entries)[i].space);
+    free((*entries)[i].key);
+    free((*entries)[i].value);
+    free((*entries)[i].hmac);
+    free((*entries)[i].hmac_salt);
+    free((*entries)[i].salt);
+    free((*entries)[i].iv);
+  }
+  free(*entries);
+
+  *entries = NULL;
+  *entry_len = 0;
+}
+
 // juggle the calling convention to a function for processing an entry that does
 // not need the state parameter
 static void entry_trampoline(void *state, const char *space, const char *key,
@@ -396,16 +412,7 @@ done:
       ret = EXIT_FAILURE;
   }
   discard_main(mainpass);
-  for (size_t i = 0; i < entry_len; i++) {
-    free(entries[i].space);
-    free(entries[i].key);
-    free(entries[i].value);
-    free(entries[i].hmac);
-    free(entries[i].hmac_salt);
-    free(entries[i].salt);
-    free(entries[i].iv);
-  }
-  free(entries);
+  discard_entries(&entries, &entry_len);
 
   free(options.db.path);
   free(options.space);
