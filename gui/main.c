@@ -357,7 +357,7 @@ int main(int argc, char **argv) {
   // system, to pacify tools like Valgrind
   {
     int rc __attribute__((unused)) = passwand_secure_malloc_reset();
-    assert(rc == 0 && "allocator leak in cli");
+    assert(rc == 0 && "allocator leak in gui");
   }
 
   return EXIT_SUCCESS;
