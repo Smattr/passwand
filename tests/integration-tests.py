@@ -3735,6 +3735,70 @@ class Gui(unittest.TestCase):
                 self.assertNotEqual(stdout, 'value{}\n'.format(i))
                 self.assertNotEqual(stderr, '')
 
+    def chain_leak_strlen(self, main_longer: bool):
+
+      # Two passwords of mismatched length
+      short = 'short'
+      long = 'long password'
+
+      # Create a database with a single entry.
+      data = os.path.join(self.tmp, f'chain_leak_regression_{main_longer}.json')
+      args = ['set', '--data', data, '--space', 'foo', '--key', 'bar',
+              '--value', 'baz']
+      p = pexpect.spawn('./pw-cli', args, timeout=120)
+      p.expect('main password: ')
+      p.sendline(long if main_longer else short)
+      p.expect('confirm main password: ')
+      p.sendline(long if main_longer else short)
+      p.expect(pexpect.EOF)
+      p.close()
+      self.assertEqual(p.exitstatus, 0)
+
+      # Create a chain database with a short password.
+      chain = os.path.join(self.tmp,
+                           f'chain_leak_regression_chain_{main_longer}.json')
+      args = ['set', '--data', chain, '--space', 'foo', '--key', 'bar',
+              '--value', long if main_longer else short]
+      p = pexpect.spawn('./pw-cli', args, timeout=120)
+      p.expect('main password: ')
+      p.sendline(short if main_longer else long)
+      p.expect('confirm main password: ')
+      p.sendline(short if main_longer else long)
+      p.expect(pexpect.EOF)
+      p.close()
+      self.assertEqual(p.exitstatus, 0)
+
+      # Attempt a retrieval through the chain to see if it leaks memory.
+      p = subprocess.Popen(['./pw-gui-test-stub', '--data', data, '--chain',
+                            chain], stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            universal_newlines=True)
+      stdout, stderr = p.communicate('foo\n'
+                                     'bar\n'
+                                     f'{short if main_longer else long}\n')
+      self.assertEqual(p.returncode, 0)
+      self.assertEqual(stdout, 'baz\n')
+      self.assertEqual(stderr, '')
+
+    def test_chain_leak_strlen1(self):
+      '''
+      Check the GUI does not leak memory with mismatched password lengths.
+
+      When working on chained database support for the CLI, one of my
+      intermediate states accidentally introduced a memory leak in the secure
+      heap when the main database’s password was shorter than the chained
+      database’s password. While this leak did not exist in the GUI
+      implementation, it seemed prudent to add a paranoia test that we never
+      introduced such a thing.
+      '''
+      self.chain_leak_strlen(False)
+
+    def test_chain_leak_strlen2(self):
+      '''
+      See test_chain_leak_strlen1.
+      '''
+      self.chain_leak_strlen(True)
+
     def tearDown(self):
         if hasattr(self, 'tmp') and os.path.exists(self.tmp):
             shutil.rmtree(self.tmp)
