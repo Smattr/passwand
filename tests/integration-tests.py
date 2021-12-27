@@ -73,6 +73,11 @@ class PasswandTest(unittest.TestCase):
     self.assertEqual(p.exitstatus, 0)
 
   @staticmethod
+  def sp_run(args: List[str], input: str) -> subprocess.CompletedProcess:
+    return subprocess.run(args, input=input, stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE, universal_newlines=True)
+
+  @staticmethod
   def type_password(process, password: str):
     '''
     Expect a password prompt and enter the given password.
@@ -1950,8 +1955,7 @@ class Gui(PasswandTest):
         input = ('\n'       # No main password
                  'hello\n'  # Space "hello"
                  'world\n') # Key "world"
-        p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
-                           stderr=subprocess.PIPE, universal_newlines=True)
+        p = self.sp_run(args, input)
         self.assertEqual(p.stdout, '')
         self.assertEqual(p.stderr, 'failed to find matching entry\n')
         if sys.platform == 'darwin':
@@ -1966,11 +1970,10 @@ class Gui(PasswandTest):
         '''
         args = ['./pw-gui-test-stub', '--data', self.empty_json]
         input = '' # EOF indicates cancel
-        p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
-                           stderr=subprocess.PIPE, check=True,
-                           universal_newlines=True)
+        p = self.sp_run(args, input)
         self.assertEqual(p.stdout, '')
         self.assertEqual(p.stderr, '')
+        p.check_returncode()
 
     def test_cancel_space(self):
         '''
@@ -1978,11 +1981,10 @@ class Gui(PasswandTest):
         '''
         args = ['./pw-gui-test-stub', '--data', self.empty_json]
         input = 'main\n' # EOF indicates cancel
-        p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
-                           stderr=subprocess.PIPE, check=True,
-                           universal_newlines=True)
+        p = self.sp_run(args, input)
         self.assertEqual(p.stdout, '')
         self.assertEqual(p.stderr, '')
+        p.check_returncode()
 
     def test_cancel_key(self):
         '''
@@ -1991,11 +1993,10 @@ class Gui(PasswandTest):
         args = ['./pw-gui-test-stub', '--data', self.empty_json]
         input = ('main\n'
                  'space\n') # EOF indicates cancel
-        p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
-                           stderr=subprocess.PIPE, check=True,
-                           universal_newlines=True)
+        p = self.sp_run(args, input)
         self.assertEqual(p.stdout, '')
         self.assertEqual(p.stderr, '')
+        p.check_returncode()
 
     def test_concurrent_manipulation(self):
         '''
@@ -2022,8 +2023,7 @@ class Gui(PasswandTest):
         input = ('space\n'
                  'key\n'
                  'test\n')
-        p = subprocess.run(args, input=input, stderr=subprocess.PIPE,
-                           universal_newlines=True)
+        p = self.sp_run(args, input)
         self.assertTrue(p.stderr.strip().startswith('failed to lock database'))
         if sys.platform == 'darwin':
             self.assertEqual(p.returncode, 0)
@@ -2052,8 +2052,7 @@ class Gui(PasswandTest):
         input = ('space0\n'
                  'key0\n'
                  'not test\n')
-        p = subprocess.run(args, input=input, stderr=subprocess.PIPE,
-                           universal_newlines=True)
+        p = self.sp_run(args, input)
 
         if sys.platform == 'darwin':
             self.assertEqual(p.returncode, 0)
@@ -2092,8 +2091,7 @@ class Gui(PasswandTest):
             input = (f'space{i}\n'
                      f'key{i}\n'
                      'foo\n')
-            p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, universal_newlines=True)
+            p = self.sp_run(args, input)
             if sys.platform == 'darwin':
                 self.assertEqual(p.returncode, 0)
             else:
@@ -2136,8 +2134,7 @@ class Gui(PasswandTest):
             input = (f'space{i}\n'
                      f'key{i}\n'
                      'foo\n')
-            p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, universal_newlines=True)
+            p = self.sp_run(args, input)
             if sys.platform == 'darwin':
                 self.assertEqual(p.returncode, 0)
             else:
@@ -2152,8 +2149,7 @@ class Gui(PasswandTest):
             input = (f'space{i}\n'
                      f'key{i}\n'
                      'bar\n')
-            p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, universal_newlines=True)
+            p = self.sp_run(args, input)
             if sys.platform == 'darwin':
                 self.assertEqual(p.returncode, 0)
             else:
@@ -2169,8 +2165,7 @@ class Gui(PasswandTest):
                 input = (f'space{i}\n'
                          f'key{i}\n'
                          f'{mainpass}\n')
-                p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, universal_newlines=True)
+                p = self.sp_run(args, input)
                 if sys.platform == 'darwin':
                     self.assertEqual(p.returncode, 0)
                 else:
@@ -2257,9 +2252,7 @@ class Gui(PasswandTest):
                 input = (f'space{i}\n'
                          f'key{i}\n'
                          'baz\n')
-                p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE,
-                                   universal_newlines=True)
+                p = self.sp_run(args, input)
 
                 # This should only succeed if we used the right work factors.
                 if a == '10' and b == '12' and c == '11':
@@ -2298,8 +2291,7 @@ class Gui(PasswandTest):
             input = (f'space{i}\n'
                      f'key{i}\n'
                      'bar\n')
-            p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, universal_newlines=True)
+            p = self.sp_run(args, input)
             if sys.platform == 'darwin':
                 self.assertEqual(p.returncode, 0)
             else:
@@ -2318,8 +2310,7 @@ class Gui(PasswandTest):
             input = (f'space{i}\n'
                      f'key{i}\n'
                      'bar\n')
-            p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, universal_newlines=True)
+            p = self.sp_run(args, input)
             if sys.platform == 'darwin':
                 self.assertEqual(p.returncode, 0)
             else:
@@ -2358,8 +2349,7 @@ class Gui(PasswandTest):
             input = (f'space{i}\n'
                      f'key{i}\n'
                      'foo\n')
-            p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, universal_newlines=True)
+            p = self.sp_run(args, input)
             if sys.platform == 'darwin':
                 self.assertEqual(p.returncode, 0)
             else:
@@ -2374,8 +2364,7 @@ class Gui(PasswandTest):
                      f'key{i}\n'
                      '\n'
                      'bar\n')
-            p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, universal_newlines=True)
+            p = self.sp_run(args, input)
             if sys.platform == 'darwin':
                 self.assertEqual(p.returncode, 0)
             else:
@@ -2418,8 +2407,7 @@ class Gui(PasswandTest):
             input = (f'space{i}\n'
                      f'key{i}\n'
                      'bar\n')
-            p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, universal_newlines=True)
+            p = self.sp_run(args, input)
             if sys.platform == 'darwin':
                 self.assertEqual(p.returncode, 0)
             else:
@@ -2448,8 +2436,7 @@ class Gui(PasswandTest):
                      '\n'
                      '\n'
                      'bar\n')
-            p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, universal_newlines=True)
+            p = self.sp_run(args, input)
             if sys.platform == 'darwin':
                 self.assertEqual(p.returncode, 0)
             else:
@@ -2464,8 +2451,7 @@ class Gui(PasswandTest):
                      '\n'
                      '\n'
                      'baz\n')
-            p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, universal_newlines=True)
+            p = self.sp_run(args, input)
             if sys.platform == 'darwin':
                 self.assertEqual(p.returncode, 0)
             else:
@@ -2495,9 +2481,7 @@ class Gui(PasswandTest):
                          f'key{i}\n'
                          '\n'
                          f'{passphrase}\n')
-                p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE,
-                                   universal_newlines=True)
+                p = self.sp_run(args, input)
                 if sys.platform == 'darwin':
                     self.assertEqual(p.returncode, 0)
                 else:
@@ -2514,9 +2498,7 @@ class Gui(PasswandTest):
                          '\n'
                          '\n'
                          '{passphrase}\n')
-                p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE,
-                                   universal_newlines=True)
+                p = self.sp_run(args, input)
                 if sys.platform == 'darwin':
                     self.assertEqual(p.returncode, 0)
                 else:
@@ -2547,11 +2529,10 @@ class Gui(PasswandTest):
       input = ('foo\n'
                'bar\n'
                f'{short if main_longer else long}\n')
-      p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, universal_newlines=True)
-      self.assertEqual(p.returncode, 0)
+      p = self.sp_run(args, input)
       self.assertEqual(p.stdout, 'baz\n')
       self.assertEqual(p.stderr, '')
+      p.check_returncode()
 
     def test_chain_leak_strlen1(self):
       '''
