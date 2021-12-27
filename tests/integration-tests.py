@@ -426,21 +426,11 @@ class Cli(unittest.TestCase):
         self.type_password(p, 'test')
 
         # Set a new main password.
-        try:
-            p.expect('new main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
+        p.expect('new main password: ')
         p.sendline('test2')
 
         # Confirm the new main password.
-        try:
-            p.expect('confirm new main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
+        p.expect('confirm new main password: ')
         p.sendline('test2')
 
         # Now passwand should exit with success.
@@ -485,21 +475,11 @@ class Cli(unittest.TestCase):
         self.type_password(p, 'test')
 
         # Set a new main password.
-        try:
-            p.expect('new main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
+        p.expect('new main password: ')
         p.sendline('test2')
 
         # Enter an incorrect confirmation.
-        try:
-            p.expect('confirm new main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
+        p.expect('confirm new main password: ')
         p.sendline('test')
 
         # Now passwand should exit with failure.
@@ -557,21 +537,11 @@ class Cli(unittest.TestCase):
         self.type_password(p, 'test')
 
         # Set a new main password.
-        try:
-            p.expect('new main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
+        p.expect('new main password: ')
         p.sendline('test2')
 
         # Confirm the new main password.
-        try:
-            p.expect('confirm new main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
+        p.expect('confirm new main password: ')
         p.sendline('test2')
 
         # Now passwand should exit with success.
@@ -963,14 +933,9 @@ class Cli(unittest.TestCase):
 
             # We should get the original value for everything except the entry
             # we changed.
-            try:
-                expected = 'value{}'.format(i)
-                if i != target:
-                    p.expect('{}\r\n'.format(expected))
-            except pexpect.EOF:
-                self.fail('EOF while waiting for {}'.format(expected))
-            except pexpect.TIMEOUT:
-                self.fail('timeout while waiting for {}'.format(expected))
+            expected = 'value{}'.format(i)
+            if i != target:
+                p.expect('{}\r\n'.format(expected))
 
             # And passwand should exit with success.
             p.expect(pexpect.EOF)
@@ -1052,12 +1017,7 @@ class Cli(unittest.TestCase):
 
         # Wait for the password prompt to ensure the 'get' has locked the
         # database.
-        try:
-            get.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
+        get.expect('main password: ')
 
         # Instead of entering the password immediately, try starting a 'set'
         # operation.
@@ -1612,13 +1572,8 @@ class Cli(unittest.TestCase):
 
             # We should get the original value for everything except the entry
             # we changed.
-            try:
-                expected = 'value{}'.format('new' if i == target else i)
-                p.expect('{}\r\n'.format(expected))
-            except pexpect.EOF:
-                self.fail('EOF while waiting for {}'.format(expected))
-            except pexpect.TIMEOUT:
-                self.fail('timeout while waiting for {}'.format(expected))
+            expected = 'value{}'.format('new' if i == target else i)
+            p.expect('{}\r\n'.format(expected))
 
             # And passwand should exit with success.
             p.expect(pexpect.EOF)
@@ -1959,12 +1914,7 @@ class Cli(unittest.TestCase):
 
                 # The command should error with something mentioning
                 # --work-factor.
-                try:
-                    p.expect('--work-factor')
-                except pexpect.EOF:
-                    self.fail('EOF while waiting for error message')
-                except pexpect.TIMEOUT:
-                    self.fail('timeout while waiting for error message')
+                p.expect('--work-factor')
                 p.expect(pexpect.EOF)
                 p.close()
                 self.assertNotEqual(p.exitstatus, 0)
