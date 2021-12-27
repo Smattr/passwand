@@ -2009,13 +2009,8 @@ class Gui(PasswandTest):
           '--value', 'value']
         s = pexpect.spawn('./pw-cli', args, timeout=120)
 
-        # Enter the main password.
+        # Wait for password prompt to ensure the 'set' has locked the database.
         s.expect('main password: ')
-        s.sendline('test')
-
-        # Confirm the main password.
-        s.expect('confirm main password: ')
-        s.sendline('test')
 
         # Try to read from the database. This should fail because it should be
         # locked by the 'set'.
@@ -2032,6 +2027,9 @@ class Gui(PasswandTest):
             self.assertNotEqual(p.returncode, 0)
 
         # Cleanup the 'set'.
+        s.sendline('test')
+        s.expect('confirm main password: ')
+        s.sendline('test')
         s.expect(pexpect.EOF)
         s.close()
 
