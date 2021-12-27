@@ -125,22 +125,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
-
-        # Confirm the main password.
-        try:
-            p.expect('confirm main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password_with_confirmation(p, 'test')
 
         # Passwand should exit with failure.
         p.expect(pexpect.EOF)
@@ -230,22 +215,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
-
-        # Confirm the main password.
-        try:
-            p.expect('confirm main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password_with_confirmation(p, 'test')
 
         # Now passwand should exit with success.
         p.expect(pexpect.EOF)
@@ -270,13 +240,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password(p, 'test')
 
         # Passwand should output the value and exit with success.
         v = p.read()
@@ -321,22 +285,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
-
-        # Confirm the main password.
-        try:
-            p.expect('confirm main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password_with_confirmation(p, 'test')
 
         # Now passwand should exit with success.
         p.expect(pexpect.EOF)
@@ -361,13 +310,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password(p, 'test')
 
         # Passwand should output the value and exit with success.
         v = p.read()
@@ -411,22 +354,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
-
-        # Confirm the main password.
-        try:
-            p.expect('confirm main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password_with_confirmation(p, 'test')
 
         # Now passwand should exit with success.
         p.expect(pexpect.EOF)
@@ -451,13 +379,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password(p, 'test')
 
         # Passwand should output the value and exit with success.
         v = p.read()
@@ -501,13 +423,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password(p, 'test')
 
         # Set a new main password.
         try:
@@ -566,13 +482,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password(p, 'test')
 
         # Set a new main password.
         try:
@@ -644,13 +554,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password(p, 'test')
 
         # Set a new main password.
         try:
@@ -697,13 +601,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the old main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password(p, 'test')
 
         # Now passwand should exit with failure.
         p.expect(pexpect.EOF)
@@ -740,13 +638,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password(p, 'test')
 
         # Now passwand should exit with success.
         output = p.read()
@@ -790,13 +682,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the wrong main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test2')
+        self.type_password(p, 'test2')
 
         # Now passwand should exit with failure.
         p.expect(pexpect.EOF)
@@ -829,13 +715,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password(p, 'test')
 
         # Now we should get the entry and passwand should exit with success.
         output = p.read()
@@ -903,22 +783,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
-
-        # Confirm the main password.
-        try:
-            p.expect('confirm main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password_with_confirmation(p, 'test')
 
         # Now passwand should exit with failure.
         p.expect(pexpect.EOF)
@@ -959,13 +824,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password(p, 'test')
 
         # Scan the entries we get.
         output = p.read()
@@ -1010,13 +869,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password(p, 'test')
 
         # Now passwand should exit with failure.
         p.expect(pexpect.EOF)
@@ -1089,13 +942,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password(p, 'test')
 
         # Now passwand should exit with success.
         p.expect(pexpect.EOF)
@@ -1112,13 +959,7 @@ class Cli(unittest.TestCase):
             p = pexpect.spawn('./pw-cli', args, timeout=120)
 
             # Enter the main password.
-            try:
-                p.expect('main password: ')
-            except pexpect.EOF:
-                self.fail('EOF while waiting for password prompt')
-            except pexpect.TIMEOUT:
-                self.fail('timeout while waiting for password prompt')
-            p.sendline('test')
+            self.type_password(p, 'test')
 
             # We should get the original value for everything except the entry
             # we changed.
@@ -1169,13 +1010,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password(p, 'test')
 
         # Now passwand should exit with failure.
         p.expect(pexpect.EOF)
@@ -1271,13 +1106,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password(p, 'test')
 
         # Now passwand should exit with failure.
         p.expect(pexpect.EOF)
@@ -1310,13 +1139,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password(p, 'test')
 
         # Now passwand should exit with success.
         p.expect(pexpect.EOF)
@@ -1350,13 +1173,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password(p, 'test')
 
         # Now passwand should exit with failure.
         p.expect(pexpect.EOF)
@@ -1390,13 +1207,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password(p, 'test')
 
         # We should exit with success because there are no weak passwords.
         p.expect(pexpect.EOF)
@@ -1531,13 +1342,7 @@ class Cli(unittest.TestCase):
             p = pexpect.spawn('./pw-cli', args, timeout=120)
 
             # Enter the main password.
-            try:
-                p.expect('main password: ')
-            except pexpect.EOF:
-                self.fail('EOF while waiting for password prompt')
-            except pexpect.TIMEOUT:
-                self.fail('timeout while waiting for password prompt')
-            p.sendline('test')
+            self.type_password(p, 'test')
 
             # The check should have identified whether the password was weak.
             p.expect(pexpect.EOF)
@@ -1554,13 +1359,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password(p, 'test')
 
         # We should exit with error if any password was weak.
         output = p.read().decode('utf-8', 'replace').strip()
@@ -1621,22 +1420,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
-
-        # Confirm the main password.
-        try:
-            p.expect('confirm main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password_with_confirmation(p, 'test')
 
         # Passwand should exit with success.
         p.expect(pexpect.EOF)
@@ -1680,22 +1464,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
-
-        # Confirm the main password.
-        try:
-            p.expect('confirm main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password_with_confirmation(p, 'test')
 
         # Passwand should reject this.
         p.expect(pexpect.EOF)
@@ -1745,22 +1514,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
-
-        # Confirm the main password.
-        try:
-            p.expect('confirm main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password_with_confirmation(p, 'test')
 
         # Passwand should reject this.
         p.expect(pexpect.EOF)
@@ -1837,22 +1591,7 @@ class Cli(unittest.TestCase):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
-
-        # Confirm the main password.
-        try:
-            p.expect('confirm main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
+        self.type_password_with_confirmation(p, 'test')
 
         # Now passwand should exit with success.
         p.expect(pexpect.EOF)
@@ -1869,13 +1608,7 @@ class Cli(unittest.TestCase):
             p = pexpect.spawn('./pw-cli', args, timeout=120)
 
             # Enter the main password.
-            try:
-                p.expect('main password: ')
-            except pexpect.EOF:
-                self.fail('EOF while waiting for password prompt')
-            except pexpect.TIMEOUT:
-                self.fail('timeout while waiting for password prompt')
-            p.sendline('test')
+            self.type_password(p, 'test')
 
             # We should get the original value for everything except the entry
             # we changed.
@@ -1901,8 +1634,7 @@ class Cli(unittest.TestCase):
         if not multithreaded:
           args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
-        p.expect('main password: ')
-        p.sendline(password)
+        self.type_password(p, password)
         p.expect(f'{value}\r\n')
         p.expect(pexpect.EOF)
         p.close()
@@ -1915,8 +1647,7 @@ class Cli(unittest.TestCase):
         # Use a single-threaded lookup for deterministic results ordering.
         args = ['list', '--jobs', '1', '--data', db]
         p = pexpect.spawn('./pw-cli', args, timeout=120)
-        p.expect('main password: ')
-        p.sendline(password)
+        self.type_password(p, password)
         for space, key in entries:
           p.expect(f'{space}/{key}\r\n')
         p.expect(pexpect.EOF)
@@ -1933,13 +1664,27 @@ class Cli(unittest.TestCase):
         if not multithreaded:
           args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
-        p.expect('main password: ')
-        p.sendline(password)
-        p.expect('confirm main password: ')
-        p.sendline(password)
+        self.type_password_with_confirmation(p, password)
         p.expect(pexpect.EOF)
         p.close()
         self.assertEqual(p.exitstatus, 0)
+
+    @staticmethod
+    def type_password(process, password: str):
+        '''
+        Expect a password prompt and enter the given password.
+        '''
+        process.expect('main password: ')
+        process.sendline(password)
+
+    @staticmethod
+    def type_password_with_confirmation(process, password: str):
+        '''
+        Expect a password prompt with confirmation and enter the given password.
+        '''
+        Cli.type_password(process, password)
+        process.expect('confirm main password: ')
+        process.sendline(password)
 
     def test_chain_change_main(self):
         '''
@@ -1957,8 +1702,7 @@ class Cli(unittest.TestCase):
         # Try to change the main database’s password using the chain.
         args = ['change-main', '--data', data, '--chain', chain]
         p = pexpect.spawn('./pw-cli', args, timeout=120)
-        p.expect('main password: ')
-        p.sendline('chain password')
+        self.type_password(p, 'chain password')
         p.expect('new main password: ')
         p.sendline('foo bar')
         p.expect('confirm new main password: ')
@@ -1970,8 +1714,7 @@ class Cli(unittest.TestCase):
         # The database should no longer be accessible through the chain.
         args = ['list', '--data', data, '--chain', chain]
         p = pexpect.spawn('./pw-cli', args, timeout=120)
-        p.expect('main password: ')
-        p.sendline('chain password')
+        self.type_password(p, 'chain password')
         p.expect(pexpect.EOF)
         p.close()
         self.assertNotEqual(p.exitstatus, 0)
@@ -1992,8 +1735,7 @@ class Cli(unittest.TestCase):
         # Run the check operation via the chain.
         args = ['check', '--data', data, '--chain', chain]
         p = pexpect.spawn('./pw-cli', args, timeout=120)
-        p.expect('main password: ')
-        p.sendline('chain password')
+        self.type_password(p, 'chain password')
         p.expect(pexpect.EOF)
         p.close()
         self.assertEqual(p.exitstatus, 0)
@@ -2013,8 +1755,7 @@ class Cli(unittest.TestCase):
         args = ['delete', '--data', data, '--chain', chain, '--space', 'foo',
                 '--key', 'bar']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
-        p.expect('main password: ')
-        p.sendline('chain password')
+        self.type_password(p, 'chain password')
         p.expect(pexpect.EOF)
         p.close()
         self.assertEqual(p.exitstatus, 0)
@@ -2040,8 +1781,7 @@ class Cli(unittest.TestCase):
         args = ['get', '--data', data, '--chain', chain, '--space', 'foo',
                 '--key', 'bar']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
-        p.expect('main password: ')
-        p.sendline('chain password')
+        self.type_password(p, 'chain password')
         p.expect('baz\r\n')
         p.expect(pexpect.EOF)
         p.close()
@@ -2061,8 +1801,7 @@ class Cli(unittest.TestCase):
         # Get the value of the main database entry via the chain.
         args = ['list', '--data', data, '--chain', chain]
         p = pexpect.spawn('./pw-cli', args, timeout=120)
-        p.expect('main password: ')
-        p.sendline('chain password')
+        self.type_password(p, 'chain password')
         p.expect('foo/bar\r\n')
         p.expect(pexpect.EOF)
         p.close()
@@ -2083,8 +1822,7 @@ class Cli(unittest.TestCase):
         args = ['set', '--data', data, '--chain', chain, '--space', 'foo',
                 '--key', 'bar', '--value', 'value']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
-        p.expect('main password: ')
-        p.sendline('chain password')
+        self.type_password(p, 'chain password')
         p.expect('confirm main password: ')
         p.sendline('main password') # FIXME
         p.expect(pexpect.EOF)
@@ -2099,8 +1837,7 @@ class Cli(unittest.TestCase):
         args = ['set', '--data', data, '--chain', chain, '--space', 'foo',
                 '--key', 'qux', '--value', 'corge']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
-        p.expect('main password: ')
-        p.sendline('chain password')
+        self.type_password(p, 'chain password')
         p.expect('confirm main password: ')
         p.sendline('main password') # FIXME
         p.expect(pexpect.EOF)
@@ -2130,8 +1867,7 @@ class Cli(unittest.TestCase):
         args = ['update', '--data', data, '--chain', chain, '--space', 'foo',
                 '--key', 'baz', '--value', 'value']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
-        p.expect('main password: ')
-        p.sendline('chain password')
+        self.type_password(p, 'chain password')
         p.expect('confirm main password: ')
         p.sendline('main password') # FIXME
         p.expect(pexpect.EOF)
@@ -2146,8 +1882,7 @@ class Cli(unittest.TestCase):
         args = ['update', '--data', data, '--chain', chain, '--space', 'foo',
                 '--key', 'bar', '--value', 'corge']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
-        p.expect('main password: ')
-        p.sendline('chain password')
+        self.type_password(p, 'chain password')
         p.expect('confirm main password: ')
         p.sendline('main password') # FIXME
         p.expect(pexpect.EOF)
@@ -2176,10 +1911,8 @@ class Cli(unittest.TestCase):
         args = ['get', '--data', data, '--chain', chain, '--space', 'foo',
                 '--key', 'bar']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
-        p.expect('main password: ')
-        p.sendline('')
-        p.expect('main password: ')
-        p.sendline('main password')
+        self.type_password(p, '')
+        self.type_password(p, 'main password')
         p.expect('baz\r\n')
         p.expect(pexpect.EOF)
         p.close()
@@ -2200,8 +1933,7 @@ class Cli(unittest.TestCase):
         args = ['get', '--data', data, '--chain', chain, '--space', 'foo',
                 '--key', 'bar']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
-        p.expect('main password: ')
-        p.sendline('main password')
+        self.type_password(p, 'main password')
         p.expect(pexpect.EOF)
         p.close()
         self.assertNotEqual(p.exitstatus, 0)
