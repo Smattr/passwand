@@ -2542,12 +2542,15 @@ class Cli(unittest.TestCase):
         p.close()
         self.assertEqual(p.exitstatus, 0)
 
-    def do_set(self, db, password, space, key, value):
+    def do_set(self, db, password, space, key, value,
+               multithreaded: bool = False):
         '''
         Run a set operation that is expected to succeed.
         '''
         args = ['set', '--data', db, '--space', space, '--key', key, '--value',
                 value]
+        if not multithreaded:
+          args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
         p.expect('main password: ')
         p.sendline(password)
