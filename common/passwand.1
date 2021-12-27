@@ -73,14 +73,14 @@ command.
 allbox center; l || c c c c c .
 command	space	key	value	length	chain
 =
-\fBpw-cli change-main\fR	disallowed	disallowed	disallowed	disallowed	disallowed
-\fBpw-cli check\fR	optional	optional	disallowed	disallowed	disallowed
-\fBpw-cli delete\fR	required	required	disallowed	disallowed	disallowed
-\fBpw-cli generate\fR	required	required	disallowed	optional	disallowed
-\fBpw-cli get\fR	required	required	disallowed	disallowed	disallowed
-\fBpw-cli list\fR	disallowed	disallowed	disallowed	disallowed	disallowed
-\fBpw-cli set\fR	required	required	required	disallowed	disallowed
-\fBps-cli update\fR	required	required	required	disallowed	disallowed
+\fBpw-cli change-main\fR	disallowed	disallowed	disallowed	disallowed	optional
+\fBpw-cli check\fR	optional	optional	disallowed	disallowed	optional
+\fBpw-cli delete\fR	required	required	disallowed	disallowed	optional
+\fBpw-cli generate\fR	required	required	disallowed	optional	optional
+\fBpw-cli get\fR	required	required	disallowed	disallowed	optional
+\fBpw-cli list\fR	disallowed	disallowed	disallowed	disallowed	optional
+\fBpw-cli set\fR	required	required	required	disallowed	optional
+\fBps-cli update\fR	required	required	required	disallowed	optional
 \fBpw-gui\fR	optional	optional	disallowed	disallowed	optional
 .TE
 .PP
@@ -95,7 +95,7 @@ decrypt the database passed to the second \fB--chain\fR option, whose first
 entry will be used to decrypt the database passed to the third \fB--chain\fR,
 and so on until the list of chained databases is exhausted. Then the first entry
 from the final chained database will be used as the main password to the primary
-database. This option is only accepted by \fBpw-gui\fR, not by \fBpw-cli\fR.
+database.
 .PP
 The purpose of these chained databases is to support disposable secondary
 passwords. If your main password is "foo", you can encrypt this in the first
