@@ -18,7 +18,73 @@ import unittest
 # a long, hard to guess password for testing purposes
 HARD_PASSWORD = 'WEy2zHDJjLsNog8tE5hwvrIR0adAGrR4m5wh6y99ssyo1zzUESw9OWPp8yEL'
 
-class Cli(unittest.TestCase):
+class PasswandTest(unittest.TestCase):
+  '''
+  Home for common functions used by test classes.
+  '''
+
+  def do_get(self, db, password, space, key, value,
+             multithreaded: bool = False):
+    '''
+    Run a get operation, expecting the given result.
+    '''
+    args = ['get', '--data', db, '--space', space, '--key', key]
+    if not multithreaded:
+      args += ['--jobs', '1']
+    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    self.type_password(p, password)
+    p.expect(f'{value}\r\n')
+    p.expect(pexpect.EOF)
+    p.close()
+    self.assertEqual(p.exitstatus, 0)
+
+  def do_list(self, db, password, entries):
+    '''
+    Run a list operation, expecting the given results.
+    '''
+    # Use a single-threaded lookup for deterministic results ordering.
+    args = ['list', '--jobs', '1', '--data', db]
+    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    self.type_password(p, password)
+    for space, key in entries:
+      p.expect(f'{space}/{key}\r\n')
+    p.expect(pexpect.EOF)
+    p.close()
+    self.assertEqual(p.exitstatus, 0)
+
+  def do_set(self, db, password, space, key, value,
+             multithreaded: bool = False):
+    '''
+    Run a set operation that is expected to succeed.
+    '''
+    args = ['set', '--data', db, '--space', space, '--key', key, '--value',
+            value]
+    if not multithreaded:
+      args += ['--jobs', '1']
+    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    self.type_password_with_confirmation(p, password)
+    p.expect(pexpect.EOF)
+    p.close()
+    self.assertEqual(p.exitstatus, 0)
+
+  @staticmethod
+  def type_password(process, password: str):
+    '''
+    Expect a password prompt and enter the given password.
+    '''
+    process.expect('main password: ')
+    process.sendline(password)
+
+  @staticmethod
+  def type_password_with_confirmation(process, password: str):
+    '''
+    Expect a password prompt with confirmation and enter the given password.
+    '''
+    Cli.type_password(process, password)
+    process.expect('confirm main password: ')
+    process.sendline(password)
+
+class Cli(PasswandTest):
 
     def setUp(self):
         self.tmp = tempfile.mkdtemp()
@@ -1575,67 +1641,6 @@ class Cli(unittest.TestCase):
             p.expect(pexpect.EOF)
             p.close()
             self.assertEqual(p.exitstatus, 0)
-
-    def do_get(self, db, password, space, key, value,
-               multithreaded: bool = False):
-        '''
-        Run a get operation, expecting the given result.
-        '''
-        args = ['get', '--data', db, '--space', space, '--key', key]
-        if not multithreaded:
-          args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args, timeout=120)
-        self.type_password(p, password)
-        p.expect(f'{value}\r\n')
-        p.expect(pexpect.EOF)
-        p.close()
-        self.assertEqual(p.exitstatus, 0)
-
-    def do_list(self, db, password, entries):
-        '''
-        Run a list operation, expecting the given results.
-        '''
-        # Use a single-threaded lookup for deterministic results ordering.
-        args = ['list', '--jobs', '1', '--data', db]
-        p = pexpect.spawn('./pw-cli', args, timeout=120)
-        self.type_password(p, password)
-        for space, key in entries:
-          p.expect(f'{space}/{key}\r\n')
-        p.expect(pexpect.EOF)
-        p.close()
-        self.assertEqual(p.exitstatus, 0)
-
-    def do_set(self, db, password, space, key, value,
-               multithreaded: bool = False):
-        '''
-        Run a set operation that is expected to succeed.
-        '''
-        args = ['set', '--data', db, '--space', space, '--key', key, '--value',
-                value]
-        if not multithreaded:
-          args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args, timeout=120)
-        self.type_password_with_confirmation(p, password)
-        p.expect(pexpect.EOF)
-        p.close()
-        self.assertEqual(p.exitstatus, 0)
-
-    @staticmethod
-    def type_password(process, password: str):
-        '''
-        Expect a password prompt and enter the given password.
-        '''
-        process.expect('main password: ')
-        process.sendline(password)
-
-    @staticmethod
-    def type_password_with_confirmation(process, password: str):
-        '''
-        Expect a password prompt with confirmation and enter the given password.
-        '''
-        Cli.type_password(process, password)
-        process.expect('confirm main password: ')
-        process.sendline(password)
 
     def test_chain_change_main(self):
         '''
