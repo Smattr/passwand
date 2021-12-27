@@ -2010,21 +2010,11 @@ class Gui(PasswandTest):
         s = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            s.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
+        s.expect('main password: ')
         s.sendline('test')
 
         # Confirm the main password.
-        try:
-            s.expect('confirm main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
+        s.expect('confirm main password: ')
         s.sendline('test')
 
         # Try to read from the database. This should fail because it should be
@@ -2228,21 +2218,11 @@ class Gui(PasswandTest):
             p = pexpect.spawn('./pw-cli', args, timeout=120)
 
             # Enter the main password.
-            try:
-                p.expect('main password: ')
-            except pexpect.EOF:
-                self.fail('EOF while waiting for password prompt')
-            except pexpect.TIMEOUT:
-                self.fail('timeout while waiting for password prompt')
+            p.expect('main password: ')
             p.sendline('foo')
 
             # Confirm the main password.
-            try:
-                p.expect('confirm main password: ')
-            except pexpect.EOF:
-                self.fail('EOF while waiting for password prompt')
-            except pexpect.TIMEOUT:
-                self.fail('timeout while waiting for password prompt')
+            p.expect('confirm main password: ')
             p.sendline('foo')
 
             # Now passwand should exit with success.
@@ -2256,21 +2236,11 @@ class Gui(PasswandTest):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
+        p.expect('main password: ')
         p.sendline('bar')
 
         # Confirm the main password.
-        try:
-            p.expect('confirm main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
+        p.expect('confirm main password: ')
         p.sendline('bar')
 
         # Now passwand should exit with success.
@@ -2284,21 +2254,11 @@ class Gui(PasswandTest):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
+        p.expect('main password: ')
         p.sendline('baz')
 
         # Confirm the main password.
-        try:
-            p.expect('confirm main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
+        p.expect('confirm main password: ')
         p.sendline('baz')
 
         # Now passwand should exit with success.
