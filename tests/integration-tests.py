@@ -2075,14 +2075,13 @@ class Gui(PasswandTest):
 
         # Confirm the we can now lookup both entries using the chain.
         for i in range(2):
-            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
-              '--chain', chain], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-              stderr=subprocess.PIPE, universal_newlines=True)
-            stdout, stderr = p.communicate('space{}\n'
-                                           'key{}\n'
-                                           'bar\n'.format(i, i))
-            self.assertEqual(p.returncode, 0)
-            self.assertEqual(stdout, 'value{}\n'.format(i))
+            args = ['./pw-gui-test-stub', '--data', data, '--chain', chain]
+            input = (f'space{i}\n'
+                     f'key{i}\n'
+                     'bar\n')
+            stdout = subprocess.check_output(args, input=input,
+                                             universal_newlines=True)
+            self.assertEqual(stdout, f'value{i}\n')
 
             # The entries should *not* be retrievable using the primary
             # database’s password.
@@ -2119,15 +2118,14 @@ class Gui(PasswandTest):
 
         # Confirm the we can now lookup both entries using the chain.
         for i in range(2):
-            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
-              '--chain', chain2, '--chain', chain1], stdin=subprocess.PIPE,
-              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-              universal_newlines=True)
-            stdout, stderr = p.communicate('space{}\n'
-                                           'key{}\n'
-                                           'baz\n'.format(i, i))
-            self.assertEqual(p.returncode, 0)
-            self.assertEqual(stdout, 'value{}\n'.format(i))
+            args = ['./pw-gui-test-stub', '--data', data, '--chain', chain2,
+                    '--chain', chain1]
+            input = (f'space{i}\n'
+                     f'key{i}\n'
+                     'baz\n')
+            stdout = subprocess.check_output(args, input=input,
+                                             universal_newlines=True)
+            self.assertEqual(stdout, f'value{i}\n')
 
             # The entries should *not* be retrievable using the primary
             # database’s password.
@@ -2191,13 +2189,12 @@ class Gui(PasswandTest):
         self.do_set(data, 'foo', 'space', 'key', 'foo')
 
         # Now chain the database to itself and try to retrieve the entry.
-        p = subprocess.Popen(['./pw-gui-test-stub', '--data', data, '--chain',
-          data], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-          stderr=subprocess.PIPE, universal_newlines=True)
-        stdout, stderr = p.communicate('space\n'
-                                       'key\n'
-                                       'foo\n')
-        self.assertEqual(p.returncode, 0)
+        args = ['./pw-gui-test-stub', '--data', data, '--chain', data]
+        input = ('space\n'
+                 'key\n'
+                 'foo\n')
+        stdout = subprocess.check_output(args, input=input,
+                                         universal_newlines=True)
         self.assertEqual(stdout, 'foo\n')
 
     def test_chain_work_factor(self):
@@ -2360,15 +2357,14 @@ class Gui(PasswandTest):
 
         # Confirm the we can now lookup both entries by bypassing the chain.
         for i in range(2):
-            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
-              '--chain', chain], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-              stderr=subprocess.PIPE, universal_newlines=True)
-            stdout, stderr = p.communicate('space{}\n'
-                                           'key{}\n'
-                                           '\n'
-                                           'foo\n'.format(i, i))
-            self.assertEqual(p.returncode, 0)
-            self.assertEqual(stdout, 'value{}\n'.format(i))
+            args = ['./pw-gui-test-stub', '--data', data, '--chain', chain]
+            input = (f'space{i}\n'
+                     f'key{i}\n'
+                     '\n'
+                     'foo\n')
+            stdout = subprocess.check_output(args, input=input,
+                                             universal_newlines=True)
+            self.assertEqual(stdout, f'value{i}\n')
 
             # The entries should *not* be retrievable using the primary
             # database’s password.
@@ -2421,16 +2417,15 @@ class Gui(PasswandTest):
 
         # Confirm the we can now lookup both entries skipping the first chain.
         for i in range(2):
-            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
-              '--chain', chain2, '--chain', chain1], stdin=subprocess.PIPE,
-              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-              universal_newlines=True)
-            stdout, stderr = p.communicate('space{}\n'
-                                           'key{}\n'
-                                           '\n'
-                                           'bar\n'.format(i, i))
-            self.assertEqual(p.returncode, 0)
-            self.assertEqual(stdout, 'value{}\n'.format(i))
+            args = ['./pw-gui-test-stub', '--data', data, '--chain', chain2,
+                    '--chain', chain1]
+            input = (f'space{i}\n'
+                     f'key{i}\n'
+                     '\n'
+                     'bar\n')
+            stdout = subprocess.check_output(args, input=input,
+                                             universal_newlines=True)
+            self.assertEqual(stdout, f'value{i}\n')
 
             # This should *not* work if we do not skip the chain.
             p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
@@ -2449,17 +2444,16 @@ class Gui(PasswandTest):
 
         # Confirm the we can now lookup both entries skipping both chains.
         for i in range(2):
-            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
-              '--chain', chain2, '--chain', chain1], stdin=subprocess.PIPE,
-              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-              universal_newlines=True)
-            stdout, stderr = p.communicate('space{}\n'
-                                           'key{}\n'
-                                           '\n'
-                                           '\n'
-                                           'foo\n'.format(i, i))
-            self.assertEqual(p.returncode, 0)
-            self.assertEqual(stdout, 'value{}\n'.format(i))
+            args = ['./pw-gui-test-stub', '--data', data, '--chain', chain2,
+                    '--chain', chain1]
+            input = (f'space{i}\n'
+                     f'key{i}\n'
+                     '\n'
+                     '\n'
+                     'foo\n')
+            stdout = subprocess.check_output(args, input=input,
+                                             universal_newlines=True)
+            self.assertEqual(stdout, f'value{i}\n')
 
             # This should *not* work using either of the intermediate
             # passphrases.
