@@ -1942,14 +1942,14 @@ class Gui(PasswandTest):
         When asking for a password from a file with no entries, we should
         receive an error.
         '''
-        p = subprocess.Popen(['./pw-gui-test-stub', '--data', self.empty_json],
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE, universal_newlines=True)
-        stdout, stderr = p.communicate('\n'       # No main password
-                                       'hello\n'  # Space "hello"
-                                       'world\n') # Key "world"
-        self.assertEqual(stdout, '')
-        self.assertEqual(stderr, 'failed to find matching entry\n')
+        args = ['./pw-gui-test-stub', '--data', self.empty_json]
+        input = ('\n'       # No main password
+                 'hello\n'  # Space "hello"
+                 'world\n') # Key "world"
+        p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
+                           stderr=subprocess.PIPE, universal_newlines=True)
+        self.assertEqual(p.stdout, '')
+        self.assertEqual(p.stderr, 'failed to find matching entry\n')
         if sys.platform == 'darwin':
             self.assertEqual(p.returncode, 0)
         else:
@@ -1960,38 +1960,38 @@ class Gui(PasswandTest):
         When cancelling the main password request, we should exit with
         success.
         '''
-        p = subprocess.Popen(['./pw-gui-test-stub', '--data', self.empty_json],
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE, universal_newlines=True)
-        stdout, stderr = p.communicate('') # EOF indicates cancel
-        self.assertEqual(stdout, '')
-        self.assertEqual(stderr, '')
-        self.assertEqual(p.returncode, 0)
+        args = ['./pw-gui-test-stub', '--data', self.empty_json]
+        input = '' # EOF indicates cancel
+        p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
+                           stderr=subprocess.PIPE, check=True,
+                           universal_newlines=True)
+        self.assertEqual(p.stdout, '')
+        self.assertEqual(p.stderr, '')
 
     def test_cancel_space(self):
         '''
         When cancelling the space request, we should exit with success.
         '''
-        p = subprocess.Popen(['./pw-gui-test-stub', '--data', self.empty_json],
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE, universal_newlines=True)
-        stdout, stderr = p.communicate('main\n') # EOF indicates cancel
-        self.assertEqual(stdout, '')
-        self.assertEqual(stderr, '')
-        self.assertEqual(p.returncode, 0)
+        args = ['./pw-gui-test-stub', '--data', self.empty_json]
+        input = 'main\n' # EOF indicates cancel
+        p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
+                           stderr=subprocess.PIPE, check=True,
+                           universal_newlines=True)
+        self.assertEqual(p.stdout, '')
+        self.assertEqual(p.stderr, '')
 
     def test_cancel_key(self):
         '''
         When cancelling the key request, we should exit with success.
         '''
-        p = subprocess.Popen(['./pw-gui-test-stub', '--data', self.empty_json],
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE, universal_newlines=True)
-        stdout, stderr = p.communicate('main\n'
-                                       'space\n') # EOF indicates cancel
-        self.assertEqual(stdout, '')
-        self.assertEqual(stderr, '')
-        self.assertEqual(p.returncode, 0)
+        args = ['./pw-gui-test-stub', '--data', self.empty_json]
+        input = ('main\n'
+                 'space\n') # EOF indicates cancel
+        p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
+                           stderr=subprocess.PIPE, check=True,
+                           universal_newlines=True)
+        self.assertEqual(p.stdout, '')
+        self.assertEqual(p.stderr, '')
 
     def test_concurrent_manipulation(self):
         '''
@@ -2014,13 +2014,13 @@ class Gui(PasswandTest):
 
         # Try to read from the database. This should fail because it should be
         # locked by the 'set'.
-        p = subprocess.Popen(['./pw-gui-test-stub', '--data', data],
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE, universal_newlines=True)
-        _, stderr = p.communicate('space\n'
-                                  'key\n'
-                                  'test\n')
-        self.assertTrue(stderr.strip().startswith('failed to lock database'))
+        args = ['./pw-gui-test-stub', '--data', data]
+        input = ('space\n'
+                 'key\n'
+                 'test\n')
+        p = subprocess.run(args, input=input, stderr=subprocess.PIPE,
+                           universal_newlines=True)
+        self.assertTrue(p.stderr.strip().startswith('failed to lock database'))
         if sys.platform == 'darwin':
             self.assertEqual(p.returncode, 0)
         else:
@@ -2044,12 +2044,12 @@ class Gui(PasswandTest):
             self.do_set(data, 'test', f'space{i}', f'key{i}', f'value{i}')
 
         # Now try to retrieve an entry but enter the wrong password.
-        p = subprocess.Popen(['./pw-gui-test-stub', '--data', data],
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE, universal_newlines=True)
-        _, stderr = p.communicate('space0\n'
-                                  'key0\n'
-                                  'not test\n')
+        args = ['./pw-gui-test-stub', '--data', data]
+        input = ('space0\n'
+                 'key0\n'
+                 'not test\n')
+        p = subprocess.run(args, input=input, stderr=subprocess.PIPE,
+                           universal_newlines=True)
 
         if sys.platform == 'darwin':
             self.assertEqual(p.returncode, 0)
@@ -2057,7 +2057,7 @@ class Gui(PasswandTest):
             self.assertNotEqual(p.returncode, 0)
 
         # We should have only received a single line of error content.
-        self.assertLess(stderr.count('\n'), 2)
+        self.assertLess(p.stderr.count('\n'), 2)
 
     def test_chain_basic(self):
         '''
@@ -2085,18 +2085,18 @@ class Gui(PasswandTest):
 
             # The entries should *not* be retrievable using the primary
             # database’s password.
-            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
-              '--chain', chain], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-              stderr=subprocess.PIPE, universal_newlines=True)
-            stdout, stderr = p.communicate('space{}\n'
-                                           'key{}\n'
-                                           'foo\n'.format(i, i))
+            args = ['./pw-gui-test-stub', '--data', data, '--chain', chain]
+            input = (f'space{i}\n'
+                     f'key{i}\n'
+                     'foo\n')
+            p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, universal_newlines=True)
             if sys.platform == 'darwin':
                 self.assertEqual(p.returncode, 0)
             else:
                 self.assertNotEqual(p.returncode, 0)
-            self.assertNotEqual(stdout, 'value{}\n'.format(i))
-            self.assertNotEqual(stderr, '')
+            self.assertNotEqual(p.stdout, f'value{i}\n')
+            self.assertNotEqual(p.stderr, '')
 
     def test_chain_double(self):
         '''
@@ -2129,52 +2129,52 @@ class Gui(PasswandTest):
 
             # The entries should *not* be retrievable using the primary
             # database’s password.
-            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
-              '--chain', chain2, '--chain', chain1], stdin=subprocess.PIPE,
-              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-              universal_newlines=True)
-            stdout, stderr = p.communicate('space{}\n'
-                                           'key{}\n'
-                                           'foo\n'.format(i, i))
+            args = ['./pw-gui-test-stub', '--data', data, '--chain', chain2,
+                    '--chain', chain1]
+            input = (f'space{i}\n'
+                     f'key{i}\n'
+                     'foo\n')
+            p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, universal_newlines=True)
             if sys.platform == 'darwin':
                 self.assertEqual(p.returncode, 0)
             else:
                 self.assertNotEqual(p.returncode, 0)
-            self.assertNotEqual(stdout, 'value{}\n'.format(i))
-            self.assertNotEqual(stderr, '')
+            self.assertNotEqual(p.stdout, f'value{i}\n')
+            self.assertNotEqual(p.stderr, '')
 
             # The entries should also not be retrievable using the main password
             # of the intermediate chain database.
-            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
-              '--chain', chain2, '--chain', chain1], stdin=subprocess.PIPE,
-              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-              universal_newlines=True)
-            stdout, stderr = p.communicate('space{}\n'
-                                           'key{}\n'
-                                           'bar\n'.format(i, i))
+            args = ['./pw-gui-test-stub', '--data', data, '--chain', chain2,
+                    '--chain', chain1]
+            input = (f'space{i}\n'
+                     f'key{i}\n'
+                     'bar\n')
+            p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, universal_newlines=True)
             if sys.platform == 'darwin':
                 self.assertEqual(p.returncode, 0)
             else:
                 self.assertNotEqual(p.returncode, 0)
-            self.assertNotEqual(stdout, 'value{}\n'.format(i))
-            self.assertNotEqual(stderr, '')
+            self.assertNotEqual(p.stdout, f'value{i}\n')
+            self.assertNotEqual(p.stderr, '')
 
             # Passing the chain in the wrong order should also fail with any of
             # the main passwords.
             for mainpass in ('foo', 'bar', 'baz'):
-                p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
-                  '--chain', chain1, '--chain', chain2], stdin=subprocess.PIPE,
-                  stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                  universal_newlines=True)
-                stdout, stderr = p.communicate('space{}\n'
-                                               'key{}\n'
-                                               '{}\n'.format(i, i, mainpass))
+                args = ['./pw-gui-test-stub', '--data', data, '--chain', chain1,
+                        '--chain', chain2]
+                input = (f'space{i}\n'
+                         f'key{i}\n'
+                         f'{mainpass}\n')
+                p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, universal_newlines=True)
                 if sys.platform == 'darwin':
                     self.assertEqual(p.returncode, 0)
                 else:
                     self.assertNotEqual(p.returncode, 0)
-                self.assertNotEqual(stdout, 'value{}\n'.format(i))
-                self.assertNotEqual(stderr, '')
+                self.assertNotEqual(p.stdout, f'value{i}\n')
+                self.assertNotEqual(p.stderr, '')
 
     def test_chain_self(self):
         '''
@@ -2250,27 +2250,28 @@ class Gui(PasswandTest):
         for i in range(2):
             for a, b, c in itertools.permutations(('10', '11', '12')):
 
-                p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
-                  '--work-factor', a, '--chain', chain2, '--work-factor', b,
-                  '--chain', chain1, '--work-factor', c], stdin=subprocess.PIPE,
-                  stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                  universal_newlines=True)
-                stdout, stderr = p.communicate('space{}\n'
-                                               'key{}\n'
-                                               'baz\n'.format(i, i))
+                args = ['./pw-gui-test-stub', '--data', data, '--work-factor',
+                        a, '--chain', chain2, '--work-factor', b, '--chain',
+                        chain1, '--work-factor', c]
+                input = (f'space{i}\n'
+                         f'key{i}\n'
+                         'baz\n')
+                p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE,
+                                   universal_newlines=True)
 
                 # This should only succeed if we used the right work factors.
                 if a == '10' and b == '12' and c == '11':
                     self.assertEqual(p.returncode, 0)
-                    self.assertEqual(stdout, 'value{}\n'.format(i))
+                    self.assertEqual(p.stdout, f'value{i}\n')
 
                 else:
                     if sys.platform == 'darwin':
                         self.assertEqual(p.returncode, 0)
                     else:
                         self.assertNotEqual(p.returncode, 0)
-                    self.assertNotEqual(stdout, 'value{}\n'.format(i))
-                    self.assertNotEqual(stderr, '')
+                    self.assertNotEqual(p.stdout, f'value{i}\n')
+                    self.assertNotEqual(p.stderr, '')
 
     def test_chain_not_one(self):
         '''
@@ -2292,18 +2293,18 @@ class Gui(PasswandTest):
 
         # We should be unable to use this as a chain.
         for i in range(2):
-            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
-              '--chain', chain1], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-              stderr=subprocess.PIPE, universal_newlines=True)
-            stdout, stderr = p.communicate('space{}\n'
-                                           'key{}\n'
-                                           'bar\n'.format(i, i))
+            args = ['./pw-gui-test-stub', '--data', data, '--chain', chain1]
+            input = (f'space{i}\n'
+                     f'key{i}\n'
+                     'bar\n')
+            p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, universal_newlines=True)
             if sys.platform == 'darwin':
                 self.assertEqual(p.returncode, 0)
             else:
                 self.assertNotEqual(p.returncode, 0)
-            self.assertNotEqual(stdout, 'value{}\n'.format(i))
-            self.assertNotEqual(stderr, '')
+            self.assertNotEqual(p.stdout, f'value{i}\n')
+            self.assertNotEqual(p.stderr, '')
 
         # Try the same, setting up the chain database entries in the opposite
         # order just to make sure.
@@ -2312,18 +2313,18 @@ class Gui(PasswandTest):
 
         # We should be unable to use this as a chain.
         for i in range(2):
-            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
-              '--chain', chain2], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-              stderr=subprocess.PIPE, universal_newlines=True)
-            stdout, stderr = p.communicate('space{}\n'
-                                           'key{}\n'
-                                           'bar\n'.format(i, i))
+            args = ['./pw-gui-test-stub', '--data', data, '--chain', chain2]
+            input = (f'space{i}\n'
+                     f'key{i}\n'
+                     'bar\n')
+            p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, universal_newlines=True)
             if sys.platform == 'darwin':
                 self.assertEqual(p.returncode, 0)
             else:
                 self.assertNotEqual(p.returncode, 0)
-            self.assertNotEqual(stdout, 'value{}\n'.format(i))
-            self.assertNotEqual(stderr, '')
+            self.assertNotEqual(p.stdout, f'value{i}\n')
+            self.assertNotEqual(p.stderr, '')
 
     def test_chain_bypass(self):
         '''
@@ -2353,34 +2354,34 @@ class Gui(PasswandTest):
 
             # The entries should *not* be retrievable using the primary
             # database’s password.
-            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
-              '--chain', chain], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-              stderr=subprocess.PIPE, universal_newlines=True)
-            stdout, stderr = p.communicate('space{}\n'
-                                           'key{}\n'
-                                           'foo\n'.format(i, i))
+            args = ['./pw-gui-test-stub', '--data', data, '--chain', chain]
+            input = (f'space{i}\n'
+                     f'key{i}\n'
+                     'foo\n')
+            p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, universal_newlines=True)
             if sys.platform == 'darwin':
                 self.assertEqual(p.returncode, 0)
             else:
                 self.assertNotEqual(p.returncode, 0)
-            self.assertNotEqual(stdout, 'value{}\n'.format(i))
-            self.assertNotEqual(stderr, '')
+            self.assertNotEqual(p.stdout, f'value{i}\n')
+            self.assertNotEqual(p.stderr, '')
 
             # The entries should also *not* be retrievable by bypassing the
             # chain but then entering the chain’s password.
-            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
-              '--chain', chain], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-              stderr=subprocess.PIPE, universal_newlines=True)
-            stdout, stderr = p.communicate('space{}\n'
-                                           'key{}\n'
-                                           '\n'
-                                           'bar\n'.format(i, i))
+            args = ['./pw-gui-test-stub', '--data', data, '--chain', chain]
+            input = (f'space{i}\n'
+                     f'key{i}\n'
+                     '\n'
+                     'bar\n')
+            p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, universal_newlines=True)
             if sys.platform == 'darwin':
                 self.assertEqual(p.returncode, 0)
             else:
                 self.assertNotEqual(p.returncode, 0)
-            self.assertNotEqual(stdout, 'value{}\n'.format(i))
-            self.assertNotEqual(stderr, '')
+            self.assertNotEqual(p.stdout, f'value{i}\n')
+            self.assertNotEqual(p.stderr, '')
 
     def test_chain_bypass_double(self):
         '''
@@ -2413,19 +2414,19 @@ class Gui(PasswandTest):
             self.assertEqual(stdout, f'value{i}\n')
 
             # This should *not* work if we do not skip the chain.
-            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
-              '--chain', chain2, '--chain', chain1], stdin=subprocess.PIPE,
-              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-              universal_newlines=True)
-            stdout, stderr = p.communicate('space{}\n'
-                                           'key{}\n'
-                                           'bar\n'.format(i, i))
+            args = ['./pw-gui-test-stub', '--data', data, '--chain', chain2,
+                    '--chain', chain1]
+            input = (f'space{i}\n'
+                     f'key{i}\n'
+                     'bar\n')
+            p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, universal_newlines=True)
             if sys.platform == 'darwin':
                 self.assertEqual(p.returncode, 0)
             else:
                 self.assertNotEqual(p.returncode, 0)
-            self.assertNotEqual(stdout, 'value{}\n'.format(i))
-            self.assertNotEqual(stderr, '')
+            self.assertNotEqual(p.stdout, f'value{i}\n')
+            self.assertNotEqual(p.stderr, '')
 
         # Confirm the we can now lookup both entries skipping both chains.
         for i in range(2):
@@ -2442,37 +2443,37 @@ class Gui(PasswandTest):
 
             # This should *not* work using either of the intermediate
             # passphrases.
-            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
-              '--chain', chain2, '--chain', chain1], stdin=subprocess.PIPE,
-              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-              universal_newlines=True)
-            stdout, stderr = p.communicate('space{}\n'
-                                           'key{}\n'
-                                           '\n'
-                                           '\n'
-                                           'bar\n'.format(i, i))
+            args = ['./pw-gui-test-stub', '--data', data, '--chain', chain2,
+                    '--chain', chain1]
+            input = (f'space{i}\n'
+                     f'key{i}\n'
+                     '\n'
+                     '\n'
+                     'bar\n')
+            p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, universal_newlines=True)
             if sys.platform == 'darwin':
                 self.assertEqual(p.returncode, 0)
             else:
                 self.assertNotEqual(p.returncode, 0)
-            self.assertNotEqual(stdout, 'value{}\n'.format(i))
-            self.assertNotEqual(stderr, '')
+            self.assertNotEqual(p.stdout, f'value{i}\n')
+            self.assertNotEqual(p.stderr, '')
 
-            p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
-              '--chain', chain2, '--chain', chain1], stdin=subprocess.PIPE,
-              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-              universal_newlines=True)
-            stdout, stderr = p.communicate('space{}\n'
-                                           'key{}\n'
-                                           '\n'
-                                           '\n'
-                                           'baz\n'.format(i, i))
+            args = ['./pw-gui-test-stub', '--data', data, '--chain', chain2,
+                    '--chain', chain1]
+            input = (f'space{i}\n'
+                     f'key{i}\n'
+                     '\n'
+                     '\n'
+                     'baz\n')
+            p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, universal_newlines=True)
             if sys.platform == 'darwin':
                 self.assertEqual(p.returncode, 0)
             else:
                 self.assertNotEqual(p.returncode, 0)
-            self.assertNotEqual(stdout, 'value{}\n'.format(i))
-            self.assertNotEqual(stderr, '')
+            self.assertNotEqual(p.stdout, f'value{i}\n')
+            self.assertNotEqual(p.stderr, '')
 
     def test_chain_over_bypass(self):
         '''
@@ -2491,38 +2492,39 @@ class Gui(PasswandTest):
         # Bypassing without a chain should fail.
         for i in range(2):
             for passphrase in ('foo', 'bar'):
-                p = subprocess.Popen(['./pw-gui-test-stub', '--data', data],
-                  stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                  stderr=subprocess.PIPE, universal_newlines=True)
-                stdout, stderr = p.communicate('space{}\n'
-                                               'key{}\n'
-                                               '\n'
-                                               '{}\n'.format(i, i, passphrase))
+                args = ['./pw-gui-test-stub', '--data', data]
+                input = (f'space{i}\n'
+                         f'key{i}\n'
+                         '\n'
+                         f'{passphrase}\n')
+                p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE,
+                                   universal_newlines=True)
                 if sys.platform == 'darwin':
                     self.assertEqual(p.returncode, 0)
                 else:
                     self.assertNotEqual(p.returncode, 0)
-                self.assertNotEqual(stdout, 'value{}\n'.format(i))
-                self.assertNotEqual(stderr, '')
+                self.assertNotEqual(p.stdout, f'value{i}\n')
+                self.assertNotEqual(p.stderr, '')
 
         # Bypassing more times than we have chain links should fail.
         for i in range(2):
             for passphrase in ('foo', 'bar'):
-                p = subprocess.Popen(['./pw-gui-test-stub', '--data', data,
-                  '--chain', chain], stdin=subprocess.PIPE,
-                  stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                  universal_newlines=True)
-                stdout, stderr = p.communicate('space{}\n'
-                                               'key{}\n'
-                                               '\n'
-                                               '\n'
-                                               '{}\n'.format(i, i, passphrase))
+                args = ['./pw-gui-test-stub', '--data', data, '--chain', chain]
+                input = (f'space{i}\n'
+                         f'key{i}\n'
+                         '\n'
+                         '\n'
+                         '{passphrase}\n')
+                p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE,
+                                   universal_newlines=True)
                 if sys.platform == 'darwin':
                     self.assertEqual(p.returncode, 0)
                 else:
                     self.assertNotEqual(p.returncode, 0)
-                self.assertNotEqual(stdout, 'value{}\n'.format(i))
-                self.assertNotEqual(stderr, '')
+                self.assertNotEqual(p.stdout, f'value{i}\n')
+                self.assertNotEqual(p.stderr, '')
 
     def chain_leak_strlen(self, main_longer: bool):
 
@@ -2543,16 +2545,15 @@ class Gui(PasswandTest):
       self.do_set(chain, password, 'foo', 'bar', value)
 
       # Attempt a retrieval through the chain to see if it leaks memory.
-      p = subprocess.Popen(['./pw-gui-test-stub', '--data', data, '--chain',
-                            chain], stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                            universal_newlines=True)
-      stdout, stderr = p.communicate('foo\n'
-                                     'bar\n'
-                                     f'{short if main_longer else long}\n')
+      args = ['./pw-gui-test-stub', '--data', data, '--chain', chain]
+      input = ('foo\n'
+               'bar\n'
+               f'{short if main_longer else long}\n')
+      p = subprocess.run(args, input=input, stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE, universal_newlines=True)
       self.assertEqual(p.returncode, 0)
-      self.assertEqual(stdout, 'baz\n')
-      self.assertEqual(stderr, '')
+      self.assertEqual(p.stdout, 'baz\n')
+      self.assertEqual(p.stderr, '')
 
     def test_chain_leak_strlen1(self):
       '''
