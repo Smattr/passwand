@@ -2086,7 +2086,7 @@ class Cli(unittest.TestCase):
         p.expect('main password: ')
         p.sendline('chain password')
         p.expect('confirm main password: ')
-        p.sendline('chain password')
+        p.sendline('main password') # FIXME
         p.expect(pexpect.EOF)
         p.close()
         self.assertNotEqual(p.exitstatus, 0)
