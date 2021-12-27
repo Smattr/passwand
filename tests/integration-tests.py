@@ -15,10 +15,6 @@ import sys
 import tempfile
 import unittest
 
-class DummyTest(unittest.TestCase):
-    def test_dummy(self):
-        pass
-
 # a long, hard to guess password for testing purposes
 HARD_PASSWORD = 'WEy2zHDJjLsNog8tE5hwvrIR0adAGrR4m5wh6y99ssyo1zzUESw9OWPp8yEL'
 
