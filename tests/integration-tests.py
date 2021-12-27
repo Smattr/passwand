@@ -2213,12 +2213,7 @@ class Gui(PasswandTest):
             p = pexpect.spawn('./pw-cli', args, timeout=120)
 
             # Enter the main password.
-            p.expect('main password: ')
-            p.sendline('foo')
-
-            # Confirm the main password.
-            p.expect('confirm main password: ')
-            p.sendline('foo')
+            self.type_password_with_confirmation(p, 'foo')
 
             # Now passwand should exit with success.
             p.expect(pexpect.EOF)
@@ -2231,12 +2226,7 @@ class Gui(PasswandTest):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        p.expect('main password: ')
-        p.sendline('bar')
-
-        # Confirm the main password.
-        p.expect('confirm main password: ')
-        p.sendline('bar')
+        self.type_password_with_confirmation(p, 'bar')
 
         # Now passwand should exit with success.
         p.expect(pexpect.EOF)
@@ -2249,12 +2239,7 @@ class Gui(PasswandTest):
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
-        p.expect('main password: ')
-        p.sendline('baz')
-
-        # Confirm the main password.
-        p.expect('confirm main password: ')
-        p.sendline('baz')
+        self.type_password_with_confirmation(p, 'baz')
 
         # Now passwand should exit with success.
         p.expect(pexpect.EOF)
