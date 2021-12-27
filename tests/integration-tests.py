@@ -126,7 +126,6 @@ class Cli(PasswandTest):
         self.do_set(data, 'test', 'space', 'key', 'value', multithreaded)
 
         # Check the file was actually written.
-        self.assertTrue(os.path.exists(data))
         with open(data, 'rt') as f:
             j = json.load(f)
         self.assertIsInstance(j, list)
@@ -180,7 +179,6 @@ class Cli(PasswandTest):
         self.do_set(data, 'test', 'space', 'key', 'value', multithreaded)
 
         # Retrieve the (encrypted) value set.
-        self.assertTrue(os.path.exists(data))
         with open(data, 'rt') as f:
             j = json.load(f)
         self.assertIsInstance(j, list)
@@ -204,7 +202,6 @@ class Cli(PasswandTest):
         self.assertNotEqual(p.exitstatus, 0)
 
         # Confirm that we still have a single entry and it has not been changed.
-        self.assertTrue(os.path.exists(data))
         with open(data, 'rt') as f:
             j = json.load(f)
         self.assertIsInstance(j, list)
@@ -232,7 +229,6 @@ class Cli(PasswandTest):
         self.do_set(data, 'test', 'space', 'key', 'value', multithreaded)
 
         # Retrieve the (encrypted) value set.
-        self.assertTrue(os.path.exists(data))
         with open(data, 'rt') as f:
             j = json.load(f)
         self.assertIsInstance(j, list)
@@ -244,7 +240,6 @@ class Cli(PasswandTest):
         self.do_set(data, 'test', 'space', 'key2', 'value2', multithreaded)
 
         # Confirm that we now have two entries.
-        self.assertTrue(os.path.exists(data))
         with open(data, 'rt') as f:
             j = json.load(f)
         self.assertIsInstance(j, list)
@@ -294,7 +289,6 @@ class Cli(PasswandTest):
         self.assertEqual(p.exitstatus, 0)
 
         # Check the file was actually written.
-        self.assertTrue(os.path.exists(data))
         with open(data, 'rt') as f:
             j = json.load(f)
         self.assertIsInstance(j, list)
@@ -364,7 +358,6 @@ class Cli(PasswandTest):
         self.assertEqual(p.exitstatus, 0)
 
         # Check the file was actually written.
-        self.assertTrue(os.path.exists(data))
         with open(data, 'rt') as f:
             j = json.load(f)
         self.assertIsInstance(j, list)
@@ -433,7 +426,6 @@ class Cli(PasswandTest):
         self.assertEqual(p.exitstatus, 0)
 
         # Check the file was actually written.
-        self.assertTrue(os.path.exists(data))
         with open(data, 'rt') as f:
             j = json.load(f)
         self.assertIsInstance(j, list)
@@ -510,7 +502,6 @@ class Cli(PasswandTest):
         self.assertEqual(p.exitstatus, 0)
 
         # The database should still exist and be empty.
-        self.assertTrue(os.path.exists(data))
         with open(data, 'rt') as f:
             j = json.load(f)
         self.assertIsInstance(j, list)
@@ -559,7 +550,6 @@ class Cli(PasswandTest):
         self.assertNotEqual(p.exitstatus, 0)
 
         # The database should still exist and be empty.
-        self.assertTrue(os.path.exists(data))
         with open(data, 'rt') as f:
             j = json.load(f)
         self.assertIsInstance(j, list)
@@ -585,7 +575,6 @@ class Cli(PasswandTest):
         self.do_set(data, 'test', 'space', 'key', 'value', multithreaded)
 
         # Retrieve the (encrypted) value that was written.
-        self.assertTrue(os.path.exists(data))
         with open(data, 'rt') as f:
             j = json.load(f)
         self.assertIsInstance(j, list)
@@ -622,7 +611,6 @@ class Cli(PasswandTest):
 
         # Now the encrypted fields in the database should have changed because
         # the encryption key has changed.
-        self.assertTrue(os.path.exists(data))
         with open(data, 'rt') as f:
             j = json.load(f)
         self.assertIsInstance(j, list)
@@ -691,7 +679,6 @@ class Cli(PasswandTest):
         self.assertEqual(output.decode('utf-8', 'replace').strip(), '')
 
         # Check the database was not changed.
-        self.assertTrue(os.path.exists(data))
         with open(data, 'rt') as f:
             j = json.load(f)
         self.assertIsInstance(j, list)
@@ -918,7 +905,6 @@ class Cli(PasswandTest):
         self.assertNotEqual(p.exitstatus, 0)
 
         # Check the database was not changed.
-        self.assertTrue(os.path.exists(data))
         with open(data, 'rt') as f:
             j = json.load(f)
         self.assertIsInstance(j, list)
@@ -1435,7 +1421,6 @@ class Cli(PasswandTest):
         self.do_set(data, 'test', 'space', 'key', 'value', multithreaded)
 
         # Retrieve the (encrypted) value set.
-        self.assertTrue(os.path.exists(data))
         with open(data, 'rt') as f:
             j = json.load(f)
         self.assertIsInstance(j, list)
@@ -1459,7 +1444,6 @@ class Cli(PasswandTest):
         self.assertEqual(p.exitstatus, 0)
 
         # Confirm that we still have a single entry and it has been changed.
-        self.assertTrue(os.path.exists(data))
         with open(data, 'rt') as f:
             j = json.load(f)
         self.assertIsInstance(j, list)
@@ -1503,7 +1487,6 @@ class Cli(PasswandTest):
         self.assertNotEqual(p.exitstatus, 0)
 
         # Confirm that the database has not changed.
-        self.assertTrue(os.path.exists(data))
         with open(data, 'rt') as f:
             j = json.load(f)
         self.assertIsInstance(j, list)
@@ -1529,7 +1512,6 @@ class Cli(PasswandTest):
         self.do_set(data, 'test', 'space', 'key', 'value', multithreaded)
 
         # Retrieve the (encrypted) value set.
-        self.assertTrue(os.path.exists(data))
         with open(data, 'rt') as f:
             j = json.load(f)
         self.assertIsInstance(j, list)
@@ -1553,7 +1535,6 @@ class Cli(PasswandTest):
         self.assertNotEqual(p.exitstatus, 0)
 
         # Confirm that the database has not changed.
-        self.assertTrue(os.path.exists(data))
         with open(data, 'rt') as f:
             j = json.load(f)
         self.assertIsInstance(j, list)
