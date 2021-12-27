@@ -13,6 +13,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from typing import List
 import unittest
 
 # a long, hard to guess password for testing purposes
@@ -22,6 +23,10 @@ class PasswandTest(unittest.TestCase):
   '''
   Home for common functions used by test classes.
   '''
+
+  @staticmethod
+  def check_output(args: List[str], input: str) -> str:
+    return subprocess.check_output(args, input=input, universal_newlines=True)
 
   def do_get(self, db, password, space, key, value,
              multithreaded: bool = False):
@@ -93,8 +98,7 @@ class Cli(PasswandTest):
         '''
         Confirm we can get help text output from the command line interface.
         '''
-        text = subprocess.check_output(['./pw-cli', '--help'],
-            universal_newlines=True)
+        text = self.check_output(['./pw-cli', '--help'], '')
         self.assertNotEqual(text.strip(), '')
 
     def test_set_basic(self):
@@ -2079,8 +2083,7 @@ class Gui(PasswandTest):
             input = (f'space{i}\n'
                      f'key{i}\n'
                      'bar\n')
-            stdout = subprocess.check_output(args, input=input,
-                                             universal_newlines=True)
+            stdout = self.check_output(args, input)
             self.assertEqual(stdout, f'value{i}\n')
 
             # The entries should *not* be retrievable using the primary
@@ -2123,8 +2126,7 @@ class Gui(PasswandTest):
             input = (f'space{i}\n'
                      f'key{i}\n'
                      'baz\n')
-            stdout = subprocess.check_output(args, input=input,
-                                             universal_newlines=True)
+            stdout = self.check_output(args, input)
             self.assertEqual(stdout, f'value{i}\n')
 
             # The entries should *not* be retrievable using the primary
@@ -2193,8 +2195,7 @@ class Gui(PasswandTest):
         input = ('space\n'
                  'key\n'
                  'foo\n')
-        stdout = subprocess.check_output(args, input=input,
-                                         universal_newlines=True)
+        stdout = self.check_output(args, input)
         self.assertEqual(stdout, 'foo\n')
 
     def test_chain_work_factor(self):
@@ -2348,8 +2349,7 @@ class Gui(PasswandTest):
                      f'key{i}\n'
                      '\n'
                      'foo\n')
-            stdout = subprocess.check_output(args, input=input,
-                                             universal_newlines=True)
+            stdout = self.check_output(args, input)
             self.assertEqual(stdout, f'value{i}\n')
 
             # The entries should *not* be retrievable using the primary
@@ -2409,8 +2409,7 @@ class Gui(PasswandTest):
                      f'key{i}\n'
                      '\n'
                      'bar\n')
-            stdout = subprocess.check_output(args, input=input,
-                                             universal_newlines=True)
+            stdout = self.check_output(args, input)
             self.assertEqual(stdout, f'value{i}\n')
 
             # This should *not* work if we do not skip the chain.
@@ -2437,8 +2436,7 @@ class Gui(PasswandTest):
                      '\n'
                      '\n'
                      'foo\n')
-            stdout = subprocess.check_output(args, input=input,
-                                             universal_newlines=True)
+            stdout = self.check_output(args, input)
             self.assertEqual(stdout, f'value{i}\n')
 
             # This should *not* work using either of the intermediate
