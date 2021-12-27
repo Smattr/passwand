@@ -87,32 +87,7 @@ class Cli(unittest.TestCase):
         self.do_set(data, 'test', 'space', 'key', 'value', multithreaded)
 
         # Try to read the value back.
-        args = ['get', '--data', data, '--space', 'space', '--key', 'key']
-        if not multithreaded:
-            args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args, timeout=120)
-
-        # Enter the main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test')
-
-        # If everything's working, we should get the value.
-        try:
-            p.expect('value\r\n')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for value')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for value')
-
-        # And passwand should exit with success.
-        p.expect(pexpect.EOF)
-        p.close()
-        self.assertEqual(p.exitstatus, 0)
+        self.do_get(data, 'test', 'space', 'key', 'value', multithreaded)
 
     def test_set_overwrite(self):
         '''
@@ -735,29 +710,8 @@ class Cli(unittest.TestCase):
         p.close()
         self.assertNotEqual(p.exitstatus, 0)
 
-        # Request retrieval of the entry again.
-        args = ['get', '--data', data, '--space', 'space', '--key', 'key']
-        if not multithreaded:
-            args += ['--jobs', '1']
-        p = pexpect.spawn('./pw-cli', args, timeout=120)
-
-        # Now enter the new main password.
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('test2')
-
-        # Now passwand should output the value and exit with success.
-        v = p.read()
-        p.expect(pexpect.EOF)
-        p.close()
-        self.assertEqual(p.exitstatus, 0)
-
-        # We should have received the correct value we originally set.
-        self.assertEqual(v.decode('utf-8', 'replace').strip(), 'value')
+        # Request retrieval of the entry again, but use the new password.
+        self.do_get(data, 'test2', 'space', 'key', 'value', multithreaded)
 
     def test_list_empty(self):
         '''
@@ -974,34 +928,8 @@ class Cli(unittest.TestCase):
         # Now retrieve each value.
         for i in range(3):
 
-            args = ['get', '--data', data, '--space', 'space{}'.format(i),
-              '--key', 'key{}'.format(i)]
-            if not multithreaded:
-                args += ['--jobs', '1']
-            p = pexpect.spawn('./pw-cli', args, timeout=120)
-
-            # Enter the main password.
-            try:
-                p.expect('main password: ')
-            except pexpect.EOF:
-                self.fail('EOF while waiting for password prompt')
-            except pexpect.TIMEOUT:
-                self.fail('timeout while waiting for password prompt')
-            p.sendline('test')
-
-            # We should get the original values.
-            try:
-                expected = 'value{}'.format(i)
-                p.expect('{}\r\n'.format(expected))
-            except pexpect.EOF:
-                self.fail('EOF while waiting for {}'.format(expected))
-            except pexpect.TIMEOUT:
-                self.fail('timeout while waiting for {}'.format(expected))
-
-            # And passwand should exit with success.
-            p.expect(pexpect.EOF)
-            p.close()
-            self.assertEqual(p.exitstatus, 0)
+            self.do_get(data, 'test', f'space{i}', f'key{i}', f'value{i}',
+                        multithreaded)
 
     def test_list_standard(self):
         '''
@@ -1257,35 +1185,8 @@ class Cli(unittest.TestCase):
         # Now retrieve each value.
         for i in range(3):
 
-            args = ['get', '--data', data, '--space', 'space{}'.format(i),
-              '--key', 'key{}'.format(i)]
-            if not multithreaded:
-                args += ['--jobs', '1']
-            p = pexpect.spawn('./pw-cli', args, timeout=120)
-
-            # Enter the main password.
-            try:
-                p.expect('main password: ')
-            except pexpect.EOF:
-                self.fail('EOF while waiting for password prompt')
-            except pexpect.TIMEOUT:
-                self.fail('timeout while waiting for password prompt')
-            p.sendline('test')
-
-            # We should get the original value for everything except the entry
-            # we changed.
-            try:
-                expected = 'value{}'.format(i)
-                p.expect('{}\r\n'.format(expected))
-            except pexpect.EOF:
-                self.fail('EOF while waiting for {}'.format(expected))
-            except pexpect.TIMEOUT:
-                self.fail('timeout while waiting for {}'.format(expected))
-
-            # And passwand should exit with success.
-            p.expect(pexpect.EOF)
-            p.close()
-            self.assertEqual(p.exitstatus, 0)
+            self.do_get(data, 'test', f'space{i}', f'key{i}', f'value{i}',
+                        multithreaded)
 
     def test_concurrent_manipulation(self):
         '''
