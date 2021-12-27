@@ -1991,11 +1991,14 @@ class Cli(unittest.TestCase):
             p.close()
             self.assertEqual(p.exitstatus, 0)
 
-    def do_get(self, db, password, space, key, value):
+    def do_get(self, db, password, space, key, value,
+               multithreaded: bool = False):
         '''
         Run a get operation, expecting the given result.
         '''
         args = ['get', '--data', db, '--space', space, '--key', key]
+        if not multithreaded:
+          args += ['--jobs', '1']
         p = pexpect.spawn('./pw-cli', args, timeout=120)
         p.expect('main password: ')
         p.sendline(password)
