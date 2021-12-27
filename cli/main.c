@@ -240,6 +240,33 @@ static void *thread_loop(void *arg) {
   return NULL;
 }
 
+/** Take a password entry from a chained database and consider it now the new
+ * main password
+ *
+ * @param state Pointer to the preivous `main_t` main password structure
+ * @param value The password to update the main password to
+ */
+static void process_chain_link(void *state,
+                               const char *space __attribute__((unused)),
+                               const char *key __attribute__((unused)),
+                               const char *value) {
+
+  main_t *m = state;
+  assert(m != NULL);
+
+  // we know we are only processing a single entry, so we can discard the main
+  // password that is no longer needed
+  passwand_secure_free(m->main, m->main_len);
+  memset(m, 0, sizeof(*m));
+
+  // `strdup` this next chained password into it
+  if (passwand_secure_malloc((void**)&m->main, strlen(value) + 1) == PW_OK) {
+    assert(m->main != NULL);
+    strcpy(m->main, value);
+    m->main_len = strlen(value) + 1;
+  }
+}
+
 int main(int argc, char **argv) {
 
   // we need to make a network call if we are checking a password
@@ -296,9 +323,81 @@ int main(int argc, char **argv) {
     goto done;
   }
 
-  if (options.chain_len > 0) {
-    eprint("%s does not support chained databases\n", argv[0]);
-    goto done;
+  // process any chained databases
+  for (size_t i = 0; i < options.chain_len; ++i) {
+
+    // lock database that we are about to access
+    int fd = -1;
+    if (access(options.chain[i].path, R_OK) == 0) {
+      fd = open(options.chain[i].path, O_RDONLY);
+      if (fd < 0) {
+        eprint("failed to open database\n");
+        goto done;
+      }
+      if (flock(fd, LOCK_SH | LOCK_NB) != 0) {
+        eprint("failed to lock database: %s\n", strerror(errno));
+        goto done;
+      }
+    }
+
+    // import the database
+    {
+      passwand_error_t err =
+          passwand_import(options.chain[i].path, &entries, &entry_len);
+      if (err != PW_OK) {
+        eprint("failed to import database: %s\n", passwand_error(err));
+        goto done;
+      }
+    }
+
+    if (entry_len != 1) {
+      eprint("chained database has more than one entry\n");
+      goto done;
+    }
+
+    entries[0].work_factor = options.chain[i].work_factor;
+
+    // if we do not have the password from a previous chain entry, ask the user
+    // for the password to this chain link
+    if (mainpass == NULL) {
+      mainpass = getpassword(NULL);
+      if (mainpass == NULL) {
+        eprint("failed to read main password\n");
+        goto done;
+      } else if (strcmp(mainpass->main, "") == 0) {
+        // the user wants to bypass this chain link
+        discard_main(mainpass);
+        mainpass = NULL;
+        discard_entries(&entries, &entry_len);
+        continue;
+      }
+    }
+
+    // extract the password from this database to use as the new main password
+    assert(mainpass != NULL);
+    assert(mainpass->main != NULL);
+    assert(strcmp(mainpass->main, "") != 0);
+    passwand_error_t err =
+        passwand_entry_do(mainpass->main, &entries[0], process_chain_link, mainpass);
+
+    // discard this entry we no longer need
+    discard_entries(&entries, &entry_len);
+
+    // did we fail above?
+    if (err != PW_OK) {
+      eprint("failed to process chained database %s: %s\n", options.chain[i].path,
+          passwand_error(err));
+      goto done;
+    }
+    if (mainpass->main == NULL) {
+      eprint("out of memory while processing chained database %s\n",
+          options.chain[i].path);
+      goto done;
+    }
+
+    // unlock the database we no longer need
+    (void)flock(fd, LOCK_UN);
+    (void)close(fd);
   }
 
   // take a lock on the database if it exists
@@ -324,10 +423,16 @@ int main(int argc, char **argv) {
   for (size_t i = 0; i < entry_len; i++)
     entries[i].work_factor = options.db.work_factor;
 
-  mainpass = getpassword(NULL);
+  // if we did not get a main password from a previous chained database, ask for
+  // one now
   if (mainpass == NULL) {
-    eprint("failed to read main password\n");
-    goto done;
+    mainpass = getpassword(NULL);
+    if (mainpass == NULL) {
+      eprint("failed to read main password\n");
+      goto done;
+    }
+  } else {
+    assert(mainpass->main != NULL);
   }
 
   // setup command

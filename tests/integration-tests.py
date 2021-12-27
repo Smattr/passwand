@@ -2514,54 +2514,313 @@ class Cli(unittest.TestCase):
             p.close()
             self.assertEqual(p.exitstatus, 0)
 
-    def test_chain_rejected(self):
+    def do_get(self, db, password, space, key, value):
         '''
-        Test that all cli commands reject the --chain command line option.
+        Run a get operation, expecting the given result.
         '''
-        data = os.path.join(self.tmp, 'cli_chain_rejected.json')
-        chain = os.path.join(self.tmp, 'cli_chain_rejected_chain.json')
-
-        # Create the chained database with a single entry.
-        args = ['set', '--data', chain, '--space', 'space', '--key', 'key',
-          '--value', 'chain password']
+        args = ['get', '--data', db, '--space', space, '--key', key]
         p = pexpect.spawn('./pw-cli', args, timeout=120)
-        try:
-            p.expect('main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('main password')
-        try:
-            p.expect('confirm main password: ')
-        except pexpect.EOF:
-            self.fail('EOF while waiting for password prompt')
-        except pexpect.TIMEOUT:
-            self.fail('timeout while waiting for password prompt')
-        p.sendline('main password')
+        p.expect('main password: ')
+        p.sendline(password)
+        p.expect(f'{value}\r\n')
         p.expect(pexpect.EOF)
         p.close()
         self.assertEqual(p.exitstatus, 0)
 
-        for args in (('change-main',),
-                     ('check',),
-                     ('delete', '--space', 'foo', '--key', 'bar'),
-                     ('get',    '--space', 'foo', '--key', 'bar'),
-                     ('list',),
-                     ('set',    '--space', 'foo', '--key', 'bar', '--value',
-                       'baz'),
-                     ('update', '--space', 'foo', '--key', 'bar', '--value',
-                       'baz')):
-          argv = list(args) + ['--data', data, '--chain', chain]
-          p = pexpect.spawn('./pw-cli', argv, timeout=120)
+    def do_list(self, db, password, entries):
+        '''
+        Run a list operation, expecting the given results.
+        '''
+        # Use a single-threaded lookup for deterministic results ordering.
+        args = ['list', '--jobs', '1', '--data', db]
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+        p.expect('main password: ')
+        p.sendline(password)
+        for space, key in entries:
+          p.expect(f'{space}/{key}\r\n')
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
 
-          # The command should immediately error.
-          p.expect(pexpect.EOF)
-          p.close()
-          self.assertNotEqual(p.exitstatus, 0)
+    def do_set(self, db, password, space, key, value):
+        '''
+        Run a set operation that is expected to succeed.
+        '''
+        args = ['set', '--data', db, '--space', space, '--key', key, '--value',
+                value]
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+        p.expect('main password: ')
+        p.sendline(password)
+        p.expect('confirm main password: ')
+        p.sendline(password)
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
 
-          # The database should not have been created.
-          self.assertFalse(os.path.exists(data))
+    def test_chain_change_main(self):
+        '''
+        Test that `pw-cli change-main` works with a chain.
+
+        This operation is kind of pointless as it makes the terminal database no
+        longer accessible through the chain, but it should still be allowed.
+        '''
+        data = os.path.join(self.tmp, 'cli_chain_change_main.json')
+        chain = os.path.join(self.tmp, 'cli_chain_change_main_chain.json')
+
+        self.do_set(data, 'main password', 'foo', 'bar', 'baz')
+        self.do_set(chain, 'chain password', 'foo', 'bar', 'main password')
+
+        # Try to change the main database’s password using the chain.
+        args = ['change-main', '--data', data, '--chain', chain]
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+        p.expect('main password: ')
+        p.sendline('chain password')
+        p.expect('new main password: ')
+        p.sendline('foo bar')
+        p.expect('confirm new main password: ')
+        p.sendline('foo bar')
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # The database should no longer be accessible through the chain.
+        args = ['list', '--data', data, '--chain', chain]
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+        p.expect('main password: ')
+        p.sendline('chain password')
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertNotEqual(p.exitstatus, 0)
+
+    def test_chain_check(self):
+        '''
+        Test that `pw-cli check` works with a chain.
+        '''
+        data = os.path.join(self.tmp, 'cli_chain_check.json')
+        chain = os.path.join(self.tmp, 'cli_chain_check_chain.json')
+
+        # Setup some sample data. Note that the chain password, "main password",
+        # is weak, while the terminal value entry, `HARD_PASSWORD` is strong.
+        # The check operation we are about to run should check the latter.
+        self.do_set(data, 'main password', 'foo', 'bar', HARD_PASSWORD)
+        self.do_set(chain, 'chain password', 'foo', 'bar', 'main password')
+
+        # Run the check operation via the chain.
+        args = ['check', '--data', data, '--chain', chain]
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+        p.expect('main password: ')
+        p.sendline('chain password')
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+    def test_chain_delete(self):
+        '''
+        Test that `pw-cli delete` works with a chain.
+        '''
+        data = os.path.join(self.tmp, 'cli_chain_delete.json')
+        chain = os.path.join(self.tmp, 'cli_chain_delete_chain.json')
+
+        # Setup some sample data.
+        self.do_set(data, 'main password', 'foo', 'bar', 'baz')
+        self.do_set(chain, 'chain password', 'foo', 'bar', 'main password')
+
+        # Delete our only entry via the chain.
+        args = ['delete', '--data', data, '--chain', chain, '--space', 'foo',
+                '--key', 'bar']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+        p.expect('main password: ')
+        p.sendline('chain password')
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # The chain database should be unmodified.
+        self.do_get(chain, 'chain password', 'foo', 'bar', 'main password')
+
+        # The main database should be empty.
+        self.do_list(data, 'main password', ())
+
+    def test_chain_get(self):
+        '''
+        Test that `pw-cli get` works with a chain.
+        '''
+        data = os.path.join(self.tmp, 'cli_chain_get.json')
+        chain = os.path.join(self.tmp, 'cli_chain_get_chain.json')
+
+        # Setup some sample data.
+        self.do_set(data, 'main password', 'foo', 'bar', 'baz')
+        self.do_set(chain, 'chain password', 'foo', 'bar', 'main password')
+
+        # Get the value of the main database entry via the chain.
+        args = ['get', '--data', data, '--chain', chain, '--space', 'foo',
+                '--key', 'bar']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+        p.expect('main password: ')
+        p.sendline('chain password')
+        p.expect('baz\r\n')
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+    def test_chain_list(self):
+        '''
+        Test that `pw-cli list` works with a chain.
+        '''
+        data = os.path.join(self.tmp, 'cli_chain_list.json')
+        chain = os.path.join(self.tmp, 'cli_chain_list_chain.json')
+
+        # Setup some sample data.
+        self.do_set(data, 'main password', 'foo', 'bar', 'baz')
+        self.do_set(chain, 'chain password', 'quux', 'quuz', 'main password')
+
+        # Get the value of the main database entry via the chain.
+        args = ['list', '--data', data, '--chain', chain]
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+        p.expect('main password: ')
+        p.sendline('chain password')
+        p.expect('foo/bar\r\n')
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+    def test_chain_set(self):
+        '''
+        Test that `pw-cli set` works with a chain.
+        '''
+        data = os.path.join(self.tmp, 'cli_chain_set.json')
+        chain = os.path.join(self.tmp, 'cli_chain_set_chain.json')
+
+        # Setup some sample data.
+        self.do_set(data, 'main password', 'foo', 'bar', 'baz')
+        self.do_set(chain, 'chain password', 'quux', 'quuz', 'main password')
+
+        # Set of the existing entry should fail.
+        args = ['set', '--data', data, '--chain', chain, '--space', 'foo',
+                '--key', 'bar', '--value', 'value']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+        p.expect('main password: ')
+        p.sendline('chain password')
+        p.expect('confirm main password: ')
+        p.sendline('chain password')
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertNotEqual(p.exitstatus, 0)
+
+        # Both databases should be unaltered.
+        self.do_get(data, 'main password', 'foo', 'bar', 'baz')
+        self.do_get(chain, 'chain password', 'quux', 'quuz', 'main password')
+
+        # Set of a new entry should work.
+        args = ['set', '--data', data, '--chain', chain, '--space', 'foo',
+                '--key', 'qux', '--value', 'corge']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+        p.expect('main password: ')
+        p.sendline('chain password')
+        p.expect('confirm main password: ')
+        p.sendline('main password') # FIXME
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # The chain database should be unaltered.
+        self.do_get(chain, 'chain password', 'quux', 'quuz', 'main password')
+
+        # The main database should contain the original entry and the new one.
+        self.do_list(data, 'main password', (('foo', 'qux'), ('foo', 'bar')))
+        self.do_get(data, 'main password', 'foo', 'bar', 'baz')
+        self.do_get(data, 'main password', 'foo', 'qux', 'corge')
+
+    def test_chain_update(self):
+        '''
+        Test that `pw-cli update` works with a chain.
+        '''
+        data = os.path.join(self.tmp, 'cli_chain_update.json')
+        chain = os.path.join(self.tmp, 'cli_chain_update_chain.json')
+
+        # Setup some sample data.
+        self.do_set(data, 'main password', 'foo', 'bar', 'baz')
+        self.do_set(chain, 'chain password', 'quux', 'quuz', 'main password')
+
+        # Update of a non-existent entry should fail.
+        args = ['update', '--data', data, '--chain', chain, '--space', 'foo',
+                '--key', 'baz', '--value', 'value']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+        p.expect('main password: ')
+        p.sendline('chain password')
+        p.expect('confirm main password: ')
+        p.sendline('main password') # FIXME
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertNotEqual(p.exitstatus, 0)
+
+        # Both databases should be unaltered.
+        self.do_get(data, 'main password', 'foo', 'bar', 'baz')
+        self.do_get(chain, 'chain password', 'quux', 'quuz', 'main password')
+
+        # Update of an existing entry should work.
+        args = ['update', '--data', data, '--chain', chain, '--space', 'foo',
+                '--key', 'bar', '--value', 'corge']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+        p.expect('main password: ')
+        p.sendline('chain password')
+        p.expect('confirm main password: ')
+        p.sendline('main password') # FIXME
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+        # The chain database should be unaltered.
+        self.do_get(chain, 'chain password', 'quux', 'quuz', 'main password')
+
+        # The main database should contain the altered entry.
+        self.do_list(data, 'main password', (('foo', 'bar'),))
+        self.do_get(data, 'main password', 'foo', 'bar', 'corge')
+
+    def test_skip_chain(self):
+        '''
+        Test we can bypass a chain link and enter the main password directly.
+        '''
+        data = os.path.join(self.tmp, 'cli_skip_chain.json')
+        chain = os.path.join(self.tmp, 'cli_skip_chain_chain.json')
+
+        # Setup some sample data.
+        self.do_set(data, 'main password', 'foo', 'bar', 'baz')
+        self.do_set(chain, 'chain password', 'quux', 'quuz', 'main password')
+
+        # Do a chain lookup but bypass the chain database password.
+        args = ['get', '--data', data, '--chain', chain, '--space', 'foo',
+                '--key', 'bar']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+        p.expect('main password: ')
+        p.sendline('')
+        p.expect('main password: ')
+        p.sendline('main password')
+        p.expect('baz\r\n')
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertEqual(p.exitstatus, 0)
+
+    def test_chain_bad_password(self):
+        '''
+        A chained database should not accept the password for a later database.
+        '''
+        data = os.path.join(self.tmp, 'cli_skip_chain.json')
+        chain = os.path.join(self.tmp, 'cli_skip_chain_chain.json')
+
+        # Setup some sample data.
+        self.do_set(data, 'main password', 'foo', 'bar', 'baz')
+        self.do_set(chain, 'chain password', 'quux', 'quuz', 'main password')
+
+        # Do a chain lookup with the main database password.
+        args = ['get', '--data', data, '--chain', chain, '--space', 'foo',
+                '--key', 'bar']
+        p = pexpect.spawn('./pw-cli', args, timeout=120)
+        p.expect('main password: ')
+        p.sendline('main password')
+        p.expect(pexpect.EOF)
+        p.close()
+        self.assertNotEqual(p.exitstatus, 0)
 
     def test_work_factor_error(self):
         '''
