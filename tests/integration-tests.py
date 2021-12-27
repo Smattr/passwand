@@ -19,6 +19,9 @@ class DummyTest(unittest.TestCase):
     def test_dummy(self):
         pass
 
+# a long, hard to guess password for testing purposes
+HARD_PASSWORD = 'WEy2zHDJjLsNog8tE5hwvrIR0adAGrR4m5wh6y99ssyo1zzUESw9OWPp8yEL'
+
 class Cli(unittest.TestCase):
 
     def setUp(self):
@@ -1766,7 +1769,7 @@ class Cli(unittest.TestCase):
 
         # Save a strong entry that would be hard to crack.
         args = ['set', '--data', data, '--space', 'space', '--key', 'key',
-          '--value', 'WEy2zHDJjLsNog8tE5hwvrIR0adAGrR4m5wh6y99ssyo1zzUESw9OWPp8yEL']
+          '--value', HARD_PASSWORD]
         p = pexpect.spawn('./pw-cli', args, timeout=120)
 
         # Enter the main password.
@@ -2035,7 +2038,7 @@ class Cli(unittest.TestCase):
         for i in range(3):
             args = ['set', '--data', data, '--space', 'space', '--key',
               'key{}'.format(i), '--value', 'value' if (1 << i) & weak_mask else
-              'WEy2zHDJjLsNog8tE5hwvrIR0adAGrR4m5wh6y99ssyo1zzUESw9OWPp8yEL']
+              HARD_PASSWORD]
             p = pexpect.spawn('./pw-cli', args, timeout=120)
 
             # Enter the main password.
