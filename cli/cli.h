@@ -8,6 +8,7 @@
 typedef struct {
   char *main;
   size_t main_len;
+  bool confirmed; ///< should any password confirmation prompts be bypassed?
 } main_t;
 
 main_t *getpassword(const char *prompt);

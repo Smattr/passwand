@@ -17,6 +17,7 @@
 #include <passwand/passwand.h>
 #include <pthread.h>
 #include <stdatomic.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -158,6 +159,7 @@ main_t *getpassword(const char *prompt) {
   }
   mainpass->main = m;
   mainpass->main_len = size;
+  mainpass->confirmed = false;
 
   return mainpass;
 }
@@ -264,6 +266,10 @@ static void process_chain_link(void *state,
     assert(m->main != NULL);
     strcpy(m->main, value);
     m->main_len = strlen(value) + 1;
+
+    // this password is coming from a database field, so we can assume it is not
+    // typoed
+    m->confirmed = true;
   }
 }
 

@@ -1728,8 +1728,6 @@ class Cli(PasswandTest):
             'foo', '--key', 'bar']
     p = pexpect.spawn('./pw-cli', args, timeout=120)
     self.type_password(p, 'chain password')
-    p.expect('confirm main password: ')
-    p.sendline('main password') # FIXME
     p.expect(pexpect.EOF)
     p.close()
     self.assertEqual(p.exitstatus, 0)
@@ -1797,8 +1795,6 @@ class Cli(PasswandTest):
             '--key', 'bar', '--value', 'value']
     p = pexpect.spawn('./pw-cli', args, timeout=120)
     self.type_password(p, 'chain password')
-    p.expect('confirm main password: ')
-    p.sendline('main password') # FIXME
     p.expect(pexpect.EOF)
     p.close()
     self.assertNotEqual(p.exitstatus, 0)
@@ -1812,8 +1808,6 @@ class Cli(PasswandTest):
             '--key', 'qux', '--value', 'corge']
     p = pexpect.spawn('./pw-cli', args, timeout=120)
     self.type_password(p, 'chain password')
-    p.expect('confirm main password: ')
-    p.sendline('main password') # FIXME
     p.expect(pexpect.EOF)
     p.close()
     self.assertEqual(p.exitstatus, 0)
@@ -1842,8 +1836,6 @@ class Cli(PasswandTest):
             'foo', '--key', 'baz', '--value', 'value']
     p = pexpect.spawn('./pw-cli', args, timeout=120)
     self.type_password(p, 'chain password')
-    p.expect('confirm main password: ')
-    p.sendline('main password') # FIXME
     p.expect(pexpect.EOF)
     p.close()
     self.assertNotEqual(p.exitstatus, 0)
@@ -1857,8 +1849,6 @@ class Cli(PasswandTest):
             'foo', '--key', 'bar', '--value', 'corge']
     p = pexpect.spawn('./pw-cli', args, timeout=120)
     self.type_password(p, 'chain password')
-    p.expect('confirm main password: ')
-    p.sendline('main password') # FIXME
     p.expect(pexpect.EOF)
     p.close()
     self.assertEqual(p.exitstatus, 0)
