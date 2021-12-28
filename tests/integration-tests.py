@@ -1710,6 +1710,37 @@ class Cli(PasswandTest):
     # The main database should be empty.
     self.do_list(data, 'main password', ())
 
+  def test_chain_generate(self):
+    '''
+    Test that `pw-cli generate` works with a chain.
+    '''
+    data = self.tmp / 'cli_chain_generate.json'
+    chain = self.tmp / 'cli_chain_generate_chain.json'
+
+    # Set up an empty main database.
+    with open(data, 'wt') as f:
+      json.dump([], f)
+
+    # Setup the chain database.
+    self.do_set(chain, 'chain password', 'quux', 'quuz', 'main password')
+
+    # Try to generate a new entry in the main database via the chain.
+    args = ['generate', '--data', str(data), '--chain', str(chain), '--space',
+            'foo', '--key', 'bar']
+    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    self.type_password(p, 'chain password')
+    p.expect('confirm main password: ')
+    p.sendline('main password') # FIXME
+    p.expect(pexpect.EOF)
+    p.close()
+    self.assertEqual(p.exitstatus, 0)
+
+    # The chain database should be unaltered.
+    self.do_get(chain, 'chain password', 'quux', 'quuz', 'main password')
+
+    # The main database should contain a newly generated entry.
+    self.do_list(data, 'main password', (('foo', 'bar'),))
+
   def test_chain_get(self):
     '''
     Test that `pw-cli get` works with a chain.
