@@ -6,7 +6,6 @@ Framework for writing integration tests.
 
 import itertools
 import json
-import os
 from pathlib import Path
 import pexpect
 import re
