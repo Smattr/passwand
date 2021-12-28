@@ -804,8 +804,8 @@ class Cli(PasswandTest):
                   multithreaded)
 
     # Now try to overwrite the 'target'-th entry.
-    args = ['set', '--data', str(data), '--space', 'space{}'.format(target),
-            '--key', 'key{}'.format(target), '--value', 'valuenew']
+    args = ['set', '--data', str(data), '--space', f'space{target}', '--key',
+            f'key{target}', '--value', 'valuenew']
     if not multithreaded:
       args += ['--jobs', '1']
     p = pexpect.spawn('./pw-cli', args, timeout=120)
@@ -962,7 +962,7 @@ class Cli(PasswandTest):
 
     # Now delete the 'target'-th entry.
     args = ['delete', '--data', str(data), '--space', f'space{target}', '--key',
-            'key{}'.format(target)]
+            f'key{target}']
     if not multithreaded:
       args += ['--jobs', '1']
     p = pexpect.spawn('./pw-cli', args, timeout=120)
@@ -978,8 +978,8 @@ class Cli(PasswandTest):
     # Now retrieve each value.
     for i in range(3):
 
-      args = ['get', '--data', str(data), '--space', 'space{}'.format(i),
-        '--key', 'key{}'.format(i)]
+      args = ['get', '--data', str(data), '--space', f'space{i}', '--key',
+              f'key{i}']
       if not multithreaded:
         args += ['--jobs', '1']
       p = pexpect.spawn('./pw-cli', args, timeout=120)
@@ -989,9 +989,9 @@ class Cli(PasswandTest):
 
       # We should get the original value for everything except the entry
       # we changed.
-      expected = 'value{}'.format(i)
+      expected = f'value{i}'
       if i != target:
-        p.expect('{}\r\n'.format(expected))
+        p.expect(f'{expected}\r\n')
 
       # And passwand should exit with success.
       p.expect(pexpect.EOF)
@@ -1352,7 +1352,7 @@ class Cli(PasswandTest):
     # First, let's check the passwords individually.
     for i in range(3):
       args = ['check', '--data', str(data), '--space', 'space', '--key',
-              'key{}'.format(i)]
+              f'key{i}']
       if not multithreaded:
         args += ['--jobs', '1']
       p = pexpect.spawn('./pw-cli', args, timeout=120)
@@ -1595,7 +1595,7 @@ class Cli(PasswandTest):
 
     # Now overwrite the 'target'-th entry.
     args = ['update', '--data', str(data), '--space', f'space{target}', '--key',
-            'key{}'.format(target), '--value', 'valuenew']
+            f'key{target}', '--value', 'valuenew']
     if not multithreaded:
       args += ['--jobs', '1']
     p = pexpect.spawn('./pw-cli', args, timeout=120)
@@ -1611,8 +1611,8 @@ class Cli(PasswandTest):
     # Now retrieve each value.
     for i in range(3):
 
-      args = ['get', '--data', str(data), '--space', 'space{}'.format(i),
-        '--key', 'key{}'.format(i)]
+      args = ['get', '--data', str(data), '--space', f'space{i}', '--key',
+              f'key{i}']
       if not multithreaded:
         args += ['--jobs', '1']
       p = pexpect.spawn('./pw-cli', args, timeout=120)
@@ -1622,8 +1622,8 @@ class Cli(PasswandTest):
 
       # We should get the original value for everything except the entry
       # we changed.
-      expected = 'value{}'.format('new' if i == target else i)
-      p.expect('{}\r\n'.format(expected))
+      expected = f'value{"new" if i == target else i}'
+      p.expect(f'{expected}\r\n')
 
       # And passwand should exit with success.
       p.expect(pexpect.EOF)
