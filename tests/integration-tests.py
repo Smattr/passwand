@@ -2325,59 +2325,59 @@ class Gui(PasswandTest):
       self.assertNotEqual(p.stdout, f'value{i}\n')
       self.assertNotEqual(p.stderr, '')
 
-def test_chain_bypass(self):
-  '''
-  Entering an empty password for a chained database should allow us to
-  directly enter the primary database’s password.
-  '''
-  data = self.tmp / 'chain_bypass.json'
-  chain = self.tmp / 'chain_bypass_chain.json'
+  def test_chain_bypass(self):
+    '''
+    Entering an empty password for a chained database should allow us to
+    directly enter the primary database’s password.
+    '''
+    data = self.tmp / 'chain_bypass.json'
+    chain = self.tmp / 'chain_bypass_chain.json'
 
-  # Setup a database with a couple of entries.
-  for i in range(2):
-    self.do_set(data, 'foo', f'space{i}', f'key{i}', f'value{i}')
+    # Setup a database with a couple of entries.
+    for i in range(2):
+      self.do_set(data, 'foo', f'space{i}', f'key{i}', f'value{i}')
 
-  # Setup the chain database.
-  self.do_set(chain, 'bar', 'ignored', 'ignored', 'foo')
+    # Setup the chain database.
+    self.do_set(chain, 'bar', 'ignored', 'ignored', 'foo')
 
-  # Confirm the we can now lookup both entries by bypassing the chain.
-  for i in range(2):
-    args = ['./pw-gui-test-stub', '--data', data, '--chain', chain]
-    input = (f'space{i}\n'
-             f'key{i}\n'
-             '\n'
-             'foo\n')
-    stdout = self.check_output(args, input)
-    self.assertEqual(stdout, f'value{i}\n')
+    # Confirm the we can now lookup both entries by bypassing the chain.
+    for i in range(2):
+      args = ['./pw-gui-test-stub', '--data', data, '--chain', chain]
+      input = (f'space{i}\n'
+               f'key{i}\n'
+               '\n'
+               'foo\n')
+      stdout = self.check_output(args, input)
+      self.assertEqual(stdout, f'value{i}\n')
 
-    # The entries should *not* be retrievable using the primary
-    # database’s password.
-    args = ['./pw-gui-test-stub', '--data', data, '--chain', chain]
-    input = (f'space{i}\n'
-             f'key{i}\n'
-             'foo\n')
-    p = self.sp_run(args, input)
-    if sys.platform == 'darwin':
-      self.assertEqual(p.returncode, 0)
-    else:
-      self.assertNotEqual(p.returncode, 0)
-    self.assertNotEqual(p.stdout, f'value{i}\n')
-    self.assertNotEqual(p.stderr, '')
+      # The entries should *not* be retrievable using the primary
+      # database’s password.
+      args = ['./pw-gui-test-stub', '--data', data, '--chain', chain]
+      input = (f'space{i}\n'
+               f'key{i}\n'
+               'foo\n')
+      p = self.sp_run(args, input)
+      if sys.platform == 'darwin':
+        self.assertEqual(p.returncode, 0)
+      else:
+        self.assertNotEqual(p.returncode, 0)
+      self.assertNotEqual(p.stdout, f'value{i}\n')
+      self.assertNotEqual(p.stderr, '')
 
-    # The entries should also *not* be retrievable by bypassing the
-    # chain but then entering the chain’s password.
-    args = ['./pw-gui-test-stub', '--data', data, '--chain', chain]
-    input = (f'space{i}\n'
-             f'key{i}\n'
-             '\n'
-             'bar\n')
-    p = self.sp_run(args, input)
-    if sys.platform == 'darwin':
-      self.assertEqual(p.returncode, 0)
-    else:
-      self.assertNotEqual(p.returncode, 0)
-    self.assertNotEqual(p.stdout, f'value{i}\n')
-    self.assertNotEqual(p.stderr, '')
+      # The entries should also *not* be retrievable by bypassing the
+      # chain but then entering the chain’s password.
+      args = ['./pw-gui-test-stub', '--data', data, '--chain', chain]
+      input = (f'space{i}\n'
+               f'key{i}\n'
+               '\n'
+               'bar\n')
+      p = self.sp_run(args, input)
+      if sys.platform == 'darwin':
+        self.assertEqual(p.returncode, 0)
+      else:
+        self.assertNotEqual(p.returncode, 0)
+      self.assertNotEqual(p.stdout, f'value{i}\n')
+      self.assertNotEqual(p.stderr, '')
 
   def test_chain_bypass_double(self):
     '''
