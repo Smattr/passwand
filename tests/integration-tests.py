@@ -6,15 +6,15 @@ Framework for writing integration tests.
 
 import itertools
 import json
-from pathlib import Path
-import pexpect
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
-from typing import List, Union
 import unittest
+from pathlib import Path
+from typing import List, Union
+import pexpect
 
 PathLike = Union[Path, str]
 
