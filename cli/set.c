@@ -25,16 +25,18 @@ int set_initialize(const main_t *mainpass, passwand_entry_t *entries,
   saved_entry_len = entry_len;
   found = false;
 
-  main_t *confirm = getpassword("confirm main password: ");
-  if (confirm == NULL) {
-    eprint("out of memory\n");
-    return -1;
-  }
-  bool r = strcmp(mainpass->main, confirm->main) == 0;
-  discard_main(confirm);
-  if (!r) {
-    eprint("passwords do not match\n");
-    return -1;
+  if (!mainpass->confirmed) {
+    main_t *confirm = getpassword("confirm main password: ");
+    if (confirm == NULL) {
+      eprint("out of memory\n");
+      return -1;
+    }
+    bool r = strcmp(mainpass->main, confirm->main) == 0;
+    discard_main(confirm);
+    if (!r) {
+      eprint("passwords do not match\n");
+      return -1;
+    }
   }
 
   return 0;
