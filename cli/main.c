@@ -164,11 +164,13 @@ main_t *getpassword(const char *prompt) {
   return mainpass;
 }
 
-void discard_main(main_t *m) {
-  if (m == NULL)
+void discard_main(main_t **m) {
+  assert(m != NULL);
+  if (*m == NULL)
     return;
-  passwand_secure_free(m->main, m->main_len);
-  passwand_secure_free(m, sizeof(*m));
+  passwand_secure_free((*m)->main, (*m)->main_len);
+  passwand_secure_free(*m, sizeof(**m));
+  *m = NULL;
 }
 
 static void discard_entries(passwand_entry_t **entries, size_t *entry_len) {
@@ -372,8 +374,7 @@ int main(int argc, char **argv) {
         goto done;
       } else if (strcmp(mainpass->main, "") == 0) {
         // the user wants to bypass this chain link
-        discard_main(mainpass);
-        mainpass = NULL;
+        discard_main(&mainpass);
         discard_entries(&entries, &entry_len);
         continue;
       }
@@ -522,7 +523,7 @@ done:
     if (r != 0)
       ret = EXIT_FAILURE;
   }
-  discard_main(mainpass);
+  discard_main(&mainpass);
   discard_entries(&entries, &entry_len);
 
   free(options.db.path);

@@ -61,8 +61,7 @@ static int initialize(const main_t *mainpass __attribute__((unused)),
     goto done;
   }
 
-  discard_main(confirm_new);
-  confirm_new = NULL;
+  discard_main(&confirm_new);
 
   new_entries = calloc(entry_len, sizeof(*new_entries));
   if (new_entries == NULL) {
@@ -75,16 +74,15 @@ static int initialize(const main_t *mainpass __attribute__((unused)),
 done:
   if (ret != 0)
     free(new_entries);
-  discard_main(confirm_new);
+  discard_main(&confirm_new);
   if (ret != 0)
-    discard_main(new_main);
+    discard_main(&new_main);
   return ret;
 }
 
 static int finalize(void) {
 
-  discard_main(new_main);
-  new_main = NULL;
+  discard_main(&new_main);
 
   if (err == PW_OK) {
     err = passwand_export(options.db.path, new_entries, new_entries_len);
