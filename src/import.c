@@ -11,41 +11,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-// the following are some helpers so we can use pervasive RAII in the import
-// function
-
-static void autoclose(void *p) {
-  assert(p != NULL);
-  int *f = p;
-  if (*f != -1)
-    close(*f);
-}
-
-typedef struct {
-  void *addr;
-  size_t length;
-} munmap_data_t;
-
-static void autounmap(void *p) {
-  assert(p != NULL);
-  munmap_data_t *m = p;
-  munmap(m->addr, m->length);
-}
-
-static void autojsonfree(void *p) {
-  assert(p != NULL);
-  json_tokener **tok = p;
-  if (*tok != NULL)
-    json_tokener_free(*tok);
-}
-
-static void autojsonput(void *p) {
-  assert(p != NULL);
-  json_object **j = p;
-  if (*j != NULL)
-    json_object_put(*j);
-}
-
 passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
                                  size_t *entry_len) {
 
@@ -53,65 +18,71 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
   assert(entries != NULL);
   assert(entry_len != NULL);
 
+  passwand_error_t rc = -1;
+  int f = -1;
+  void *p = MAP_FAILED;
+  size_t size = 0;
+  json_tokener *tok = NULL;
+  json_object *j = NULL;
+  passwand_entry_t *ent = NULL;
+  size_t ent_len = 0;
+
   // mmap the input so JSON-C can stream it
-  int f __attribute__((cleanup(autoclose))) = open(path, O_RDONLY);
-  if (f == -1)
-    return PW_IO;
+  f = open(path, O_RDONLY);
+  if (f == -1) {
+    rc = PW_IO;
+    goto done;
+  }
 
   struct stat st;
-  if (fstat(f, &st) != 0)
-    return PW_IO;
+  if (fstat(f, &st) != 0) {
+    rc = PW_IO;
+    goto done;
+  }
+  size = st.st_size;
 
-  void *p = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, f, 0);
-  if (p == MAP_FAILED)
-    return PW_IO;
-  munmap_data_t unmapper __attribute__((unused, cleanup(autounmap))) = {
-      .addr = p,
-      .length = st.st_size,
-  };
+  p = mmap(NULL, size, PROT_READ, MAP_PRIVATE, f, 0);
+  if (p == MAP_FAILED) {
+    rc = PW_IO;
+    goto done;
+  }
 
   // Read the outer list. This should be the only item in the file.
-  json_tokener *tok __attribute__((cleanup(autojsonfree))) = json_tokener_new();
-  if (tok == NULL)
-    return PW_NO_MEM;
+  tok = json_tokener_new();
+  if (tok == NULL) {
+    rc = PW_NO_MEM;
+    goto done;
+  }
 
-  json_object *j __attribute__((cleanup(autojsonput))) =
-      json_tokener_parse_ex(tok, p, st.st_size);
-  if (j == NULL)
-    return PW_BAD_JSON;
+  j = json_tokener_parse_ex(tok, p, size);
+  if (j == NULL) {
+    rc = PW_BAD_JSON;
+    goto done;
+  }
 
-  if (!json_object_is_type(j, json_type_array))
-    return PW_BAD_JSON;
+  if (!json_object_is_type(j, json_type_array)) {
+    rc = PW_BAD_JSON;
+    goto done;
+  }
 
   // we are now ready to start reading the entries themselves
 
-  *entry_len = json_object_array_length(j);
-  *entries = calloc(*entry_len, sizeof(passwand_entry_t));
-  if (*entries == NULL)
-    return PW_NO_MEM;
+  ent_len = json_object_array_length(j);
+  ent = calloc(ent_len, sizeof(ent[0]));
+  if (ent == NULL) {
+    ent_len = 0;
+    rc = PW_NO_MEM;
+    goto done;
+  }
 
-  for (size_t i = 0; i < *entry_len; i++) {
-
-#define FREE_PRECEDING()                                                       \
-  do {                                                                         \
-    for (size_t k = 0; k <= i; k++) {                                          \
-      free((*entries)[k].space);                                               \
-      free((*entries)[k].key);                                                 \
-      free((*entries)[k].value);                                               \
-      free((*entries)[k].hmac);                                                \
-      free((*entries)[k].hmac_salt);                                           \
-      free((*entries)[k].salt);                                                \
-      free((*entries)[k].iv);                                                  \
-    }                                                                          \
-    free(*entries);                                                            \
-  } while (0)
+  for (size_t i = 0; i < ent_len; i++) {
 
     json_object *m = json_object_array_get_idx(j, i);
     assert(m != NULL);
     if (!json_object_is_type(m, json_type_object)) {
       // one of the array entries was not an object (dictionary)
-      FREE_PRECEDING();
-      return PW_BAD_JSON;
+      rc = PW_BAD_JSON;
+      goto done;
     }
 
 #define GET(field)                                                             \
@@ -120,19 +91,18 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
     if (!json_object_object_get_ex(m, #field, &v) ||                           \
         !json_object_is_type(v, json_type_string)) {                           \
       /* The value of this member was not a string. */                         \
-      FREE_PRECEDING();                                                        \
-      return PW_BAD_JSON;                                                      \
+      rc = PW_BAD_JSON;                                                        \
+      goto done;                                                               \
     }                                                                          \
-    passwand_error_t err =                                                     \
-        decode(json_object_get_string(v), &((*entries)[i].field),              \
-               &((*entries)[i].field##_len));                                  \
+    passwand_error_t err = decode(json_object_get_string(v), &ent[i].field,    \
+                                  &(ent[i].field##_len));                      \
     if (err == PW_IO) {                                                        \
       /* The value was not valid base64 encoded. */                            \
-      FREE_PRECEDING();                                                        \
-      return PW_BAD_JSON;                                                      \
+      rc = PW_BAD_JSON;                                                        \
+      goto done;                                                               \
     } else if (err != PW_OK) {                                                 \
-      FREE_PRECEDING();                                                        \
-      return err;                                                              \
+      rc = err;                                                                \
+      goto done;                                                               \
     }                                                                          \
   } while (0)
 
@@ -145,9 +115,33 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
     GET(iv);
 
 #undef GET
-
-#undef FREE_PRECEDING
   }
 
-  return PW_OK;
+  *entries = ent;
+  *entry_len = ent_len;
+  ent = NULL;
+  ent_len = 0;
+  rc = PW_OK;
+
+done:
+  for (size_t i = 0; i < ent_len; ++i) {
+    free(ent[i].space);
+    free(ent[i].key);
+    free(ent[i].value);
+    free(ent[i].hmac);
+    free(ent[i].hmac_salt);
+    free(ent[i].salt);
+    free(ent[i].iv);
+  }
+  free(ent);
+  if (j != NULL)
+    (void)json_object_put(j);
+  if (tok != NULL)
+    json_tokener_free(tok);
+  if (p != MAP_FAILED)
+    (void)munmap(p, size);
+  if (f != -1)
+    (void)close(f);
+
+  return rc;
 }
