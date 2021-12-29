@@ -75,9 +75,8 @@ static int initialize(const main_t *mainpass __attribute__((unused)),
 done:
   if (ret != 0)
     free(new_entries);
-  if (confirm_new != NULL)
-    discard_main(confirm_new);
-  if (ret != 0 && new_main != NULL)
+  discard_main(confirm_new);
+  if (ret != 0)
     discard_main(new_main);
   return ret;
 }
