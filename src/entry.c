@@ -195,7 +195,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
   err = passwand_entry_set_mac(mainpass, e);
   if (err != PW_OK) {
     CLEANUP();
-    return PW_NO_MEM;
+    return err;
   }
 
   return PW_OK;
