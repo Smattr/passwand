@@ -33,14 +33,6 @@ typedef struct {
   bool live;
   EVP_CIPHER_CTX *ctx;
 } ctx_destructor_args_t;
-static void ctx_destructor_encrypt(void *p) {
-  assert(p != NULL);
-  ctx_destructor_args_t *a = p;
-  if (a->live) {
-    (void)aes_encrypt_deinit(a->ctx);
-    EVP_CIPHER_CTX_free(a->ctx);
-  }
-}
 static void ctx_destructor_decrypt(void *p) {
   assert(p != NULL);
   ctx_destructor_args_t *a = p;
@@ -62,91 +54,82 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
 
   memset(e, 0, sizeof(*e));
 
+  m_t *m = NULL;
+  k_t *k = NULL;
+  EVP_CIPHER_CTX *ctx = NULL;
+  bool aes_encrypt_init_done = false;
+  passwand_error_t rc = -1;
+
   // generate a random 8-byte salt
   uint8_t _salt[PW_SALT_LEN];
-  passwand_error_t err = passwand_random_bytes(_salt, sizeof(_salt));
-  if (err != PW_OK)
-    return err;
+  rc = passwand_random_bytes(_salt, sizeof(_salt));
+  if (rc != PW_OK)
+    goto done;
   const salt_t salt = {
       .data = _salt,
       .length = sizeof(_salt),
   };
 
   // make an encryption key
-  AUTO_M_T(m, mainpass);
-  if (m == NULL)
-    return PW_NO_MEM;
-  AUTO_K_T(k);
-  if (k == NULL)
-    return PW_NO_MEM;
-  err = make_key(m, &salt, work_factor, *k);
-  if (err != PW_OK)
-    return err;
+  m = make_m_t(mainpass);
+  if (m == NULL) {
+    rc = PW_NO_MEM;
+    goto done;
+  }
+  k = make_k_t();
+  if (k == NULL) {
+    rc = PW_NO_MEM;
+    goto done;
+  }
+  rc = make_key(m, &salt, work_factor, *k);
+  if (rc != PW_OK)
+    goto done;
 
   // generate a random 16-byte initialisation vector
   iv_t iv;
-  err = passwand_random_bytes(iv, sizeof(iv));
-  if (err != PW_OK)
-    return err;
+  rc = passwand_random_bytes(iv, sizeof(iv));
+  if (rc != PW_OK)
+    goto done;
 
   // setup an encryption context
-  EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-  if (ctx == NULL)
-    return PW_NO_MEM;
-  err = aes_encrypt_init(*k, iv, ctx);
-  if (err != PW_OK) {
-    EVP_CIPHER_CTX_free(ctx);
-    return err;
+  ctx = EVP_CIPHER_CTX_new();
+  if (ctx == NULL) {
+    rc = PW_NO_MEM;
+    goto done;
   }
-
-  // auto-destruct the context on exit from this scope
-  ctx_destructor_args_t ctx_destruct
-      __attribute__((cleanup(ctx_destructor_encrypt))) = {
-          .live = true,
-          .ctx = ctx,
-      };
-
-#define CLEANUP()                                                              \
-  do {                                                                         \
-    free(e->iv);                                                               \
-    free(e->salt);                                                             \
-    free(e->hmac_salt);                                                        \
-    free(e->hmac);                                                             \
-    free(e->value);                                                            \
-    free(e->key);                                                              \
-    free(e->space);                                                            \
-  } while (0)
+  rc = aes_encrypt_init(*k, iv, ctx);
+  if (rc != PW_OK)
+    goto done;
+  aes_encrypt_init_done = true;
 
   // now pack and encrypt each field
 #define ENC(field)                                                             \
   do {                                                                         \
     pt_t *p;                                                                   \
     if (passwand_secure_malloc((void **)&p, sizeof(*p)) != 0) {                \
-      CLEANUP();                                                               \
-      return PW_NO_MEM;                                                        \
+      rc = PW_NO_MEM;                                                          \
+      goto done;                                                               \
     }                                                                          \
     p->data = (uint8_t *)field;                                                \
     p->length = strlen(field);                                                 \
     ppt_t *pp;                                                                 \
     if (passwand_secure_malloc((void **)&pp, sizeof(*pp)) != 0) {              \
       passwand_secure_free(p, sizeof(*p));                                     \
-      CLEANUP();                                                               \
-      return PW_NO_MEM;                                                        \
+      rc = PW_NO_MEM;                                                          \
+      goto done;                                                               \
     }                                                                          \
-    err = pack_data(p, iv, pp);                                                \
+    rc = pack_data(p, iv, pp);                                                 \
     passwand_secure_free(p, sizeof(*p));                                       \
-    if (err != PW_OK) {                                                        \
+    if (rc != PW_OK) {                                                         \
       passwand_secure_free(pp, sizeof(*pp));                                   \
-      CLEANUP();                                                               \
-      return err;                                                              \
+      goto done;                                                               \
     }                                                                          \
     ct_t c;                                                                    \
-    err = aes_encrypt(ctx, pp, &c);                                            \
+    rc = aes_encrypt(ctx, pp, &c);                                             \
     passwand_secure_free(pp->data, pp->length);                                \
     passwand_secure_free(pp, sizeof(*pp));                                     \
-    if (err != PW_OK) {                                                        \
-      CLEANUP();                                                               \
-      return err;                                                              \
+    if (rc != PW_OK) {                                                         \
+      goto done;                                                               \
     }                                                                          \
     e->field = c.data;                                                         \
     e->field##_len = c.length;                                                 \
@@ -159,13 +142,10 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
 #undef ENC
 
   // no longer need the encryption context
-  err = aes_encrypt_deinit(ctx);
-  EVP_CIPHER_CTX_free(ctx);
-  ctx_destruct.live = false;
-  if (err != PW_OK) {
-    CLEANUP();
-    return err;
-  }
+  rc = aes_encrypt_deinit(ctx);
+  aes_encrypt_init_done = false;
+  if (rc != PW_OK)
+    goto done;
 
   // figure out what work factor make_key would have used
   if (work_factor == -1)
@@ -176,8 +156,8 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
   // save the salt
   e->salt = malloc(sizeof(_salt));
   if (e->salt == NULL) {
-    CLEANUP();
-    return PW_NO_MEM;
+    rc = PW_NO_MEM;
+    goto done;
   }
   memcpy(e->salt, &_salt, sizeof(_salt));
   e->salt_len = sizeof(_salt);
@@ -185,22 +165,42 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
   // save the IV
   e->iv = malloc(sizeof(iv));
   if (e->iv == NULL) {
-    CLEANUP();
-    return PW_NO_MEM;
+    rc = PW_NO_MEM;
+    goto done;
   }
   memcpy(e->iv, iv, sizeof(iv));
   e->iv_len = sizeof(iv);
 
   // set the HMAC
-  err = passwand_entry_set_mac(mainpass, e);
-  if (err != PW_OK) {
-    CLEANUP();
-    return err;
+  rc = passwand_entry_set_mac(mainpass, e);
+  if (rc != PW_OK)
+    goto done;
+
+  rc = PW_OK;
+
+done:
+  if (rc != PW_OK) {
+    free(e->iv);
+    free(e->salt);
+    free(e->hmac_salt);
+    free(e->hmac);
+    free(e->value);
+    free(e->key);
+    free(e->space);
+    memset(e, 0, sizeof(*e));
   }
+  if (aes_encrypt_init_done) {
+    assert(ctx != NULL);
+    (void)aes_encrypt_deinit(ctx);
+  }
+  if (ctx != NULL)
+    EVP_CIPHER_CTX_free(ctx);
+  if (k != NULL)
+    passwand_secure_free(k, sizeof(*k));
+  if (m != NULL)
+    passwand_secure_free(m, sizeof(*m));
 
-  return PW_OK;
-
-#undef CLEANUP
+  return rc;
 }
 
 static passwand_error_t get_mac(const char *mainpass, const passwand_entry_t *e,
