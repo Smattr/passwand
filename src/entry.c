@@ -249,13 +249,14 @@ static passwand_error_t get_mac(const char *mainpass, const passwand_entry_t *e,
   _data += e->iv_len;
 
   // now generate the MAC
-  AUTO_M_T(m, mainpass);
+  m_t *m = make_m_t(mainpass);
   if (m == NULL) {
     free(data.data);
     return PW_NO_MEM;
   }
   passwand_error_t err = hmac(m, &data, &salt, mac, e->work_factor);
   free(data.data);
+  passwand_secure_free(m, sizeof(*m));
 
   return err;
 }
