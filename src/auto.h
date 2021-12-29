@@ -14,12 +14,3 @@ static inline k_t *make_k_t(void) {
     return NULL;
   return k;
 }
-
-static inline void unmake_k_t(void *p) {
-  assert(p != NULL);
-  k_t *k = *(k_t **)p;
-  if (k != NULL)
-    passwand_secure_free(k, sizeof(*k));
-}
-#define AUTO_K_T(name)                                                         \
-  k_t *name __attribute__((cleanup(unmake_k_t))) = make_k_t()

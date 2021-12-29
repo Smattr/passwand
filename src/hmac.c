@@ -6,6 +6,7 @@
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
 #include <passwand/passwand.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 passwand_error_t hmac(const m_t *mainkey, const data_t *data,
@@ -16,27 +17,43 @@ passwand_error_t hmac(const m_t *mainkey, const data_t *data,
   assert(salt != NULL);
   assert(mac != NULL);
 
-  AUTO_K_T(k);
-  if (k == NULL)
-    return PW_NO_MEM;
-  passwand_error_t err = make_key(mainkey, salt, work_factor, *k);
-  if (err != PW_OK)
-    return err;
+  k_t *k = NULL;
+  uint8_t *mac_data = NULL;
+  passwand_error_t rc = -1;
+
+  k = make_k_t();
+  if (k == NULL) {
+    rc = PW_NO_MEM;
+    goto done;
+  }
+  rc = make_key(mainkey, salt, work_factor, *k);
+  if (rc != PW_OK)
+    goto done;
 
   const EVP_MD *sha512 = EVP_sha512();
 
-  mac->data = malloc(EVP_MAX_MD_SIZE);
-  if (mac->data == NULL)
-    return PW_NO_MEM;
+  mac_data = malloc(EVP_MAX_MD_SIZE);
+  if (mac_data == NULL) {
+    rc = PW_NO_MEM;
+    goto done;
+  }
   unsigned md_len;
   unsigned char *r = HMAC(sha512, *k, AES_KEY_SIZE, data->data, data->length,
-                          mac->data, &md_len);
+                          mac_data, &md_len);
   if (r == NULL) {
-    free(mac->data);
-    return PW_CRYPTO;
+    rc = PW_CRYPTO;
+    goto done;
   }
 
+  mac->data = mac_data;
+  mac_data = NULL;
   mac->length = md_len;
+  rc = PW_OK;
 
-  return PW_OK;
+done:
+  free(mac_data);
+  if (k != NULL)
+    passwand_secure_free(k, sizeof(*k));
+
+  return rc;
 }
