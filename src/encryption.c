@@ -79,39 +79,39 @@ passwand_error_t aes_decrypt_init(const k_t key, const iv_t iv,
   return PW_OK;
 }
 
-// support for an RAII-erased secure buffer
 typedef struct {
   uint8_t *data;
   size_t length;
 } buffer_t;
-static void auto_erase_buffer(void *p) {
-  assert(p != NULL);
-  buffer_t *b = *(buffer_t **)p;
-  if (b != NULL) {
-    if (b->data != NULL)
-      passwand_secure_free(b->data, b->length);
-    passwand_secure_free(b, sizeof(*b));
-  }
-}
 
 passwand_error_t aes_decrypt(EVP_CIPHER_CTX *ctx, const ct_t *c, ppt_t *pp) {
 
+  buffer_t *buffer = NULL;
+  passwand_error_t rc = -1;
+
   // EVP_DecryptUpdate is documented as writing at most `inl +
   // cipher_block_size`
-  if (SIZE_MAX - AES_BLOCK_SIZE < c->length)
-    return PW_OVERFLOW;
-  buffer_t *buffer __attribute__((cleanup(auto_erase_buffer))) = NULL;
-  if (passwand_secure_malloc((void **)&buffer, sizeof(*buffer)) != 0)
-    return PW_NO_MEM;
-  buffer->data = NULL;
+  if (SIZE_MAX - AES_BLOCK_SIZE < c->length) {
+    rc = PW_OVERFLOW;
+    goto done;
+  }
+  if (passwand_secure_malloc((void **)&buffer, sizeof(*buffer)) != 0) {
+    rc = PW_NO_MEM;
+    goto done;
+  }
+  memset(buffer, 0, sizeof(*buffer));
   if (passwand_secure_malloc((void **)&buffer->data,
-                             c->length + AES_BLOCK_SIZE) != 0)
-    return PW_NO_MEM;
+                             c->length + AES_BLOCK_SIZE) != 0) {
+    rc = PW_NO_MEM;
+    goto done;
+  }
   buffer->length = c->length + AES_BLOCK_SIZE;
 
   int len;
-  if (EVP_DecryptUpdate(ctx, buffer->data, &len, c->data, c->length) != 1)
-    return PW_CRYPTO;
+  if (EVP_DecryptUpdate(ctx, buffer->data, &len, c->data, c->length) != 1) {
+    rc = PW_CRYPTO;
+    goto done;
+  }
   assert(len >= 0);
   assert((size_t)len <= c->length + AES_BLOCK_SIZE);
   pp->length = len;
@@ -119,12 +119,23 @@ passwand_error_t aes_decrypt(EVP_CIPHER_CTX *ctx, const ct_t *c, ppt_t *pp) {
   // Copy the internal buffer to the caller’s packed plain text struct. We do
   // this to ensure the caller’s idea of the “length” of the decrypted data
   // is suitable to pass to passwand_secure_free.
-  if (passwand_secure_malloc((void **)&pp->data, pp->length) != 0)
-    return PW_NO_MEM;
+  if (passwand_secure_malloc((void **)&pp->data, pp->length) != 0) {
+    rc = PW_NO_MEM;
+    goto done;
+  }
   if (pp->length > 0)
     memcpy(pp->data, buffer->data, pp->length);
 
-  return PW_OK;
+  rc = PW_OK;
+
+done:
+  if (buffer != NULL) {
+    if (buffer->data != NULL)
+      passwand_secure_free(buffer->data, buffer->length);
+    passwand_secure_free(buffer, sizeof(*buffer));
+  }
+
+  return rc;
 }
 
 passwand_error_t aes_decrypt_deinit(EVP_CIPHER_CTX *ctx) {
