@@ -383,7 +383,6 @@ int main(int argc, char **argv) {
     // extract the password from this database to use as the new main password
     assert(mainpass != NULL);
     assert(mainpass->main != NULL);
-    assert(strcmp(mainpass->main, "") != 0);
     passwand_error_t err =
         passwand_entry_do(mainpass->main, &entries[0], process_chain_link, mainpass);
 

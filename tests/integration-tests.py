@@ -1902,6 +1902,69 @@ class Cli(PasswandTest):
     p.close()
     self.assertNotEqual(p.exitstatus, 0)
 
+  def test_empty_password(self):
+    '''
+    Test that various combinations of using the empty string as a password work.
+    '''
+
+    # Using an empty string as the main database password.
+    with tempfile.TemporaryDirectory() as tmp:
+      data = Path(tmp) / 'data.json'
+      self.do_set(data, '', 'foo', 'bar', 'baz')
+      self.do_get(data, '', 'foo', 'bar', 'baz')
+
+    # Using a chain to a main database with an empty password.
+    with tempfile.TemporaryDirectory() as tmp:
+      data = Path(tmp) / 'data.json'
+      chain = Path(tmp) / 'chain.json'
+      self.do_set(data, '', 'foo', 'bar', 'baz')
+      self.do_set(chain, 'chain password', 'ignored', 'ignored', '')
+
+      args = ['get', '--data', str(data), '--chain', str(chain), '--space',
+              'foo', '--key', 'bar']
+      p = pexpect.spawn('./pw-cli', args, timeout=120)
+      self.type_password(p, 'chain password')
+      p.expect('baz\r\n')
+      p.expect(pexpect.EOF)
+      p.close()
+      self.assertEqual(p.exitstatus, 0)
+
+    # Using an intermediate chain database with an empty password.
+    with tempfile.TemporaryDirectory() as tmp:
+      data = Path(tmp) / 'data.json'
+      chain1 = Path(tmp) / 'chain1.json'
+      chain2 = Path(tmp) / 'chain2.json'
+      self.do_set(data, 'main password', 'foo', 'bar', 'baz')
+      self.do_set(chain1, '', 'ignored', 'ignored', 'main password')
+      self.do_set(chain2, 'chain password', 'ignored', 'ignored', '')
+
+      args = ['get', '--data', str(data), '--chain', str(chain2), '--chain',
+              str(chain1), '--space', 'foo', '--key', 'bar']
+      p = pexpect.spawn('./pw-cli', args, timeout=120)
+      self.type_password(p, 'chain password')
+      p.expect('baz\r\n')
+      p.expect(pexpect.EOF)
+      p.close()
+      self.assertEqual(p.exitstatus, 0)
+
+    # Using an empty password on the top-most chain link is not really possible,
+    # because an empty string always indicates to skip the chain link.
+    with tempfile.TemporaryDirectory() as tmp:
+      data = Path(tmp) / 'data.json'
+      chain = Path(tmp) / 'chain.json'
+      self.do_set(data, 'main password', 'foo', 'bar', 'baz')
+      self.do_set(chain, '', 'ignored', 'ignored', 'main password')
+
+      args = ['get', '--data', str(data), '--chain', str(chain), '--space',
+              'foo', '--key', 'bar']
+      p = pexpect.spawn('./pw-cli', args, timeout=120)
+      self.type_password(p, '')
+      self.type_password(p, 'main password')
+      p.expect('baz\r\n')
+      p.expect(pexpect.EOF)
+      p.close()
+      self.assertEqual(p.exitstatus, 0)
+
   def test_work_factor_error(self):
     '''
     Passing an invalid --work-factor should result in a sensible error.
