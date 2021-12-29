@@ -34,7 +34,7 @@ static int initialize(const main_t *mainpass, passwand_entry_t *entries,
       return -1;
     }
     bool r = strcmp(mainpass->main, confirm->main) == 0;
-    discard_main(confirm);
+    discard_main(&confirm);
     if (!r) {
       eprint("passwords do not match\n");
       return -1;

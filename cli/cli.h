@@ -13,7 +13,7 @@ typedef struct {
 
 main_t *getpassword(const char *prompt);
 
-void discard_main(main_t *m);
+void discard_main(main_t **m);
 
 // how a command line argument is used
 typedef enum {
