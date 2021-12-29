@@ -6,9 +6,7 @@
 #include "types.h"
 #include <assert.h>
 #include <passwand/passwand.h>
-#include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 
 static inline k_t *make_k_t(void) {
   k_t *k;
