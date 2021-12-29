@@ -106,21 +106,15 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
           .ctx = ctx,
       };
 
-#define FREE(field)                                                            \
-  do {                                                                         \
-    if (e->field != NULL) {                                                    \
-      free(e->field);                                                          \
-    }                                                                          \
-  } while (0)
 #define CLEANUP()                                                              \
   do {                                                                         \
-    FREE(iv);                                                                  \
-    FREE(salt);                                                                \
-    FREE(hmac_salt);                                                           \
-    FREE(hmac);                                                                \
-    FREE(value);                                                               \
-    FREE(key);                                                                 \
-    FREE(space);                                                               \
+    free(e->iv);                                                               \
+    free(e->salt);                                                             \
+    free(e->hmac_salt);                                                        \
+    free(e->hmac);                                                             \
+    free(e->value);                                                            \
+    free(e->key);                                                              \
+    free(e->space);                                                            \
   } while (0)
 
   // now pack and encrypt each field
@@ -207,7 +201,6 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
   return PW_OK;
 
 #undef CLEANUP
-#undef FREE
 }
 
 static passwand_error_t get_mac(const char *mainpass, const passwand_entry_t *e,
