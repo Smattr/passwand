@@ -1,4 +1,3 @@
-#include "auto.h"
 #include "internal.h"
 #include "types.h"
 #include <assert.h>
