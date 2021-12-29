@@ -1,4 +1,3 @@
-#include "auto.h"
 #include "internal.h"
 #include "types.h"
 #include <assert.h>
@@ -53,8 +52,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
     rc = PW_NO_MEM;
     goto done;
   }
-  k = make_k_t();
-  if (k == NULL) {
+  if (passwand_secure_malloc((void **)&k, sizeof(*k)) != 0) {
     rc = PW_NO_MEM;
     goto done;
   }
@@ -335,8 +333,7 @@ passwand_entry_do(const char *mainpass, const passwand_entry_t *e,
       .data = e->salt,
       .length = e->salt_len,
   };
-  k = make_k_t();
-  if (k == NULL) {
+  if (passwand_secure_malloc((void **)&k, sizeof(*k)) != 0) {
     rc = PW_NO_MEM;
     goto done;
   }

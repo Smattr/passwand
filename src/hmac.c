@@ -1,4 +1,3 @@
-#include "auto.h"
 #include "constants.h"
 #include "internal.h"
 #include "types.h"
@@ -21,8 +20,7 @@ passwand_error_t hmac(const m_t *mainkey, const data_t *data,
   uint8_t *mac_data = NULL;
   passwand_error_t rc = -1;
 
-  k = make_k_t();
-  if (k == NULL) {
+  if (passwand_secure_malloc((void **)&k, sizeof(*k)) != 0) {
     rc = PW_NO_MEM;
     goto done;
   }
