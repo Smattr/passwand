@@ -12,21 +12,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-// Free a JSON object. See usage of this below in cleanup attributes.
-static void disown(void *p) {
-  assert(p != NULL);
-  json_object **j = p;
-  if (*j != NULL)
-    json_object_put(*j);
-}
-
-static void autofree(void *p) {
-  assert(p != NULL);
-  void *q = *(void **)p;
-  if (q != NULL)
-    free(q);
-}
-
 // Add a given key and value to a JSON dictionary. Returns 0 on success.
 static passwand_error_t add_to_dict(json_object *d, const char *key,
                                     const uint8_t *value, size_t value_len) {
@@ -55,17 +40,25 @@ passwand_error_t passwand_export(const char *path, passwand_entry_t *entries,
   assert(path != NULL);
   assert(entries != NULL || entry_len == 0);
 
+  json_object *j = NULL;
+  char *tmp = NULL;
+  passwand_error_t rc = -1;
+
   // create a new array as the top level JSON object in the export file
-  json_object *j __attribute__((cleanup(disown))) = json_object_new_array();
-  if (j == NULL)
-    return PW_NO_MEM;
+  j = json_object_new_array();
+  if (j == NULL) {
+    rc = PW_NO_MEM;
+    goto done;
+  }
 
   for (size_t i = 0; i < entry_len; i++) {
 
     // encapsulate each entry in a JSON dictionary
     json_object *d = json_object_new_object();
-    if (d == NULL)
-      return PW_NO_MEM;
+    if (d == NULL) {
+      rc = PW_NO_MEM;
+      goto done;
+    }
 
 #define ADD(field)                                                             \
   do {                                                                         \
@@ -73,7 +66,8 @@ passwand_error_t passwand_export(const char *path, passwand_entry_t *entries,
         add_to_dict(d, #field, entries[i].field, entries[i].field##_len);      \
     if (err != PW_OK) {                                                        \
       json_object_put(d);                                                      \
-      return err;                                                              \
+      rc = err;                                                                \
+      goto done;                                                               \
     }                                                                          \
   } while (0)
 
@@ -93,29 +87,44 @@ passwand_error_t passwand_export(const char *path, passwand_entry_t *entries,
   // now write out the array to the given file
 
   size_t path_len = strlen(path);
-  if (SIZE_MAX - path_len < 2)
-    return PW_OVERFLOW;
-  char *tmp __attribute__((cleanup(autofree))) = malloc(strlen(path) + 2);
-  if (tmp == NULL)
-    return PW_NO_MEM;
+  if (SIZE_MAX - path_len < 2) {
+    rc = PW_OVERFLOW;
+    goto done;
+  }
+  tmp = malloc(strlen(path) + 2);
+  if (tmp == NULL) {
+    rc = PW_NO_MEM;
+    goto done;
+  }
   sprintf(tmp, "%s~", path);
   int fd = creat(tmp, 0600);
-  if (fd == -1)
-    return PW_IO;
+  if (fd == -1) {
+    rc = PW_IO;
+    goto done;
+  }
 
   const char *json = json_object_to_json_string_ext(j, JSON_C_TO_STRING_PLAIN);
   size_t len = strlen(json);
   ssize_t written = write(fd, json, len);
-  close(fd);
+  (void)close(fd);
   if (written < 0 || (size_t)written != len) {
-    unlink(tmp);
-    return PW_IO;
+    (void)unlink(tmp);
+    rc = PW_IO;
+    goto done;
   }
 
   if (rename(tmp, path) == -1) {
-    unlink(tmp);
-    return PW_IO;
+    (void)unlink(tmp);
+    rc = PW_IO;
+    goto done;
   }
 
-  return PW_OK;
+  rc = PW_OK;
+
+done:
+  free(tmp);
+  if (j != NULL)
+    (void)json_object_put(j);
+
+  return rc;
 }

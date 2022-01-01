@@ -49,11 +49,6 @@ static void unlock(void) {
   } while (!atomic_compare_exchange_weak(&l, &expected, 0));
 }
 
-static void lock_release(void *p __attribute__((unused))) { unlock(); }
-#define LOCK_UNTIL_RET()                                                       \
-  lock();                                                                      \
-  int _lock __attribute__((unused, cleanup(lock_release)));
-
 // Expected hardware page size. This is checked at runtime.
 #define EXPECTED_PAGE_SIZE 4096
 
@@ -162,19 +157,26 @@ int passwand_secure_malloc(void **p, size_t size) {
 
   size = round_size(size);
 
-  LOCK_UNTIL_RET();
+  lock();
 
-  if (disabled)
+  if (disabled) {
+    unlock();
     return -1;
+  }
 
-  if (!ptrace_disabled)
-    if (disable_ptrace() != 0)
+  if (!ptrace_disabled) {
+    if (disable_ptrace() != 0) {
+      unlock();
       return -1;
+    }
+  }
 
   // Do not allow allocations greater than a page. This avoids having to cope
   // with allocations that would span multiple chunks.
-  if (size > EXPECTED_PAGE_SIZE)
+  if (size > EXPECTED_PAGE_SIZE) {
+    unlock();
     return -1;
+  }
 
   for (chunk_t *n = freelist; n != NULL; n = n->next) {
 
@@ -203,6 +205,7 @@ int passwand_secure_malloc(void **p, size_t size) {
           write_bitmap(n, n->last_index + i, true);
         *p = n->base + n->last_index * sizeof(long long);
         n->last_index += size / sizeof(long long);
+        unlock();
         return 0;
       }
 
@@ -222,8 +225,10 @@ int passwand_secure_malloc(void **p, size_t size) {
   // Did not find anything useful in the freelist. Acquire some more secure
   // memory.
   void *q;
-  if (morecore(&q) != 0)
+  if (morecore(&q) != 0) {
+    unlock();
     return -1;
+  }
 
   // fill this allocation using the end of the memory just acquired
   chunk_t *c = calloc(1, sizeof(*c));
@@ -231,6 +236,7 @@ int passwand_secure_malloc(void **p, size_t size) {
     int r __attribute__((unused)) = munlock(q, EXPECTED_PAGE_SIZE);
     assert(r == 0 && "munlock unexpectedly failed");
     free(q);
+    unlock();
     return -1;
   }
   c->base = q;
@@ -241,6 +247,7 @@ int passwand_secure_malloc(void **p, size_t size) {
     write_bitmap(c, index, true);
   *p = c->base + EXPECTED_PAGE_SIZE - size;
 
+  unlock();
   return 0;
 }
 
@@ -257,10 +264,12 @@ void passwand_secure_free(void *p, size_t size) {
 
   size = round_size(size);
 
-  LOCK_UNTIL_RET();
+  lock();
 
-  if (disabled)
+  if (disabled) {
+    unlock();
     return;
+  }
 
   // find the chunk this allocation came from
   for (chunk_t *c = freelist; c != NULL; c = c->next) {
@@ -272,11 +281,13 @@ void passwand_secure_free(void *p, size_t size) {
         if (!read_bitmap(c, index + offset)) {
           // This memory was not in use. Double free?
           disabled = true;
+          unlock();
           return;
         }
         write_bitmap(c, index + offset, false);
       }
       passwand_erase(p, size);
+      unlock();
       return;
     }
   }
@@ -284,20 +295,24 @@ void passwand_secure_free(void *p, size_t size) {
   // if we reached here, the given blocks do not lie in the secure heap
   assert(!"free of non-heap memory");
   disabled = true;
+  unlock();
 }
 
 int passwand_secure_malloc_reset(void) {
 
-  LOCK_UNTIL_RET();
+  lock();
 
-  if (disabled)
+  if (disabled) {
+    unlock();
     return -1;
+  }
 
   // scan all chunks for occupied blocks
   for (chunk_t *c = freelist; c != NULL; c = c->next) {
     for (unsigned i = 0; i < sizeof(c->free) * 8; i++) {
       if (read_bitmap(c, i)) {
         // we found an in-use block
+        unlock();
         return -1;
       }
     }
@@ -316,6 +331,7 @@ int passwand_secure_malloc_reset(void) {
   // reset the freelist head
   freelist = NULL;
 
+  unlock();
   return 0;
 }
 
