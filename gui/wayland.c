@@ -1,4 +1,4 @@
-/** implementation of part of the API described n gui.h using Wayland uinput
+/** implementation of part of the API described in gui.h using Wayland uinput
  *
  * This is based on https://www.kernel.org/doc/html/v4.12/input/uinput.html.
  */
