@@ -17,6 +17,7 @@ static inline bool supported_lower(char c) {
   case ',':
   case '.':
   case '/':
+  case ' ':
     return true;
   }
   return false;
