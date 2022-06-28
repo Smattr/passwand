@@ -10,7 +10,7 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL "FreeBSD")
   # for linking. AFAICT this is false on FreeBSD. Hack around this by teaching it
   # where some of our libraries live.
   link_directories(${LINK_DIRECTORIES} /usr/local/lib)
-elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
+elseif(APPLE)
   # add paths for Macports or Homebrew
   if(EXISTS /opt/local/include)
     if(EXISTS /usr/local/opt/openssl/include)
@@ -115,7 +115,7 @@ if(TARGET pw-gui)
   install(TARGETS pw-gui RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
-if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
+if(APPLE)
   set(PRIVILEGE_C privilege-macos.c)
 else()
   set(PRIVILEGE_C privilege-fallback.c)
