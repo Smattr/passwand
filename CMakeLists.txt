@@ -55,7 +55,6 @@ set_source_files_properties(src/erase.c PROPERTIES COMPILE_FLAGS -fno-builtin-me
 find_package(PkgConfig)
 
 pkg_check_modules(OPENSSL REQUIRED openssl)
-include_directories(${OPENSSL_INCLUDE_DIRS})
 
 pkg_check_modules(JSON REQUIRED json-c)
 
@@ -133,6 +132,7 @@ add_custom_command(
 add_executable(pw-cli cli/change-main.c cli/check.c cli/delete.c cli/get.c
   cli/generate.c cli/help.c cli/list.c cli/main.c cli/print.c cli/set.c
   cli/update.c common/argparse.c common/${PRIVILEGE_C} manpage.c)
+target_include_directories(pw-cli PRIVATE ${OPENSSL_INCLUDE_DIRS})
 target_link_libraries(pw-cli passwand ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
 install(TARGETS pw-cli RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
@@ -142,6 +142,7 @@ add_library(passwand src/encoding.c src/erase.c src/encryption.c src/entry.c src
     src/export.c src/hmac.c src/import.c src/make_key.c src/malloc.c src/pack.c src/random.c)
 target_include_directories(passwand PRIVATE
   ${JSON_INCLUDE_DIRS}
+  ${OPENSSL_INCLUDE_DIRS}
   ${SCRYPTKDF_INCLUDE_DIRS}
 )
 target_link_libraries(passwand ${OPENSSL_LIBRARIES} ${JSON_LIBRARIES} ${SCRYPTKDF_LIBRARIES})
