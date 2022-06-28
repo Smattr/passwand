@@ -59,7 +59,10 @@ include_directories(${OPENSSL_INCLUDE_DIRS})
 
 pkg_check_modules(JSON REQUIRED json-c)
 
-find_library(CUNIT NAMES cunit libcunit cunitlib)
+find_path(CUNIT_INCLUDE_DIRS CUnit/CUnit.h HINTS ENV C_INCLUDE_PATH)
+find_library(CUNIT_LIBRARIES
+  NAMES cunit libcunit cunitlib
+  HINTS ENV LIBRARY_PATH)
 
 find_library(SCRYPTKDF_LIBRARIES NAMES scrypt-kdf libscrypt-kdf
   PATHS ENV LIBRARY_PATH)
@@ -158,7 +161,8 @@ add_executable(passwand-tests
     tests/test_erase.c tests/test_export.c tests/test_import.c tests/test_integration.c
     tests/test_malloc.c tests/test_pack.c tests/test_random_bytes.c tests/test_unpack.c
     tests/util.c)
-target_link_libraries(passwand-tests passwand ${CUNIT})
+target_include_directories(passwand-tests PRIVATE ${CUNIT_INCLUDE_DIRS})
+target_link_libraries(passwand-tests passwand ${CUNIT_LIBRARIES})
 
 add_executable(pw-gui-test-stub gui/main.c common/argparse.c tests/gui-test-stub.c)
 target_link_libraries(pw-gui-test-stub passwand ${CMAKE_THREAD_LIBS_INIT})
