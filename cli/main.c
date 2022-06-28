@@ -264,7 +264,7 @@ static void process_chain_link(void *state,
   memset(m, 0, sizeof(*m));
 
   // `strdup` this next chained password into it
-  if (passwand_secure_malloc((void**)&m->main, strlen(value) + 1) == PW_OK) {
+  if (passwand_secure_malloc((void **)&m->main, strlen(value) + 1) == PW_OK) {
     assert(m->main != NULL);
     strcpy(m->main, value);
     m->main_len = strlen(value) + 1;
@@ -383,21 +383,21 @@ int main(int argc, char **argv) {
     // extract the password from this database to use as the new main password
     assert(mainpass != NULL);
     assert(mainpass->main != NULL);
-    passwand_error_t err =
-        passwand_entry_do(mainpass->main, &entries[0], process_chain_link, mainpass);
+    passwand_error_t err = passwand_entry_do(mainpass->main, &entries[0],
+                                             process_chain_link, mainpass);
 
     // discard this entry we no longer need
     discard_entries(&entries, &entry_len);
 
     // did we fail above?
     if (err != PW_OK) {
-      eprint("failed to process chained database %s: %s\n", options.chain[i].path,
-          passwand_error(err));
+      eprint("failed to process chained database %s: %s\n",
+             options.chain[i].path, passwand_error(err));
       goto done;
     }
     if (mainpass->main == NULL) {
       eprint("out of memory while processing chained database %s\n",
-          options.chain[i].path);
+             options.chain[i].path);
       goto done;
     }
 

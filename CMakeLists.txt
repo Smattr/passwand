@@ -177,3 +177,20 @@ install(FILES
 add_custom_target(check
   COMMAND passwand-tests
   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration-tests.py --verbose)
+
+find_program(CLANG_FORMAT
+  NAMES
+    clang-format
+    clang-format-mp-14 clang-format-14
+    clang-format-mp-13 clang-format-13
+    clang-format-mp-12 clang-format-12
+    clang-format-mp-11 clang-format-11)
+find_program(GIT git)
+find_program(XARGS xargs)
+if(CLANG_FORMAT AND GIT AND XARGS)
+  add_custom_target(format
+    COMMAND ${GIT} ls-files -z '**/*.c' '**/*.h' |
+      ${XARGS} -0 -- ${CLANG_FORMAT} -i --style=file
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "clang-formatting sources")
+endif()
