@@ -29,6 +29,7 @@ if(ENABLE_GUI)
       set(INPUT_C wayland.c)
     else()
       pkg_check_modules(X11 REQUIRED x11)
+      pkg_check_modules(XTST REQUIRED xtst)
       set(INPUT_C x11.c)
     endif()
   elseif(OSASCRIPT)
@@ -57,8 +58,11 @@ if(ENABLE_GUI)
 
   if(GTK3_FOUND OR GTK2_FOUND)
     if(NOT USE_WAYLAND)
-      target_include_directories(pw-gui SYSTEM PRIVATE ${X11_INCLUDE_DIRS})
-      target_link_libraries(pw-gui PRIVATE ${X11_LIBRARIES})
+      target_include_directories(pw-gui SYSTEM PRIVATE
+        ${X11_INCLUDE_DIRS}
+        ${XTST_INCLUDE_DIRS}
+      )
+      target_link_libraries(pw-gui PRIVATE ${X11_LIBRARIES} ${XTST_LIBRARIES})
     endif()
   endif()
 
@@ -83,8 +87,14 @@ if(ENABLE_GUI)
 
   if(GTK3_FOUND OR GTK2_FOUND)
     if(NOT USE_WAYLAND)
-      target_include_directories(test-type SYSTEM PRIVATE ${X11_INCLUDE_DIRS})
-      target_link_libraries(test-type PRIVATE ${X11_LIBRARIES})
+      target_include_directories(test-type SYSTEM PRIVATE
+        ${X11_INCLUDE_DIRS}
+        ${XTST_INCLUDE_DIRS}
+      )
+      target_link_libraries(test-type PRIVATE
+        ${X11_LIBRARIES}
+        ${XTST_LIBRARIES}
+      )
     endif()
   endif()
 
