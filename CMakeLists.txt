@@ -58,7 +58,6 @@ pkg_check_modules(OPENSSL REQUIRED openssl)
 include_directories(${OPENSSL_INCLUDE_DIRS})
 
 pkg_check_modules(JSON REQUIRED json-c)
-include_directories(${JSON_INCLUDE_DIRS})
 
 find_library(CUNIT NAMES cunit libcunit cunitlib)
 
@@ -138,7 +137,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_library(passwand src/encoding.c src/erase.c src/encryption.c src/entry.c src/error.c
     src/export.c src/hmac.c src/import.c src/make_key.c src/malloc.c src/pack.c src/random.c)
-target_include_directories(passwand PRIVATE ${SCRYPTKDF_INCLUDE_DIRS})
+target_include_directories(passwand PRIVATE
+  ${JSON_INCLUDE_DIRS}
+  ${SCRYPTKDF_INCLUDE_DIRS}
+)
 target_link_libraries(passwand ${OPENSSL_LIBRARIES} ${JSON_LIBRARIES} ${SCRYPTKDF_LIBRARIES})
 install(TARGETS passwand
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
