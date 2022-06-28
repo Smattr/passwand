@@ -1,4 +1,4 @@
-/** implementation of part of the API described n gui.h using Wayland uinput
+/** implementation of part of the API described in gui.h using Wayland uinput
  *
  * This is based on https://www.kernel.org/doc/html/v4.12/input/uinput.html.
  */
@@ -306,6 +306,23 @@ int main(int argc, char **argv) {
 int send_text(const char *text) {
 
   assert(text != NULL);
+
+  // check we were not passed anything we do not know how to type
+  for (const char *p = text; *p != '\0'; ++p) {
+    bool ok = false;
+    for (size_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++i) {
+      if (keys[i].key == *p) {
+        ok = true;
+        break;
+      }
+    }
+    if (!ok) {
+      // we deliberately do not echo the failing character in the error message
+      // in case the thing being typed is something sensitive like a password
+      error("unsupported character in output text");
+      return -1;
+    }
+  }
 
   // create a uinput device
   int fd = make_dev();
