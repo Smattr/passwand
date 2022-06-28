@@ -37,8 +37,10 @@ int send_text(const char *text) {
 
   assert(text != NULL);
 
-  int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);
-  assert(err == 0);
+  {
+    int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);
+    assert(err == 0);
+  }
 
   // find the current display
   const char *display = getenv_("DISPLAY");
@@ -46,8 +48,10 @@ int send_text(const char *text) {
     display = ":0";
   Display *d = XOpenDisplay(display);
   if (d == NULL) {
-    err = pthread_mutex_unlock(&gtk_lock);
-    assert(err == 0);
+    {
+      int err __attribute__((unused)) = pthread_mutex_unlock(&gtk_lock);
+      assert(err == 0);
+    }
     show_error("failed to open X11 display");
     return -1;
   }
@@ -58,8 +62,10 @@ int send_text(const char *text) {
   XGetInputFocus(d, &win, &state);
   if (win == None) {
     XCloseDisplay(d);
-    err = pthread_mutex_unlock(&gtk_lock);
-    assert(err == 0);
+    {
+      int err __attribute__((unused)) = pthread_mutex_unlock(&gtk_lock);
+      assert(err == 0);
+    }
     show_error("no window focused");
     return -1;
   }
@@ -71,8 +77,10 @@ int send_text(const char *text) {
 
   XCloseDisplay(d);
 
-  err = pthread_mutex_unlock(&gtk_lock);
-  assert(err == 0);
+  {
+    int err __attribute__((unused)) = pthread_mutex_unlock(&gtk_lock);
+    assert(err == 0);
+  }
 
   return 0;
 }
