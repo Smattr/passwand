@@ -33,7 +33,9 @@ elseif(APPLE)
   endif()
 endif()
 
-add_compile_options(-std=c11 -W -Wall -Wextra -Wformat=2 -Wwrite-strings
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+add_compile_options(-W -Wall -Wextra -Wformat=2 -Wwrite-strings
   -Wmissing-prototypes -Wshadow -Wundef)
 add_definitions(-D_DEFAULT_SOURCE -D_BSD_SOURCE -D_GNU_SOURCE)
 
