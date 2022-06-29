@@ -107,7 +107,7 @@ endif()
 
 if(TARGET pw-gui)
   target_link_libraries(pw-gui passwand ${GTK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-  target_link_libraries(test-type passwand ${GTK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries(test-type passwand ${GTK_LIBRARIES})
   if(NOT USE_WAYLAND)
     target_link_libraries(pw-gui ${X11_LIBRARIES})
     target_link_libraries(test-type ${X11_LIBRARIES})
