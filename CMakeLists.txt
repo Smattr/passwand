@@ -115,24 +115,7 @@ if(TARGET pw-gui)
   install(TARGETS pw-gui RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
-if(APPLE)
-  set(PRIVILEGE_C privilege-macos.c)
-else()
-  set(PRIVILEGE_C privilege-fallback.c)
-endif()
-
-# generate man page content as a C source file
-add_custom_command(
-  OUTPUT manpage.c
-  COMMAND xxd -i passwand.1 >${CMAKE_CURRENT_BINARY_DIR}/manpage.c
-  MAIN_DEPENDENCY common/passwand.1
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/common)
-
-add_executable(pw-cli cli/change-main.c cli/check.c cli/delete.c cli/get.c
-  cli/generate.c cli/help.c cli/list.c cli/main.c cli/print.c cli/set.c
-  cli/update.c common/argparse.c common/${PRIVILEGE_C} manpage.c)
-target_link_libraries(pw-cli passwand ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
-install(TARGETS pw-cli RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+add_subdirectory(cli)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
@@ -161,22 +144,11 @@ target_link_libraries(passwand-tests passwand ${CUNIT})
 add_executable(pw-gui-test-stub gui/main.c common/argparse.c tests/gui-test-stub.c)
 target_link_libraries(pw-gui-test-stub passwand ${CMAKE_THREAD_LIBS_INIT})
 
-# compress man page
-add_custom_target(man-passwand
-  ALL
-  DEPENDS passwand.1.gz)
-add_custom_command(
-  OUTPUT passwand.1.gz
-  COMMAND gzip -9 --no-name --to-stdout common/passwand.1 >"${CMAKE_CURRENT_BINARY_DIR}/passwand.1.gz"
-  MAIN_DEPENDENCY common/passwand.1
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-install(FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/passwand.1.gz
-  DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
-
 add_custom_target(check
   COMMAND passwand-tests
-  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration-tests.py --verbose)
+  COMMAND env PATH=${CMAKE_BINARY_DIR}/cli:$ENV{PATH}
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration-tests.py --verbose
+)
 
 find_program(CLANG_FORMAT
   NAMES

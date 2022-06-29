@@ -38,7 +38,7 @@ class PasswandTest(unittest.TestCase):
     args = ['get', '--data', str(db), '--space', space, '--key', key]
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
     self.type_password(p, password)
     p.expect(f'{value}\r\n')
     p.expect(pexpect.EOF)
@@ -51,7 +51,7 @@ class PasswandTest(unittest.TestCase):
     '''
     # Use a single-threaded lookup for deterministic results ordering.
     args = ['list', '--jobs', '1', '--data', str(db)]
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
     self.type_password(p, password)
     for space, key in entries:
       p.expect(f'{space}/{key}\r\n')
@@ -68,7 +68,7 @@ class PasswandTest(unittest.TestCase):
             value]
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
     self.type_password_with_confirmation(p, password)
     p.expect(pexpect.EOF)
     p.close()
@@ -105,7 +105,7 @@ class Cli(PasswandTest):
     '''
     Confirm we can get help text output from the command line interface.
     '''
-    text = self.check_output(['./pw-cli', '--help'], '')
+    text = self.check_output(['pw-cli', '--help'], '')
     self.assertNotEqual(text.strip(), '')
 
   def test_set_basic(self):
@@ -192,7 +192,7 @@ class Cli(PasswandTest):
             '--value', 'value2']
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password_with_confirmation(p, 'test')
@@ -278,7 +278,7 @@ class Cli(PasswandTest):
     args = ['generate', '--data', str(data), '--space', 'foo', '--key', 'bar']
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password_with_confirmation(p, 'test')
@@ -302,7 +302,7 @@ class Cli(PasswandTest):
     args = ['get', '--data', str(data), '--space', 'foo', '--key', 'bar']
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password(p, 'test')
@@ -346,7 +346,7 @@ class Cli(PasswandTest):
             '--length', str(length)]
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password_with_confirmation(p, 'test')
@@ -370,7 +370,7 @@ class Cli(PasswandTest):
     args = ['get', '--data', str(data), '--space', 'foo', '--key', 'bar']
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password(p, 'test')
@@ -414,7 +414,7 @@ class Cli(PasswandTest):
             '--length', str(length)]
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password_with_confirmation(p, 'test')
@@ -438,7 +438,7 @@ class Cli(PasswandTest):
     args = ['get', '--data', str(data), '--space', 'foo', '--key', 'bar']
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password(p, 'test')
@@ -482,7 +482,7 @@ class Cli(PasswandTest):
     args = ['change-main', '--data', str(data)]
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password(p, 'test')
@@ -530,7 +530,7 @@ class Cli(PasswandTest):
     args = ['change-main', '--data', str(data)]
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password(p, 'test')
@@ -590,7 +590,7 @@ class Cli(PasswandTest):
     args = ['change-main', '--data', str(data)]
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password(p, 'test')
@@ -626,7 +626,7 @@ class Cli(PasswandTest):
     args = ['get', '--data', str(data), '--space', 'space', '--key', 'key']
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the old main password.
     self.type_password(p, 'test')
@@ -663,7 +663,7 @@ class Cli(PasswandTest):
     args = ['list', '--data', str(data)]
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password(p, 'test')
@@ -706,7 +706,7 @@ class Cli(PasswandTest):
     args = ['list', '--data', str(data)]
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the wrong main password.
     self.type_password(p, 'test2')
@@ -739,7 +739,7 @@ class Cli(PasswandTest):
     args = ['list', '--data', str(data)]
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password(p, 'test')
@@ -807,7 +807,7 @@ class Cli(PasswandTest):
             f'key{target}', '--value', 'valuenew']
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password_with_confirmation(p, 'test')
@@ -847,7 +847,7 @@ class Cli(PasswandTest):
     args = ['list', '--data', str(data)]
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password(p, 'test')
@@ -892,7 +892,7 @@ class Cli(PasswandTest):
     args = ['delete', '--data', str(data), '--space', 'space', '--key', 'key']
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password(p, 'test')
@@ -964,7 +964,7 @@ class Cli(PasswandTest):
             f'key{target}']
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password(p, 'test')
@@ -981,7 +981,7 @@ class Cli(PasswandTest):
               f'key{i}']
       if not multithreaded:
         args += ['--jobs', '1']
-      p = pexpect.spawn('./pw-cli', args, timeout=120)
+      p = pexpect.spawn('pw-cli', args, timeout=120)
 
       # Enter the main password.
       self.type_password(p, 'test')
@@ -1027,7 +1027,7 @@ class Cli(PasswandTest):
     args = ['delete', '--data', str(data), '--space', 'space3', '--key', 'key4']
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password(p, 'test')
@@ -1068,7 +1068,7 @@ class Cli(PasswandTest):
     args = ['get', '--data', str(data), '--space', 'space0', '--key', 'key0']
     if not multithreaded:
       args += ['--jobs', '1']
-    get = pexpect.spawn('./pw-cli', args, timeout=120)
+    get = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Wait for the password prompt to ensure the 'get' has locked the
     # database.
@@ -1080,7 +1080,7 @@ class Cli(PasswandTest):
       '--value', 'value']
     if not multithreaded:
       args += ['--jobs', '1']
-    s = pexpect.spawn('./pw-cli', args, timeout=120)
+    s = pexpect.spawn('pw-cli', args, timeout=120)
 
     # The 'set' should fail because it can't lock the database.
     s.expect(pexpect.EOF)
@@ -1118,7 +1118,7 @@ class Cli(PasswandTest):
     args = ['check', '--data', str(data), '--space', 'space', '--key', 'key']
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password(p, 'test')
@@ -1151,7 +1151,7 @@ class Cli(PasswandTest):
     args = ['check', '--data', str(data), '--space', 'space', '--key', 'key']
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password(p, 'test')
@@ -1185,7 +1185,7 @@ class Cli(PasswandTest):
     args = ['check', '--data', str(data), '--space', 'space', '--key', 'key']
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password(p, 'test')
@@ -1219,7 +1219,7 @@ class Cli(PasswandTest):
     args = ['check', '--data', str(data)]
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password(p, 'test')
@@ -1354,7 +1354,7 @@ class Cli(PasswandTest):
               f'key{i}']
       if not multithreaded:
         args += ['--jobs', '1']
-      p = pexpect.spawn('./pw-cli', args, timeout=120)
+      p = pexpect.spawn('pw-cli', args, timeout=120)
 
       # Enter the main password.
       self.type_password(p, 'test')
@@ -1371,7 +1371,7 @@ class Cli(PasswandTest):
     args = ['check', '--data', str(data)]
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password(p, 'test')
@@ -1430,7 +1430,7 @@ class Cli(PasswandTest):
             '--value', 'value2']
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password_with_confirmation(p, 'test')
@@ -1473,7 +1473,7 @@ class Cli(PasswandTest):
             '--value', 'value']
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password_with_confirmation(p, 'test')
@@ -1521,7 +1521,7 @@ class Cli(PasswandTest):
             '--value', 'value2']
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password_with_confirmation(p, 'test')
@@ -1597,7 +1597,7 @@ class Cli(PasswandTest):
             f'key{target}', '--value', 'valuenew']
     if not multithreaded:
       args += ['--jobs', '1']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password_with_confirmation(p, 'test')
@@ -1614,7 +1614,7 @@ class Cli(PasswandTest):
               f'key{i}']
       if not multithreaded:
         args += ['--jobs', '1']
-      p = pexpect.spawn('./pw-cli', args, timeout=120)
+      p = pexpect.spawn('pw-cli', args, timeout=120)
 
       # Enter the main password.
       self.type_password(p, 'test')
@@ -1644,7 +1644,7 @@ class Cli(PasswandTest):
 
     # Try to change the main database’s password using the chain.
     args = ['change-main', '--data', str(data), '--chain', str(chain)]
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
     self.type_password(p, 'chain password')
     p.expect('new main password: ')
     p.sendline('foo bar')
@@ -1656,7 +1656,7 @@ class Cli(PasswandTest):
 
     # The database should no longer be accessible through the chain.
     args = ['list', '--data', str(data), '--chain', str(chain)]
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
     self.type_password(p, 'chain password')
     p.expect(pexpect.EOF)
     p.close()
@@ -1677,7 +1677,7 @@ class Cli(PasswandTest):
 
     # Run the check operation via the chain.
     args = ['check', '--data', str(data), '--chain', str(chain)]
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
     self.type_password(p, 'chain password')
     p.expect(pexpect.EOF)
     p.close()
@@ -1697,7 +1697,7 @@ class Cli(PasswandTest):
     # Delete our only entry via the chain.
     args = ['delete', '--data', str(data), '--chain', str(chain), '--space',
             'foo', '--key', 'bar']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
     self.type_password(p, 'chain password')
     p.expect(pexpect.EOF)
     p.close()
@@ -1726,7 +1726,7 @@ class Cli(PasswandTest):
     # Try to generate a new entry in the main database via the chain.
     args = ['generate', '--data', str(data), '--chain', str(chain), '--space',
             'foo', '--key', 'bar']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
     self.type_password(p, 'chain password')
     p.expect(pexpect.EOF)
     p.close()
@@ -1752,7 +1752,7 @@ class Cli(PasswandTest):
     # Get the value of the main database entry via the chain.
     args = ['get', '--data', str(data), '--chain', str(chain), '--space', 'foo',
             '--key', 'bar']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
     self.type_password(p, 'chain password')
     p.expect('baz\r\n')
     p.expect(pexpect.EOF)
@@ -1772,7 +1772,7 @@ class Cli(PasswandTest):
 
     # Get the value of the main database entry via the chain.
     args = ['list', '--data', str(data), '--chain', str(chain)]
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
     self.type_password(p, 'chain password')
     p.expect('foo/bar\r\n')
     p.expect(pexpect.EOF)
@@ -1793,7 +1793,7 @@ class Cli(PasswandTest):
     # Set of the existing entry should fail.
     args = ['set', '--data', str(data), '--chain', str(chain), '--space', 'foo',
             '--key', 'bar', '--value', 'value']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
     self.type_password(p, 'chain password')
     p.expect(pexpect.EOF)
     p.close()
@@ -1806,7 +1806,7 @@ class Cli(PasswandTest):
     # Set of a new entry should work.
     args = ['set', '--data', str(data), '--chain', str(chain), '--space', 'foo',
             '--key', 'qux', '--value', 'corge']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
     self.type_password(p, 'chain password')
     p.expect(pexpect.EOF)
     p.close()
@@ -1834,7 +1834,7 @@ class Cli(PasswandTest):
     # Update of a non-existent entry should fail.
     args = ['update', '--data', str(data), '--chain', str(chain), '--space',
             'foo', '--key', 'baz', '--value', 'value']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
     self.type_password(p, 'chain password')
     p.expect(pexpect.EOF)
     p.close()
@@ -1847,7 +1847,7 @@ class Cli(PasswandTest):
     # Update of an existing entry should work.
     args = ['update', '--data', str(data), '--chain', str(chain), '--space',
             'foo', '--key', 'bar', '--value', 'corge']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
     self.type_password(p, 'chain password')
     p.expect(pexpect.EOF)
     p.close()
@@ -1874,7 +1874,7 @@ class Cli(PasswandTest):
     # Do a chain lookup but bypass the chain database password.
     args = ['get', '--data', str(data), '--chain', str(chain), '--space', 'foo',
             '--key', 'bar']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
     self.type_password(p, '')
     self.type_password(p, 'main password')
     p.expect('baz\r\n')
@@ -1896,7 +1896,7 @@ class Cli(PasswandTest):
     # Do a chain lookup with the main database password.
     args = ['get', '--data', str(data), '--chain', str(chain), '--space', 'foo',
             '--key', 'bar']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
     self.type_password(p, 'main password')
     p.expect(pexpect.EOF)
     p.close()
@@ -1922,7 +1922,7 @@ class Cli(PasswandTest):
 
       args = ['get', '--data', str(data), '--chain', str(chain), '--space',
               'foo', '--key', 'bar']
-      p = pexpect.spawn('./pw-cli', args, timeout=120)
+      p = pexpect.spawn('pw-cli', args, timeout=120)
       self.type_password(p, 'chain password')
       p.expect('baz\r\n')
       p.expect(pexpect.EOF)
@@ -1940,7 +1940,7 @@ class Cli(PasswandTest):
 
       args = ['get', '--data', str(data), '--chain', str(chain2), '--chain',
               str(chain1), '--space', 'foo', '--key', 'bar']
-      p = pexpect.spawn('./pw-cli', args, timeout=120)
+      p = pexpect.spawn('pw-cli', args, timeout=120)
       self.type_password(p, 'chain password')
       p.expect('baz\r\n')
       p.expect(pexpect.EOF)
@@ -1957,7 +1957,7 @@ class Cli(PasswandTest):
 
       args = ['get', '--data', str(data), '--chain', str(chain), '--space',
               'foo', '--key', 'bar']
-      p = pexpect.spawn('./pw-cli', args, timeout=120)
+      p = pexpect.spawn('pw-cli', args, timeout=120)
       self.type_password(p, '')
       self.type_password(p, 'main password')
       p.expect('baz\r\n')
@@ -1981,7 +1981,7 @@ class Cli(PasswandTest):
                    'baz')):
       for wf in ('9', '32'):
         argv = list(args) + ['--data', str(data), '--work-factor', wf]
-        p = pexpect.spawn('./pw-cli', argv, timeout=120)
+        p = pexpect.spawn('pw-cli', argv, timeout=120)
 
         # The command should error with something mentioning
         # --work-factor.
@@ -2072,7 +2072,7 @@ class Gui(PasswandTest):
     # Set an entry, an operation that should run for a while.
     args = ['set', '--data', str(data), '--space', 'space', '--key', 'key',
             '--value', 'value']
-    s = pexpect.spawn('./pw-cli', args, timeout=120)
+    s = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Wait for password prompt to ensure the 'set' has locked the database.
     s.expect('main password: ')
@@ -2265,7 +2265,7 @@ class Gui(PasswandTest):
     for i in range(2):
       args = ['set', '--work-factor', '10', '--data', str(data), '--space',
               f'space{i}', '--key', f'key{i}', '--value', f'value{i}']
-      p = pexpect.spawn('./pw-cli', args, timeout=120)
+      p = pexpect.spawn('pw-cli', args, timeout=120)
 
       # Enter the main password.
       self.type_password_with_confirmation(p, 'foo')
@@ -2278,7 +2278,7 @@ class Gui(PasswandTest):
     # Setup the first chain database.
     args = ['set', '--work-factor', '11', '--data', str(chain1), '--space',
             'ignored', '--key', 'ignored', '--value', 'foo']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password_with_confirmation(p, 'bar')
@@ -2291,7 +2291,7 @@ class Gui(PasswandTest):
     # Setup the second chain database.
     args = ['set', '--work-factor', '12', '--data', str(chain2), '--space',
             'ignored', '--key', 'ignored', '--value', 'bar']
-    p = pexpect.spawn('./pw-cli', args, timeout=120)
+    p = pexpect.spawn('pw-cli', args, timeout=120)
 
     # Enter the main password.
     self.type_password_with_confirmation(p, 'baz')
