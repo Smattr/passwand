@@ -35,8 +35,8 @@ endif()
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-add_compile_options(-W -Wall -Wextra -Wformat=2 -Wwrite-strings
-  -Wmissing-prototypes -Wshadow -Wundef)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wformat=2 -Wwrite-strings \
+  -Wmissing-prototypes -Wshadow -Wundef")
 add_definitions(-D_DEFAULT_SOURCE -D_BSD_SOURCE -D_GNU_SOURCE)
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
