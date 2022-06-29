@@ -47,8 +47,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--as-needed")
 endif()
 
-option(USE_WAYLAND "prefer Wayland over X11 for GUI input")
-
 # disable __builtin_memset when we need it not to be optimised out
 set_source_files_properties(src/erase.c PROPERTIES COMPILE_FLAGS -fno-builtin-memset)
 
@@ -67,55 +65,10 @@ find_library(SCRYPTKDF_LIBRARIES NAMES scrypt-kdf libscrypt-kdf
 find_path(SCRYPTKDF_INCLUDE_DIRS scrypt-kdf.h
   PATHS ENV C_INCLUDE_PATH)
 
-# try to find x11
-pkg_check_modules(X11 x11)
-
-# try to find Wayland uinput
-include(CheckIncludeFile)
-check_include_file("linux/uinput.h" HAS_UINPUT)
-
-# Try to find a GUI solution. In order of preference: GTK3, GTK2, osascript
-# (MacOS). If none are found, just disable building the GUI client.
-pkg_check_modules(GTK3 gtk+-3.0)
-if(GTK3_FOUND)
-  include_directories(${GTK3_INCLUDE_DIRS})
-  set(GTK_LIBRARIES "${GTK3_LIBRARIES}")
-else()
-  pkg_check_modules(GTK2 gtk+-2.0)
-  if(GTK2_FOUND)
-    include_directories(${GTK2_INCLUDE_DIRS})
-    set(GTK_LIBRARIES "${GTK2_LIBRARIES}")
-  else()
-    find_program(OSASCRIPT osascript)
-  endif()
-endif()
-
 find_package(Threads)
 
-if(GTK3_FOUND OR GTK2_FOUND)
-  if(NOT USE_WAYLAND AND X11_FOUND)
-    add_executable(pw-gui gui/main.c gui/gtk.c gui/x11.c common/argparse.c)
-    add_executable(test-type gui/test-type.c gui/gtk.c gui/x11.c)
-  elseif(USE_WAYLAND AND HAS_UINPUT)
-    add_executable(pw-gui gui/main.c gui/gtk.c gui/wayland.c common/argparse.c)
-    add_executable(test-type gui/test-type.c gui/gtk.c gui/wayland.c)
-  endif()
-elseif(OSASCRIPT)
-  add_executable(pw-gui gui/main.c gui/osascript.c common/argparse.c)
-  add_executable(test-type gui/test-type.c gui/osascript.c)
-endif()
-
-if(TARGET pw-gui)
-  target_link_libraries(pw-gui passwand ${GTK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-  target_link_libraries(test-type passwand ${GTK_LIBRARIES})
-  if(NOT USE_WAYLAND)
-    target_link_libraries(pw-gui ${X11_LIBRARIES})
-    target_link_libraries(test-type ${X11_LIBRARIES})
-  endif()
-  install(TARGETS pw-gui RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-endif()
-
 add_subdirectory(cli)
+add_subdirectory(gui)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
