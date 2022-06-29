@@ -58,17 +58,14 @@ include_directories(${OPENSSL_INCLUDE_DIRS})
 pkg_check_modules(JSON REQUIRED json-c)
 include_directories(${JSON_INCLUDE_DIRS})
 
-find_library(CUNIT NAMES cunit libcunit cunitlib)
-
 find_library(SCRYPTKDF_LIBRARIES NAMES scrypt-kdf libscrypt-kdf
   PATHS ENV LIBRARY_PATH)
 find_path(SCRYPTKDF_INCLUDE_DIRS scrypt-kdf.h
   PATHS ENV C_INCLUDE_PATH)
 
-find_package(Threads)
-
 add_subdirectory(cli)
 add_subdirectory(gui)
+add_subdirectory(tests)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
@@ -80,28 +77,6 @@ install(TARGETS passwand
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-
-add_executable(passwand-tests
-
-    # internal library files whose contents we need to expose
-    src/encoding.c src/encryption.c src/pack.c src/random.c
-    
-    # actual test sources
-    tests/main.c tests/test_decode.c tests/test_decrypt.c tests/test_encode.c tests/test_encrypt.c
-    tests/test_entry_new.c tests/test_entry_check_mac.c tests/test_entry_set_mac.c
-    tests/test_erase.c tests/test_export.c tests/test_import.c tests/test_integration.c
-    tests/test_malloc.c tests/test_pack.c tests/test_random_bytes.c tests/test_unpack.c
-    tests/util.c)
-target_link_libraries(passwand-tests passwand ${CUNIT})
-
-add_executable(pw-gui-test-stub gui/main.c common/argparse.c tests/gui-test-stub.c)
-target_link_libraries(pw-gui-test-stub passwand ${CMAKE_THREAD_LIBS_INIT})
-
-add_custom_target(check
-  COMMAND passwand-tests
-  COMMAND env PATH=${CMAKE_BINARY_DIR}/cli:$ENV{PATH}
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration-tests.py --verbose
-)
 
 find_program(CLANG_FORMAT
   NAMES

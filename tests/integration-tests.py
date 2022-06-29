@@ -2012,7 +2012,7 @@ class Gui(PasswandTest):
     When asking for a password from a file with no entries, we should receive an
     error.
     '''
-    args = ['./pw-gui-test-stub', '--data', self.empty_json]
+    args = ['pw-gui-test-stub', '--data', self.empty_json]
     input = ('\n'       # No main password
              'hello\n'  # Space "hello"
              'world\n') # Key "world"
@@ -2028,7 +2028,7 @@ class Gui(PasswandTest):
     '''
     When cancelling the main password request, we should exit with success.
     '''
-    args = ['./pw-gui-test-stub', '--data', self.empty_json]
+    args = ['pw-gui-test-stub', '--data', self.empty_json]
     input = '' # EOF indicates cancel
     p = self.sp_run(args, input)
     self.assertEqual(p.stdout, '')
@@ -2039,7 +2039,7 @@ class Gui(PasswandTest):
     '''
     When cancelling the space request, we should exit with success.
     '''
-    args = ['./pw-gui-test-stub', '--data', self.empty_json]
+    args = ['pw-gui-test-stub', '--data', self.empty_json]
     input = 'main\n' # EOF indicates cancel
     p = self.sp_run(args, input)
     self.assertEqual(p.stdout, '')
@@ -2050,7 +2050,7 @@ class Gui(PasswandTest):
     '''
     When cancelling the key request, we should exit with success.
     '''
-    args = ['./pw-gui-test-stub', '--data', self.empty_json]
+    args = ['pw-gui-test-stub', '--data', self.empty_json]
     input = ('main\n'
              'space\n') # EOF indicates cancel
     p = self.sp_run(args, input)
@@ -2079,7 +2079,7 @@ class Gui(PasswandTest):
 
     # Try to read from the database. This should fail because it should be
     # locked by the 'set'.
-    args = ['./pw-gui-test-stub', '--data', data]
+    args = ['pw-gui-test-stub', '--data', data]
     input = ('space\n'
              'key\n'
              'test\n')
@@ -2108,7 +2108,7 @@ class Gui(PasswandTest):
       self.do_set(data, 'test', f'space{i}', f'key{i}', f'value{i}')
 
     # Now try to retrieve an entry but enter the wrong password.
-    args = ['./pw-gui-test-stub', '--data', data]
+    args = ['pw-gui-test-stub', '--data', data]
     input = ('space0\n'
              'key0\n'
              'not test\n')
@@ -2138,7 +2138,7 @@ class Gui(PasswandTest):
 
     # Confirm the we can now lookup both entries using the chain.
     for i in range(2):
-      args = ['./pw-gui-test-stub', '--data', data, '--chain', chain]
+      args = ['pw-gui-test-stub', '--data', data, '--chain', chain]
       input = (f'space{i}\n'
                f'key{i}\n'
                'bar\n')
@@ -2147,7 +2147,7 @@ class Gui(PasswandTest):
 
       # The entries should *not* be retrievable using the primary
       # database’s password.
-      args = ['./pw-gui-test-stub', '--data', data, '--chain', chain]
+      args = ['pw-gui-test-stub', '--data', data, '--chain', chain]
       input = (f'space{i}\n'
                f'key{i}\n'
                'foo\n')
@@ -2179,7 +2179,7 @@ class Gui(PasswandTest):
 
     # Confirm the we can now lookup both entries using the chain.
     for i in range(2):
-      args = ['./pw-gui-test-stub', '--data', data, '--chain', chain2,
+      args = ['pw-gui-test-stub', '--data', data, '--chain', chain2,
               '--chain', chain1]
       input = (f'space{i}\n'
                f'key{i}\n'
@@ -2189,7 +2189,7 @@ class Gui(PasswandTest):
 
       # The entries should *not* be retrievable using the primary
       # database’s password.
-      args = ['./pw-gui-test-stub', '--data', data, '--chain', chain2,
+      args = ['pw-gui-test-stub', '--data', data, '--chain', chain2,
               '--chain', chain1]
       input = (f'space{i}\n'
                f'key{i}\n'
@@ -2204,7 +2204,7 @@ class Gui(PasswandTest):
 
       # The entries should also not be retrievable using the main password
       # of the intermediate chain database.
-      args = ['./pw-gui-test-stub', '--data', data, '--chain', chain2,
+      args = ['pw-gui-test-stub', '--data', data, '--chain', chain2,
               '--chain', chain1]
       input = (f'space{i}\n'
                f'key{i}\n'
@@ -2220,7 +2220,7 @@ class Gui(PasswandTest):
       # Passing the chain in the wrong order should also fail with any of
       # the main passwords.
       for mainpass in ('foo', 'bar', 'baz'):
-        args = ['./pw-gui-test-stub', '--data', data, '--chain', chain1,
+        args = ['pw-gui-test-stub', '--data', data, '--chain', chain1,
                 '--chain', chain2]
         input = (f'space{i}\n'
                  f'key{i}\n'
@@ -2246,7 +2246,7 @@ class Gui(PasswandTest):
     self.do_set(data, 'foo', 'space', 'key', 'foo')
 
     # Now chain the database to itself and try to retrieve the entry.
-    args = ['./pw-gui-test-stub', '--data', data, '--chain', data]
+    args = ['pw-gui-test-stub', '--data', data, '--chain', data]
     input = ('space\n'
              'key\n'
              'foo\n')
@@ -2305,7 +2305,7 @@ class Gui(PasswandTest):
     for i in range(2):
       for a, b, c in itertools.permutations(('10', '11', '12')):
 
-        args = ['./pw-gui-test-stub', '--data', data, '--work-factor', a,
+        args = ['pw-gui-test-stub', '--data', data, '--work-factor', a,
                 '--chain', chain2, '--work-factor', b, '--chain', chain1,
                 '--work-factor', c]
         input = (f'space{i}\n'
@@ -2346,7 +2346,7 @@ class Gui(PasswandTest):
 
     # We should be unable to use this as a chain.
     for i in range(2):
-      args = ['./pw-gui-test-stub', '--data', data, '--chain', chain1]
+      args = ['pw-gui-test-stub', '--data', data, '--chain', chain1]
       input = (f'space{i}\n'
                f'key{i}\n'
                'bar\n')
@@ -2365,7 +2365,7 @@ class Gui(PasswandTest):
 
     # We should be unable to use this as a chain.
     for i in range(2):
-      args = ['./pw-gui-test-stub', '--data', data, '--chain', chain2]
+      args = ['pw-gui-test-stub', '--data', data, '--chain', chain2]
       input = (f'space{i}\n'
                f'key{i}\n'
                'bar\n')
@@ -2394,7 +2394,7 @@ class Gui(PasswandTest):
 
     # Confirm the we can now lookup both entries by bypassing the chain.
     for i in range(2):
-      args = ['./pw-gui-test-stub', '--data', data, '--chain', chain]
+      args = ['pw-gui-test-stub', '--data', data, '--chain', chain]
       input = (f'space{i}\n'
                f'key{i}\n'
                '\n'
@@ -2404,7 +2404,7 @@ class Gui(PasswandTest):
 
       # The entries should *not* be retrievable using the primary
       # database’s password.
-      args = ['./pw-gui-test-stub', '--data', data, '--chain', chain]
+      args = ['pw-gui-test-stub', '--data', data, '--chain', chain]
       input = (f'space{i}\n'
                f'key{i}\n'
                'foo\n')
@@ -2418,7 +2418,7 @@ class Gui(PasswandTest):
 
       # The entries should also *not* be retrievable by bypassing the
       # chain but then entering the chain’s password.
-      args = ['./pw-gui-test-stub', '--data', data, '--chain', chain]
+      args = ['pw-gui-test-stub', '--data', data, '--chain', chain]
       input = (f'space{i}\n'
                f'key{i}\n'
                '\n'
@@ -2451,7 +2451,7 @@ class Gui(PasswandTest):
 
     # Confirm the we can now lookup both entries skipping the first chain.
     for i in range(2):
-      args = ['./pw-gui-test-stub', '--data', data, '--chain', chain2,
+      args = ['pw-gui-test-stub', '--data', data, '--chain', chain2,
               '--chain', chain1]
       input = (f'space{i}\n'
                f'key{i}\n'
@@ -2461,7 +2461,7 @@ class Gui(PasswandTest):
       self.assertEqual(stdout, f'value{i}\n')
 
       # This should *not* work if we do not skip the chain.
-      args = ['./pw-gui-test-stub', '--data', data, '--chain', chain2,
+      args = ['pw-gui-test-stub', '--data', data, '--chain', chain2,
               '--chain', chain1]
       input = (f'space{i}\n'
                f'key{i}\n'
@@ -2476,7 +2476,7 @@ class Gui(PasswandTest):
 
     # Confirm the we can now lookup both entries skipping both chains.
     for i in range(2):
-      args = ['./pw-gui-test-stub', '--data', data, '--chain', chain2,
+      args = ['pw-gui-test-stub', '--data', data, '--chain', chain2,
               '--chain', chain1]
       input = (f'space{i}\n'
                f'key{i}\n'
@@ -2488,7 +2488,7 @@ class Gui(PasswandTest):
 
       # This should *not* work using either of the intermediate
       # passphrases.
-      args = ['./pw-gui-test-stub', '--data', data, '--chain', chain2,
+      args = ['pw-gui-test-stub', '--data', data, '--chain', chain2,
               '--chain', chain1]
       input = (f'space{i}\n'
                f'key{i}\n'
@@ -2503,7 +2503,7 @@ class Gui(PasswandTest):
       self.assertNotEqual(p.stdout, f'value{i}\n')
       self.assertNotEqual(p.stderr, '')
 
-      args = ['./pw-gui-test-stub', '--data', data, '--chain', chain2,
+      args = ['pw-gui-test-stub', '--data', data, '--chain', chain2,
               '--chain', chain1]
       input = (f'space{i}\n'
                f'key{i}\n'
@@ -2535,7 +2535,7 @@ class Gui(PasswandTest):
     # Bypassing without a chain should fail.
     for i in range(2):
       for passphrase in ('foo', 'bar'):
-        args = ['./pw-gui-test-stub', '--data', data]
+        args = ['pw-gui-test-stub', '--data', data]
         input = (f'space{i}\n'
                  f'key{i}\n'
                  '\n'
@@ -2551,7 +2551,7 @@ class Gui(PasswandTest):
     # Bypassing more times than we have chain links should fail.
     for i in range(2):
       for passphrase in ('foo', 'bar'):
-        args = ['./pw-gui-test-stub', '--data', data, '--chain', chain]
+        args = ['pw-gui-test-stub', '--data', data, '--chain', chain]
         input = (f'space{i}\n'
                  f'key{i}\n'
                  '\n'
@@ -2583,7 +2583,7 @@ class Gui(PasswandTest):
     self.do_set(chain, password, 'foo', 'bar', value)
 
     # Attempt a retrieval through the chain to see if it leaks memory.
-    args = ['./pw-gui-test-stub', '--data', data, '--chain', chain]
+    args = ['pw-gui-test-stub', '--data', data, '--chain', chain]
     input = ('foo\n'
              'bar\n'
              f'{short if main_longer else long}\n')
