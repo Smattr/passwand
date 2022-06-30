@@ -8,13 +8,13 @@ TEST("malloc: basic functionality") {
 
   const char buffer[] = "hello world";
 
-  void *p;
-  int err = passwand_secure_malloc(&p, 10);
+  char *p;
+  int err = passwand_secure_malloc((void **)&p, 10);
   CU_ASSERT_EQUAL_FATAL(err, 0);
   memcpy(p, buffer, 10);
 
-  void *q;
-  err = passwand_secure_malloc(&q, 100);
+  char *q;
+  err = passwand_secure_malloc((void **)&q, 100);
   CU_ASSERT_EQUAL_FATAL(err, 0);
   memcpy(q, buffer, sizeof(buffer));
 
