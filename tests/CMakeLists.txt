@@ -26,9 +26,6 @@ add_executable(passwand-tests
   util.c
 )
 
-# FIXME
-target_include_directories(passwand-tests PRIVATE ../include)
-
 target_link_libraries(passwand-tests PRIVATE passwand)
 
 find_path(CUNIT_INCLUDE_DIRS CUnit/CUnit.h HINTS ENV C_INCLUDE_PATH REQUIRED)
@@ -45,9 +42,6 @@ add_executable(pw-gui-test-stub
   ../gui/main.c
   ../common/argparse.c
 )
-
-# FIXME
-target_include_directories(pw-gui-test-stub PRIVATE ../include)
 
 target_link_libraries(pw-gui-test-stub PRIVATE passwand)
 

@@ -21,9 +21,6 @@ add_executable(pw-cli
   ${CMAKE_CURRENT_BINARY_DIR}/manpage.c
 )
 
-# FIXME
-target_include_directories(pw-cli PRIVATE ../include)
-
 target_link_libraries(pw-cli PRIVATE passwand)
 
 find_package(PkgConfig REQUIRED)

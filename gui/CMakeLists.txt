@@ -45,9 +45,6 @@ if(ENABLE_GUI)
     ${INPUT_C}
   )
 
-  # FIXME
-  target_include_directories(pw-gui PRIVATE ../include)
-
   target_link_libraries(pw-gui PRIVATE passwand)
 
   if(GTK3_FOUND)
@@ -73,9 +70,6 @@ if(ENABLE_GUI)
     ${OUTPUT_C}
     ${INPUT_C}
   )
-
-  # FIXME
-  target_include_directories(test-type PRIVATE ../include)
 
   target_link_libraries(test-type PRIVATE passwand)
 

@@ -47,36 +47,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--as-needed")
 endif()
 
-# disable __builtin_memset when we need it not to be optimised out
-set_source_files_properties(src/erase.c PROPERTIES COMPILE_FLAGS -fno-builtin-memset)
-
-find_package(PkgConfig)
-
-pkg_check_modules(OPENSSL REQUIRED openssl)
-include_directories(${OPENSSL_INCLUDE_DIRS})
-
-pkg_check_modules(JSON REQUIRED json-c)
-include_directories(${JSON_INCLUDE_DIRS})
-
-find_library(SCRYPTKDF_LIBRARIES NAMES scrypt-kdf libscrypt-kdf
-  PATHS ENV LIBRARY_PATH)
-find_path(SCRYPTKDF_INCLUDE_DIRS scrypt-kdf.h
-  PATHS ENV C_INCLUDE_PATH)
-
 add_subdirectory(cli)
 add_subdirectory(gui)
+add_subdirectory(src)
 add_subdirectory(tests)
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-add_library(passwand src/encoding.c src/erase.c src/encryption.c src/entry.c src/error.c
-    src/export.c src/hmac.c src/import.c src/make_key.c src/malloc.c src/pack.c src/random.c)
-target_include_directories(passwand PRIVATE ${SCRYPTKDF_INCLUDE_DIRS})
-target_link_libraries(passwand ${OPENSSL_LIBRARIES} ${JSON_LIBRARIES} ${SCRYPTKDF_LIBRARIES})
-install(TARGETS passwand
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 find_program(CLANG_FORMAT
   NAMES
