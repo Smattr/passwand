@@ -203,7 +203,7 @@ int passwand_secure_malloc(void **p, size_t size) {
         // we found enough contiguous free bits!
         for (unsigned i = 0; i * sizeof(long long) < size; i++)
           write_bitmap(n, n->last_index + i, true);
-        *p = n->base + n->last_index * sizeof(long long);
+        *p = (char *)n->base + n->last_index * sizeof(long long);
         n->last_index += size / sizeof(long long);
         unlock();
         return 0;
@@ -245,7 +245,7 @@ int passwand_secure_malloc(void **p, size_t size) {
   for (unsigned index = (EXPECTED_PAGE_SIZE - size) / sizeof(long long);
        index < EXPECTED_PAGE_SIZE / sizeof(long long); index++)
     write_bitmap(c, index, true);
-  *p = c->base + EXPECTED_PAGE_SIZE - size;
+  *p = (char *)c->base + EXPECTED_PAGE_SIZE - size;
 
   unlock();
   return 0;
@@ -273,9 +273,10 @@ void passwand_secure_free(void *p, size_t size) {
 
   // find the chunk this allocation came from
   for (chunk_t *c = freelist; c != NULL; c = c->next) {
-    if (p >= c->base && p + size <= c->base + EXPECTED_PAGE_SIZE) {
+    if (p >= c->base &&
+        (uintptr_t)p + size <= (uintptr_t)c->base + EXPECTED_PAGE_SIZE) {
       // it came from this chunk
-      unsigned offset = (p - c->base) / sizeof(long long);
+      unsigned offset = ((uintptr_t)p - (uintptr_t)c->base) / sizeof(long long);
       for (unsigned index = 0; index * sizeof(long long) < size; index++) {
         assert(read_bitmap(c, index + offset));
         if (!read_bitmap(c, index + offset)) {
