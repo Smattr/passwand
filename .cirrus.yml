@@ -33,7 +33,7 @@ task:
         # $LC_ALL to make `man` work correctly
         LC_ALL: C
         UBSAN_OPTIONS: print_stacktrace=1
-      install_script: apt-get update -y && apt-get install --no-install-recommends -y cmake libcunit1-dev libgtk2.0-dev libjson-c-dev libscrypt-kdf1 libscrypt-kdf-dev man-db python3-pexpect xxd
+      install_script: apt-get update -y && apt-get install --no-install-recommends -y cmake libcunit1-dev libgtk2.0-dev libjson-c-dev libscrypt-kdf1 libscrypt-kdf-dev libxtst-dev man-db python3-pexpect xxd
       test_script: uname -sr && python3 --version && mkdir build && cd build && cmake .. && cmake --build . -- pw-cli pw-gui-test-stub pw-gui passwand-tests test-type && cmake --build . -- check && cmake --build . -- install
 
     - name: Linux, GCC, GTK 3
@@ -46,7 +46,7 @@ task:
         # $LC_ALL to make `man` work correctly
         LC_ALL: C
         UBSAN_OPTIONS: print_stacktrace=1
-      install_script: apt-get update -y && apt-get install --no-install-recommends -y cmake libcunit1-dev libgtk-3-dev libjson-c-dev libscrypt-kdf1 libscrypt-kdf-dev man-db python3-pexpect xxd
+      install_script: apt-get update -y && apt-get install --no-install-recommends -y cmake libcunit1-dev libgtk-3-dev libjson-c-dev libscrypt-kdf1 libscrypt-kdf-dev libxtst-dev man-db python3-pexpect xxd
       test_script: uname -sr && python3 --version && mkdir build && cd build && cmake .. && cmake --build . -- pw-cli pw-gui-test-stub pw-gui passwand-tests test-type && cmake --build . -- check && cmake --build . -- install
 
     - name: macOS
