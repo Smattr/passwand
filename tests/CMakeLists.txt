@@ -50,9 +50,20 @@ target_link_libraries(pw-gui-test-stub PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
+execute_process(
+  COMMAND ${Python3_EXECUTABLE} -c "import pytest"
+  RESULT_VARIABLE IMPORT_PYTEST_RET
+  OUTPUT_QUIET
+  ERROR_QUIET
+)
+if(NOT ${IMPORT_PYTEST_RET} EQUAL 0)
+  message(FATAL_ERROR "pytest not found")
+endif()
+
 add_custom_target(check
   COMMAND passwand-tests
   COMMAND env
     PATH=${CMAKE_BINARY_DIR}/cli:${CMAKE_CURRENT_BINARY_DIR}:$ENV{PATH}
+    ${Python3_EXECUTABLE} -m pytest
     ${CMAKE_CURRENT_SOURCE_DIR}/integration-tests.py --verbose
 )
