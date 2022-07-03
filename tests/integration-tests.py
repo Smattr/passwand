@@ -22,7 +22,7 @@ HARD_PASSWORD = 'WEy2zHDJjLsNog8tE5hwvrIR0adAGrR4m5wh6y99ssyo1zzUESw9OWPp8yEL'
 def check_output(args: List[PathLike], input: str) -> str:
   return subprocess.check_output(args, input=input, universal_newlines=True)
 
-def sp_run(args: List[PathLike], input: str) -> subprocess.CompletedProcess:
+def run(args: List[PathLike], input: str) -> subprocess.CompletedProcess:
   return subprocess.run(args, input=input, stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE, universal_newlines=True)
 
@@ -1982,7 +1982,7 @@ def test_gui_empty_no_entry(tmp_path: Path):
   input = ('\n'       # No main password
            'hello\n'  # Space "hello"
            'world\n') # Key "world"
-  p = sp_run(args, input)
+  p = run(args, input)
   assert p.stdout == ''
   assert p.stderr == 'failed to find matching entry\n'
   if sys.platform == 'darwin':
@@ -2002,7 +2002,7 @@ def test_gui_cancel_main(tmp_path: Path):
 
   args = ['pw-gui-test-stub', '--data', empty_json]
   input = '' # EOF indicates cancel
-  p = sp_run(args, input)
+  p = run(args, input)
   assert p.stdout == ''
   assert p.stderr == ''
   p.check_returncode()
@@ -2019,7 +2019,7 @@ def test_gui_cancel_space(tmp_path: Path):
 
   args = ['pw-gui-test-stub', '--data', empty_json]
   input = 'main\n' # EOF indicates cancel
-  p = sp_run(args, input)
+  p = run(args, input)
   assert p.stdout == ''
   assert p.stderr == ''
   p.check_returncode()
@@ -2037,7 +2037,7 @@ def test_gui_cancel_key(tmp_path: Path):
   args = ['pw-gui-test-stub', '--data', empty_json]
   input = ('main\n'
            'space\n') # EOF indicates cancel
-  p = sp_run(args, input)
+  p = run(args, input)
   assert p.stdout == ''
   assert p.stderr == ''
   p.check_returncode()
@@ -2067,7 +2067,7 @@ def test_gui_concurrent_manipulation(tmp_path: Path):
   input = ('space\n'
            'key\n'
            'test\n')
-  p = sp_run(args, input)
+  p = run(args, input)
   assert p.stderr.strip().startswith('failed to lock database')
   if sys.platform == 'darwin':
     assert p.returncode == 0
@@ -2096,7 +2096,7 @@ def test_gui_error_rate(tmp_path: Path):
   input = ('space0\n'
            'key0\n'
            'not test\n')
-  p = sp_run(args, input)
+  p = run(args, input)
 
   if sys.platform == 'darwin':
     assert p.returncode == 0
@@ -2135,7 +2135,7 @@ def test_gui_chain_basic(tmp_path: Path):
     input = (f'space{i}\n'
              f'key{i}\n'
              'foo\n')
-    p = sp_run(args, input)
+    p = run(args, input)
     if sys.platform == 'darwin':
       assert p.returncode == 0
     else:
@@ -2178,7 +2178,7 @@ def test_gui_chain_double(tmp_path: Path):
     input = (f'space{i}\n'
              f'key{i}\n'
              'foo\n')
-    p = sp_run(args, input)
+    p = run(args, input)
     if sys.platform == 'darwin':
       assert p.returncode == 0
     else:
@@ -2193,7 +2193,7 @@ def test_gui_chain_double(tmp_path: Path):
     input = (f'space{i}\n'
              f'key{i}\n'
              'bar\n')
-    p = sp_run(args, input)
+    p = run(args, input)
     if sys.platform == 'darwin':
       assert p.returncode == 0
     else:
@@ -2209,7 +2209,7 @@ def test_gui_chain_double(tmp_path: Path):
       input = (f'space{i}\n'
                f'key{i}\n'
                f'{mainpass}\n')
-      p = sp_run(args, input)
+      p = run(args, input)
       if sys.platform == 'darwin':
         assert p.returncode == 0
       else:
@@ -2295,7 +2295,7 @@ def test_gui_chain_work_factor(tmp_path: Path):
       input = (f'space{i}\n'
                f'key{i}\n'
                'baz\n')
-      p = sp_run(args, input)
+      p = run(args, input)
 
       # This should only succeed if we used the right work factors.
       if a == '10' and b == '12' and c == '11':
@@ -2334,7 +2334,7 @@ def test_gui_chain_not_one(tmp_path: Path):
     input = (f'space{i}\n'
              f'key{i}\n'
              'bar\n')
-    p = sp_run(args, input)
+    p = run(args, input)
     if sys.platform == 'darwin':
       assert p.returncode == 0
     else:
@@ -2353,7 +2353,7 @@ def test_gui_chain_not_one(tmp_path: Path):
     input = (f'space{i}\n'
              f'key{i}\n'
              'bar\n')
-    p = sp_run(args, input)
+    p = run(args, input)
     if sys.platform == 'darwin':
       assert p.returncode == 0
     else:
@@ -2392,7 +2392,7 @@ def test_gui_chain_bypass(tmp_path: Path):
     input = (f'space{i}\n'
              f'key{i}\n'
              'foo\n')
-    p = sp_run(args, input)
+    p = run(args, input)
     if sys.platform == 'darwin':
       assert p.returncode == 0
     else:
@@ -2407,7 +2407,7 @@ def test_gui_chain_bypass(tmp_path: Path):
              f'key{i}\n'
              '\n'
              'bar\n')
-    p = sp_run(args, input)
+    p = run(args, input)
     if sys.platform == 'darwin':
       assert p.returncode == 0
     else:
@@ -2450,7 +2450,7 @@ def test_gui_chain_bypass_double(tmp_path: Path):
     input = (f'space{i}\n'
              f'key{i}\n'
              'bar\n')
-    p = sp_run(args, input)
+    p = run(args, input)
     if sys.platform == 'darwin':
       assert p.returncode == 0
     else:
@@ -2479,7 +2479,7 @@ def test_gui_chain_bypass_double(tmp_path: Path):
              '\n'
              '\n'
              'bar\n')
-    p = sp_run(args, input)
+    p = run(args, input)
     if sys.platform == 'darwin':
       assert p.returncode == 0
     else:
@@ -2494,7 +2494,7 @@ def test_gui_chain_bypass_double(tmp_path: Path):
              '\n'
              '\n'
              'baz\n')
-    p = sp_run(args, input)
+    p = run(args, input)
     if sys.platform == 'darwin':
       assert p.returncode == 0
     else:
@@ -2524,7 +2524,7 @@ def test_gui_chain_over_bypass(tmp_path: Path):
                f'key{i}\n'
                '\n'
                f'{passphrase}\n')
-      p = sp_run(args, input)
+      p = run(args, input)
       if sys.platform == 'darwin':
         assert p.returncode == 0
       else:
@@ -2541,7 +2541,7 @@ def test_gui_chain_over_bypass(tmp_path: Path):
                '\n'
                '\n'
                '{passphrase}\n')
-      p = sp_run(args, input)
+      p = run(args, input)
       if sys.platform == 'darwin':
         assert p.returncode == 0
       else:
@@ -2571,7 +2571,7 @@ def chain_leak_strlen(tmp_path: Path, main_longer: bool):
   input = ('foo\n'
            'bar\n'
            f'{short if main_longer else long}\n')
-  p = sp_run(args, input)
+  p = run(args, input)
   assert p.stdout == 'baz\n'
   assert p.stderr == ''
   p.check_returncode()
