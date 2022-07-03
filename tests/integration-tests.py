@@ -13,6 +13,7 @@ import tempfile
 from pathlib import Path
 from typing import List, Union
 import pexpect
+import pytest
 
 PathLike = Union[Path, str]
 
@@ -90,21 +91,12 @@ def test_cli_help_text():
   text = check_output(['pw-cli', '--help'], '')
   assert text.strip() != ''
 
-def test_set_basic(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_set_basic(tmp_path: Path, multithreaded: bool):
   '''
   Test basic functionality of setting an entry in a blank data file.
   '''
-  data = tmp_path / 'test_set_basic.json'
-  set_basic(True, data)
-
-def test_set_basic_single_threaded(tmp_path: Path):
-  '''
-  Same as test_set_basic, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_set_basic_single_threaded.json'
-  set_basic(False, data)
-
-def set_basic(multithreaded: bool, data: Path):
+  data = tmp_path / 'set_basic.json'
 
   # Request to save a key and value.
   do_set(data, 'test', 'space', 'key', 'value', multithreaded)
