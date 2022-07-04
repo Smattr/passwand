@@ -11,7 +11,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import List, Union
+from typing import Iterable, List, Union
 import pexpect
 import pytest
 
@@ -1510,33 +1510,33 @@ def test_cli_empty_password():
     p.close()
     assert p.exitstatus == 0
 
-def test_work_factor_error(tmp_path: Path):
+@pytest.mark.parametrize('args', (
+  ('change-main',),
+  ('check',),
+  ('delete', '--space', 'foo', '--key', 'bar'),
+  ('get',    '--space', 'foo', '--key', 'bar'),
+  ('list',),
+  ('set',    '--space', 'foo', '--key', 'bar', '--value', 'baz'),
+  ('update', '--space', 'foo', '--key', 'bar', '--value', 'baz'),
+))
+@pytest.mark.parametrize('wf', ('9', '32'))
+def test_work_factor_error(tmp_path: Path, args: Iterable[str], wf: str):
   '''
   Passing an invalid --work-factor should result in a sensible error.
   '''
   data = tmp_path / 'cli_work_factor_error.json'
 
-  for args in (('change-main',),
-               ('check',),
-               ('delete', '--space', 'foo', '--key', 'bar'),
-               ('get',    '--space', 'foo', '--key', 'bar'),
-               ('list',),
-               ('set',    '--space', 'foo', '--key', 'bar', '--value', 'baz'),
-               ('update', '--space', 'foo', '--key', 'bar', '--value',
-                 'baz')):
-    for wf in ('9', '32'):
-      argv = list(args) + ['--data', str(data), '--work-factor', wf]
-      p = pexpect.spawn('pw-cli', argv, timeout=120)
+  argv = list(args) + ['--data', str(data), '--work-factor', wf]
+  p = pexpect.spawn('pw-cli', argv, timeout=120)
 
-      # The command should error with something mentioning
-      # --work-factor.
-      p.expect('--work-factor')
-      p.expect(pexpect.EOF)
-      p.close()
-      assert p.exitstatus != 0
+  # The command should error with something mentioning --work-factor.
+  p.expect('--work-factor')
+  p.expect(pexpect.EOF)
+  p.close()
+  assert p.exitstatus != 0
 
-      # The database should not have been created.
-      assert not data.exists()
+  # The database should not have been created.
+  assert not data.exists()
 
 def test_gui_empty_no_entry(tmp_path: Path):
   '''
