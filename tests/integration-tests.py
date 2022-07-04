@@ -1048,21 +1048,12 @@ def test_update_overwrite(tmp_path: Path, multithreaded: bool):
   assert isinstance(j[0], dict)
   assert value != j[0]['value']
 
-def test_update_empty(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_update_empty(tmp_path: Path, multithreaded: bool):
   '''
   Test updating on an empty database fails.
   '''
-  data = tmp_path / 'test_update_empty.json'
-  update_empty(True, data)
-
-def test_update_empty_single_threaded(tmp_path: Path):
-  '''
-  Same as test_update_empty, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_update_empty_single_threaded.json'
-  update_empty(False, data)
-
-def update_empty(multithreaded: bool, data: Path):
+  data = tmp_path / 'update_empty.json'
 
   # Create an empty database.
   with open(data, 'wt') as f:
