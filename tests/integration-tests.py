@@ -804,21 +804,12 @@ def test_delete_nonexistent(tmp_path: Path, multithreaded: bool):
 
     do_get(data, 'test', f'space{i}', f'key{i}', f'value{i}', multithreaded)
 
-def test_concurrent_manipulation(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_concurrent_manipulation(tmp_path: Path, multithreaded: bool):
   '''
   Test modifying a database that is currently being read.
   '''
-  data = tmp_path / 'test_concurrent_manipulation.json'
-  concurrent_manipulation(True, data)
-
-def test_concurrent_manipulation_single_threaded(tmp_path: Path):
-  '''
-  Same as test_concurrent_manipulation, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_concurrent_manipulation_single_threaded.json'
-  concurrent_manipulation(False, data)
-
-def concurrent_manipulation(multithreaded: bool, data: Path):
+  data = tmp_path / 'concurrent_manipulation.json'
 
   # Request to save 10 keys and values.
   for i in range(10):
