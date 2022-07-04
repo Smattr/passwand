@@ -870,21 +870,12 @@ def test_check_basic(tmp_path: Path, multithreaded: bool):
   p.close()
   assert p.exitstatus != 0
 
-def test_check_basic2(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_check_basic2(tmp_path: Path, multithreaded: bool):
   '''
   Test basic functionality of checking an existing strong password entry.
   '''
-  data = tmp_path / 'test_check_basic2.json'
-  check_basic2(True, data)
-
-def test_check_basic2_single_threaded(tmp_path: Path):
-  '''
-  Same as test_check_basic2, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_check_basic2_single_threaded.json'
-  check_basic2(False, data)
-
-def check_basic2(multithreaded: bool, data: Path):
+  data = tmp_path / 'check_basic2.json'
 
   # Save a strong entry that would be hard to crack.
   do_set(data, 'test', 'space', 'key', HARD_PASSWORD)
