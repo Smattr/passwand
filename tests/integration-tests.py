@@ -717,49 +717,13 @@ def test_delete_empty(tmp_path: Path, multithreaded: bool):
   assert isinstance(j, list)
   assert len(j) == 0
 
-def test_delete_xoo(tmp_path: Path):
+@pytest.mark.parametrize('target', (0, 1, 2))
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_delete_xoo(tmp_path: Path, target: int, multithreaded: bool):
   '''
-  Test deleting the first of a set of three entries.
+  Test deleting one of a set of three entries.
   '''
-  data = tmp_path / 'test_delete_xoo.json'
-  delete_xxx(True, data, 0)
-
-def test_delete_xoo_single_threaded(tmp_path: Path):
-  '''
-  Same as test_delete_xoo, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_delete_xoo_single_threaded.json'
-  delete_xxx(False, data, 0)
-
-def test_delete_oxo(tmp_path: Path):
-  '''
-  Test deleting the second of a set of three entries.
-  '''
-  data = tmp_path / 'test_delete_oxo.json'
-  delete_xxx(True, data, 1)
-
-def test_delete_oxo_single_threaded(tmp_path: Path):
-  '''
-  Same as test_delete_oxo, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_delete_oxo_single_threaded.json'
-  delete_xxx(False, data, 1)
-
-def test_delete_oox(tmp_path: Path):
-  '''
-  Test deleting the third of a set of three entries.
-  '''
-  data = tmp_path / 'test_delete_oox.json'
-  delete_xxx(True, data, 2)
-
-def test_delete_oox_single_threaded(tmp_path: Path):
-  '''
-  Same as test_delete_oox, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_delete_oox_single_threaded.json'
-  delete_xxx(False, data, 2)
-
-def delete_xxx(multithreaded: bool, data: Path, target: int):
+  data = tmp_path / 'delete_xxx.json'
 
   # Setup a database with three entries.
   for i in range(3):
