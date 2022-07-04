@@ -378,21 +378,12 @@ def test_generate_long(tmp_path: Path, multithreaded: bool):
   # The value should exhibit some basic variation.
   assert any(x != v[0] for x in v[1:10])
 
-def test_change_main_empty(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_change_main_empty(tmp_path: Path, multithreaded: bool):
   '''
   Test changing the main password on an empty database.
   '''
-  data = tmp_path / 'test_change_main_empty.json'
-  change_main_empty(True, data)
-
-def test_change_main_empty_single_threaded(tmp_path: Path):
-  '''
-  Same as test_change_main_empty, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_change_main_empty_single_threaded.json'
-  change_main_empty(False, data)
-
-def change_main_empty(multithreaded: bool, data: Path):
+  data = tmp_path / 'change_main_empty.json'
 
   # Setup an empty database.
   with open(data, 'wt') as f:
