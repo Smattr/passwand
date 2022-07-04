@@ -456,21 +456,12 @@ def test_change_main_mismatch(tmp_path: Path, multithreaded: bool):
   assert isinstance(j, list)
   assert len(j) == 0
 
-def test_change_main_basic(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_change_main_basic(tmp_path: Path, multithreaded: bool):
   '''
   Test changing the main password does what it says on the box.
   '''
-  data = tmp_path / 'test_change_main_basic.json'
-  change_main_basic(True, data)
-
-def test_change_main_basic_single_threaded(tmp_path: Path):
-  '''
-  Same as test_change_main_basic, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_change_main_basic_single_threaded.json'
-  change_main_basic(False, data)
-
-def change_main_basic(multithreaded: bool, data: Path):
+  data = tmp_path / 'change_main_basic.json'
 
   # Request to save a key and value.
   do_set(data, 'test', 'space', 'key', 'value', multithreaded)
