@@ -1007,21 +1007,12 @@ def test_check_xxx(tmp_path: Path, weak_mask: int, multithreaded: bool):
       found |= 1 << index
   assert found == weak_mask, 'missed warning for weak password(s)'
 
-def test_update_overwrite(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_update_overwrite(tmp_path: Path, multithreaded: bool):
   '''
   Test updating an entry that is already set overwrites it.
   '''
-  data = tmp_path / 'test_update_overwrite.json'
-  update_overwrite(True, data)
-
-def test_update_overwrite_single_threaded(tmp_path: Path):
-  '''
-  Same as test_update_overwrite, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_update_overwrite_single_threaded.json'
-  update_overwrite(False, data)
-
-def update_overwrite(multithreaded: bool, data: Path):
+  data = tmp_path / 'update_overwrite.json'
 
   # Request to save a key and value.
   do_set(data, 'test', 'space', 'key', 'value', multithreaded)
