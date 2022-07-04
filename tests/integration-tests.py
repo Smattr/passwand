@@ -125,21 +125,12 @@ def test_get_basic(tmp_path: Path, multithreaded: bool):
   # Try to read the value back.
   do_get(data, 'test', 'space', 'key', 'value', multithreaded)
 
-def test_set_overwrite(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_set_overwrite(tmp_path: Path, multithreaded: bool):
   '''
   Test setting an entry that is already set does not overwrite it.
   '''
-  data = tmp_path / 'test_set_overwrite.json'
-  set_overwrite(True, data)
-
-def test_set_overwrite_single_threaded(tmp_path: Path):
-  '''
-  Same as test_set_overwrite, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_set_overwrite_single_threaded.json'
-  set_overwrite(False, data)
-
-def set_overwrite(multithreaded: bool, data: Path):
+  data = tmp_path / 'set_overwrite.json'
 
   # Request to save a key and value.
   do_set(data, 'test', 'space', 'key', 'value', multithreaded)
