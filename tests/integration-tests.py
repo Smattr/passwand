@@ -650,21 +650,12 @@ def test_set(tmp_path: Path, target: int, multithreaded: bool):
   for i in range(3):
     do_get(data, 'test', f'space{i}', f'key{i}', f'value{i}', multithreaded)
 
-def test_list_standard(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_list_standard(tmp_path: Path, multithreaded: bool):
   '''
   Test list of ten entries.
   '''
-  data = tmp_path / 'test_list_standard.json'
-  list_standard(True, data)
-
-def test_list_standard_single_threaded(tmp_path: Path):
-  '''
-  Same as test_list_standard, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_list_standard_single_threaded.json'
-  list_standard(False, data)
-
-def list_standard(multithreaded: bool, data: Path):
+  data = tmp_path / 'list_standard.json'
 
   # Request to save 10 keys and values.
   for i in range(10):
