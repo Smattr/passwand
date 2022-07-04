@@ -846,21 +846,12 @@ def test_concurrent_manipulation(tmp_path: Path, multithreaded: bool):
   get.close()
   assert get.exitstatus == 0
 
-def test_check_basic(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_check_basic(tmp_path: Path, multithreaded: bool):
   '''
   Test basic functionality of checking an existing weak password entry.
   '''
-  data = tmp_path / 'test_check_basic.json'
-  check_basic(True, data)
-
-def test_check_basic_single_threaded(tmp_path: Path):
-  '''
-  Same as test_check_basic, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_check_basic_single_threaded.json'
-  check_basic(False, data)
-
-def check_basic(multithreaded: bool, data: Path):
+  data = tmp_path / 'check_basic.json'
 
   # Save a weak entry that would be easy to crack.
   do_set(data, 'test', 'space', 'key', 'value', multithreaded)
