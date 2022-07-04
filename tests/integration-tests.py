@@ -894,21 +894,12 @@ def test_check_basic2(tmp_path: Path, multithreaded: bool):
   p.close()
   assert p.exitstatus == 0
 
-def test_check_hibp_eg(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_check_hibp_eg(tmp_path: Path, multithreaded: bool):
   '''
   Test checking a password we know to have been breached.
   '''
-  data = tmp_path / 'test_check_hibp_eg.json'
-  check_hibp_eg(True, data)
-
-def test_check_hibp_eg_single_threaded(tmp_path: Path):
-  '''
-  Same as test_check_hibp_eg, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_check_hibp_eg_single_threaded.json'
-  check_hibp_eg(False, data)
-
-def check_hibp_eg(multithreaded: bool, data: Path):
+  data = tmp_path / 'check_hibp_eg.json'
 
   # Save a password that Troy Hunt gives as an example of something
   # appearing in previous breaches.
