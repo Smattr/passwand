@@ -260,21 +260,12 @@ def test_generate_basic(tmp_path: Path, multithreaded: bool):
   # The value should exhibit some basic variation.
   assert any(x != v[0] for x in v[1:10])
 
-def test_generate_length(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_generate_length(tmp_path: Path, multithreaded: bool):
   '''
   Test generation of a password with set length.
   '''
-  data = tmp_path / 'test_generate_length.json'
-  generate_length(True, data)
-
-def test_generate_length_single_threaded(tmp_path: Path):
-  '''
-  Test generation of a password with set length.
-  '''
-  data = tmp_path / 'test_generate_length_single_threaded.json'
-  generate_length(False, data)
-
-def generate_length(multithreaded: bool, data: Path):
+  data = tmp_path / 'generate_length.json'
 
   # Pick some arbitrary non-default length to request
   length = 42
