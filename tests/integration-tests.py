@@ -944,119 +944,13 @@ def test_check_empty_database(tmp_path: Path, multithreaded: bool):
   p.close()
   assert p.exitstatus == 0
 
-def test_check_000(tmp_path: Path):
+@pytest.mark.parametrize('weak_mask', list(range(8)))
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_check_xxx(tmp_path: Path, weak_mask: int, multithreaded: bool):
   '''
   Test checking a set of entries with no weak passwords.
   '''
-  data = tmp_path / 'test_check_000.json'
-  check_xxx(True, data, 0)
-
-def test_check_000_single_threaded(tmp_path: Path):
-  '''
-  Same as test_check_000, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_check_000_single_threaded.json'
-  check_xxx(False, data, 0)
-
-def test_check_001(tmp_path: Path):
-  '''
-  Test checking a set of entries with one weak password.
-  '''
-  data = tmp_path / 'test_check_001.json'
-  check_xxx(True, data, 1)
-
-def test_check_001_single_threaded(tmp_path: Path):
-  '''
-  Same as test_check_001, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_check_001_single_threaded.json'
-  check_xxx(False, data, 1)
-
-def test_check_010(tmp_path: Path):
-  '''
-  Test checking a set of entries with one weak password.
-  '''
-  data = tmp_path / 'test_check_010.json'
-  check_xxx(True, data, 2)
-
-def test_check_010_single_threaded(tmp_path: Path):
-  '''
-  Same as test_check_010, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_check_010_single_threaded.json'
-  check_xxx(False, data, 2)
-
-def test_check_011(tmp_path: Path):
-  '''
-  Test checking a set of entries with two weak passwords.
-  '''
-  data = tmp_path / 'test_check_011.json'
-  check_xxx(True, data, 3)
-
-def test_check_011_single_threaded(tmp_path: Path):
-  '''
-  Same as test_check_011, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_check_011_single_threaded.json'
-  check_xxx(False, data, 3)
-
-def test_check_100(tmp_path: Path):
-  '''
-  Test checking a set of entries with one weak password.
-  '''
-  data = tmp_path / 'test_check_100.json'
-  check_xxx(True, data, 4)
-
-def test_check_100_single_threaded(tmp_path: Path):
-  '''
-  Same as test_check_100, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_check_100_single_threaded.json'
-  check_xxx(False, data, 4)
-
-def test_check_101(tmp_path: Path):
-  '''
-  Test checking a set of entries with two weak passwords.
-  '''
-  data = tmp_path / 'test_check_101.json'
-  check_xxx(True, data, 5)
-
-def test_check_101_single_threaded(tmp_path: Path):
-  '''
-  Same as test_check_101, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_check_101_single_threaded.json'
-  check_xxx(False, data, 5)
-
-def test_check_110(tmp_path: Path):
-  '''
-  Test checking a set of entries with two weak passwords.
-  '''
-  data = tmp_path / 'test_check_110.json'
-  check_xxx(True, data, 6)
-
-def test_check_110_single_threaded(tmp_path: Path):
-  '''
-  Same as test_check_110, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_check_110_single_threaded.json'
-  check_xxx(False, data, 6)
-
-def test_check_111(tmp_path: Path):
-  '''
-  Test checking a set of entries with three weak passwords.
-  '''
-  data = tmp_path / 'test_check_111.json'
-  check_xxx(True, data, 7)
-
-def test_check_111_single_threaded(tmp_path: Path):
-  '''
-  Same as test_check_111, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_check_111_single_threaded.json'
-  check_xxx(False, data, 7)
-
-def check_xxx(multithreaded: bool, data: Path, weak_mask: int):
+  data = tmp_path / 'check_xxx.json'
 
   # Save a set of keys and values.
   for i in range(3):
