@@ -205,21 +205,12 @@ def test_set_append(tmp_path: Path, multithreaded: bool):
   if j[0]['value'] != value:
     assert j[1]['value'] == value
 
-def test_generate_basic(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_generate_basic(tmp_path: Path, multithreaded: bool):
   '''
   Test generation of a password.
   '''
-  data = tmp_path / 'test_generate_basic.json'
-  generate_basic(True, data)
-
-def test_generate_basic_single_threaded(tmp_path: Path):
-  '''
-  Test generation of a password.
-  '''
-  data = tmp_path / 'test_generate_basic_single_threaded.json'
-  generate_basic(False, data)
-
-def generate_basic(multithreaded: bool, data: Path):
+  data = tmp_path / 'generate_basic.json'
 
   # Request generation of a password.
   args = ['generate', '--data', str(data), '--space', 'foo', '--key', 'bar']
