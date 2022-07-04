@@ -686,21 +686,12 @@ def test_list_standard(tmp_path: Path, multithreaded: bool):
   p.close()
   assert p.exitstatus == 0
 
-def test_delete_empty(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_delete_empty(tmp_path: Path, multithreaded: bool):
   '''
   Test delete from an empty database.
   '''
-  data = tmp_path / 'test_delete_empty.json'
-  delete_empty(True, data)
-
-def test_delete_empty_single_threaded(tmp_path: Path):
-  '''
-  Same as test_delete_empty, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_delete_empty_single_threaded.json'
-  delete_empty(False, data)
-
-def delete_empty(multithreaded: bool, data: Path):
+  data = tmp_path / 'delete_empty.json'
 
   # Setup an empty database.
   with open(data, 'wt') as f:
