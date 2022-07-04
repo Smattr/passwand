@@ -532,21 +532,12 @@ def test_change_main_basic(tmp_path: Path, multithreaded: bool):
   # Request retrieval of the entry again, but use the new password.
   do_get(data, 'test2', 'space', 'key', 'value', multithreaded)
 
-def test_list_empty(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_list_empty(tmp_path: Path, multithreaded: bool):
   '''
   Test listing an empty database.
   '''
-  data = tmp_path / 'test_list_empty.json'
-  list_empty(True, data)
-
-def test_list_empty_single_threaded(tmp_path: Path):
-  '''
-  Same as test_list_empty, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_list_empty_single_threaded.json'
-  list_empty(False, data)
-
-def list_empty(multithreaded: bool, data: Path):
+  data = tmp_path / 'list_empty.json'
 
   # Setup an empty database.
   with open(data, 'wt') as f:
