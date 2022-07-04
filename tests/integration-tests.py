@@ -111,22 +111,13 @@ def test_set_basic(tmp_path: Path, multithreaded: bool):
   assert 'key' in j[0].keys()
   assert 'value' in j[0].keys()
 
-def test_get_basic(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_get_basic(tmp_path: Path, multithreaded: bool):
   '''
   Test basic functionality of getting an entry from a small data file. Note
   that if test_set_basic* fails, you should expect this to fail as well.
   '''
-  data = tmp_path / 'test_get_basic.json'
-  get_basic(True, data)
-
-def test_get_basic_single_threaded(tmp_path: Path):
-  '''
-  Same as test_get_basic, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_get_basic_single_threaded.json'
-  get_basic(False, data)
-
-def get_basic(multithreaded: bool, data: Path):
+  data = tmp_path / 'get_basic.json'
 
   # Request to save a key and value.
   do_set(data, 'test', 'space', 'key', 'value', multithreaded)
