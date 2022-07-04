@@ -919,21 +919,12 @@ def test_check_hibp_eg(tmp_path: Path, multithreaded: bool):
   p.close()
   assert p.exitstatus != 0
 
-def test_check_empty_database(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_check_empty_database(tmp_path: Path, multithreaded: bool):
   '''
   Test checking of a database with no entries.
   '''
-  data = tmp_path / 'test_check_empty_database.json'
-  check_empty_database(True, data)
-
-def test_check_empty_database_single_threaded(tmp_path: Path):
-  '''
-  Same as test_check_empty_database, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_check_empty_database_single_threaded.json'
-  check_empty_database(False, data)
-
-def check_empty_database(multithreaded: bool, data: Path):
+  data = tmp_path / 'check_empty_database.json'
 
   # Create an empty database.
   with open(data, 'wt') as f:
