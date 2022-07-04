@@ -617,49 +617,13 @@ def test_list_basic(tmp_path: Path, multithreaded: bool):
   assert p.exitstatus == 0
   assert output.decode('utf-8', 'replace').strip() == 'space/key'
 
-def test_set_xoo(tmp_path: Path):
+@pytest.mark.parametrize('target', (0, 1, 2))
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_set(tmp_path: Path, target: int, multithreaded: bool):
   '''
-  Test trying to overwrite the first of a set of three entries.
+  Test trying to overwrite one of a set of three entries.
   '''
-  data = tmp_path / 'test_set_xoo.json'
-  set_xxx(True, data, 0)
-
-def test_set_xoo_single_threaded(tmp_path: Path):
-  '''
-  Same as test_set_xoo, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_set_xoo_single_threaded.json'
-  set_xxx(False, data, 0)
-
-def test_set_oxo(tmp_path: Path):
-  '''
-  Test trying to overwrite the second of a set of three entries.
-  '''
-  data = tmp_path / 'test_set_oxo.json'
-  set_xxx(True, data, 1)
-
-def test_set_oxo_single_threaded(tmp_path: Path):
-  '''
-  Same as test_set_oxo, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_set_oxo_single_threaded.json'
-  set_xxx(False, data, 1)
-
-def test_set_oox(tmp_path: Path):
-  '''
-  Test trying to overwrite the third of a set of three entries.
-  '''
-  data = tmp_path / 'test_set_oox.json'
-  set_xxx(True, data, 2)
-
-def test_set_oox_single_threaded(tmp_path: Path):
-  '''
-  Same as test_set_oox, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_set_oox_single_threaded.json'
-  set_xxx(False, data, 2)
-
-def set_xxx(multithreaded: bool, data: Path, target):
+  data = tmp_path / 'set_xxx.json'
 
   # Setup a database with three entries.
   for i in range(3):
