@@ -319,21 +319,12 @@ def test_generate_length(tmp_path: Path, multithreaded: bool):
   # The value should exhibit some basic variation.
   assert any(x != v[0] for x in v[1:10])
 
-def test_generate_long(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_generate_long(tmp_path: Path, multithreaded: bool):
   '''
   Test generation of a long password.
   '''
-  data = tmp_path / 'test_generate_long.json'
-  generate_long(True, data)
-
-def test_generate_long_single_threaded(tmp_path: Path):
-  '''
-  Test generation of a long password.
-  '''
-  data = tmp_path / 'test_generate_long_single_threaded.json'
-  generate_long(False, data)
-
-def generate_long(multithreaded: bool, data: Path):
+  data = tmp_path / 'generate_long.json'
 
   # A length that exceeds the passwand_random_bytes() limit (256).
   length = 4000
