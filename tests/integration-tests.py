@@ -1123,49 +1123,13 @@ def test_update_non_existing(tmp_path: Path, multithreaded: bool):
   # We should have the original value we set.
   assert j[0]['value'] == value
 
-def test_update_xoo(tmp_path: Path):
+@pytest.mark.parametrize('target', (0, 1, 2))
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_update_xxx(tmp_path: Path, target: int, multithreaded: bool):
   '''
-  Test overwriting the first of a set of three entries.
+  Test overwriting one of a set of three entries.
   '''
-  data = tmp_path / 'test_update_xoo.json'
-  update_xxx(True, data, 0)
-
-def test_update_xoo_single_threaded(tmp_path: Path):
-  '''
-  Same as test_update_xoo, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_update_xoo_single_threaded.json'
-  update_xxx(False, data, 0)
-
-def test_update_oxo(tmp_path: Path):
-  '''
-  Test overwriting the second of a set of three entries.
-  '''
-  data = tmp_path / 'test_update_oxo.json'
-  update_xxx(True, data, 1)
-
-def test_update_oxo_single_threaded(tmp_path: Path):
-  '''
-  Same as test_update_oxo, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_update_oxo_single_threaded.json'
-  update_xxx(False, data, 1)
-
-def test_update_oox(tmp_path: Path):
-  '''
-  Test overwriting the third of a set of three entries.
-  '''
-  data = tmp_path / 'test_update_oox.json'
-  update_xxx(True, data, 2)
-
-def test_update_oox_single_threaded(tmp_path: Path):
-  '''
-  Same as test_update_oox, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_update_oox_single_threaded.json'
-  update_xxx(False, data, 2)
-
-def update_xxx(multithreaded: bool, data: Path, target: int):
+  data = tmp_path / 'update_xxx.json'
 
   # Setup a database with three entries.
   for i in range(3):
