@@ -1080,21 +1080,12 @@ def test_update_empty(tmp_path: Path, multithreaded: bool):
   assert isinstance(j, list)
   assert len(j) == 0
 
-def test_update_non_existing(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_update_non_existing(tmp_path: Path, multithreaded: bool):
   '''
   Test update an entry that doesn't exist.
   '''
-  data = tmp_path / 'test_update_non_existing.json'
-  update_non_existing(True, data)
-
-def test_update_non_existing_single_threaded(tmp_path: Path):
-  '''
-  Same as test_update_non_existing, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_update_non_existing_single_threaded.json'
-  update_non_existing(False, data)
-
-def update_non_existing(multithreaded: bool, data: Path):
+  data = tmp_path / 'update_non_existing.json'
 
   # Request to save a key and value.
   do_set(data, 'test', 'space', 'key', 'value', multithreaded)
