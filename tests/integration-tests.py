@@ -772,21 +772,12 @@ def test_delete_xoo(tmp_path: Path, target: int, multithreaded: bool):
     else:
       assert p.exitstatus == 0
 
-def test_delete_nonexistent(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_delete_nonexistent(tmp_path: Path, multithreaded: bool):
   '''
   Test deleting an entry that doesn't exist.
   '''
-  data = tmp_path / 'test_delete_nonexistent.json'
-  delete_nonexistent(True, data)
-
-def test_delete_nonexistent_single_threaded(tmp_path):
-  '''
-  Same as test_delete_nonexistent, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_delete_nonexistent_single_threaded.json'
-  delete_nonexistent(False, data)
-
-def delete_nonexistent(multithreaded: bool, data: Path):
+  data = tmp_path / 'delete_nonexistent.json'
 
   # Setup a database with three entries.
   for i in range(3):
