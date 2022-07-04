@@ -166,21 +166,12 @@ def test_set_overwrite(tmp_path: Path, multithreaded: bool):
   assert isinstance(j[0], dict)
   assert value == j[0]['value']
 
-def test_set_append(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_set_append(tmp_path: Path, multithreaded: bool):
   '''
   Test setting an entry in existing database appends.
   '''
-  data = tmp_path / 'test_set_append.json'
-  set_append(True, data)
-
-def test_set_append_single_threaded(tmp_path: Path):
-  '''
-  Same as test_set_append, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_set_append_single_threaded.json'
-  set_append(False, data)
-
-def set_append(multithreaded: bool, data: Path):
+  data = tmp_path / 'set_append.json'
 
   # Request to save a key and value.
   do_set(data, 'test', 'space', 'key', 'value', multithreaded)
