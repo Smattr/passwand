@@ -591,21 +591,12 @@ def test_list_wrong_password(tmp_path: Path, multithreaded: bool):
   p.close()
   assert p.exitstatus != 0
 
-def test_list_basic(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_list_basic(tmp_path: Path, multithreaded: bool):
   '''
   Test list of a single entry.
   '''
-  data = tmp_path / 'test_list_basic.json'
-  list_basic(True, data)
-
-def test_list_basic_single_threaded(tmp_path: Path):
-  '''
-  Same as test_list_basic, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_list_basic_single_threaded.json'
-  list_basic(False, data)
-
-def list_basic(multithreaded: bool, data: Path):
+  data = tmp_path / 'list_basic.json'
 
   # Request to save a key and value.
   do_set(data, 'test', 'space', 'key', 'value', multithreaded)
