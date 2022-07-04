@@ -567,21 +567,12 @@ def test_list_empty(tmp_path: Path, multithreaded: bool):
   assert isinstance(j, list)
   assert len(j) == 0
 
-def test_list_wrong_password(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_list_wrong_password(tmp_path: Path, multithreaded: bool):
   '''
   Test entering the wrong password during list.
   '''
-  data = tmp_path / 'test_list_wrong_password.json'
-  list_wrong_password(True, data)
-
-def test_list_wrong_password_single_threaded(tmp_path: Path):
-  '''
-  Same as test_list_wrong_password, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_list_wrong_password_single_threaded.json'
-  list_wrong_password(False, data)
-
-def list_wrong_password(multithreaded: bool, data: Path):
+  data = tmp_path / 'list_wrong_password.json'
 
   # Request to save a key and value.
   do_set(data, 'test', 'space', 'key', 'value', multithreaded)
