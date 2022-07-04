@@ -417,21 +417,12 @@ def test_change_main_empty(tmp_path: Path, multithreaded: bool):
   assert isinstance(j, list)
   assert len(j) == 0
 
-def test_change_main_mismatch(tmp_path: Path):
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_change_main_mismatch(tmp_path: Path, multithreaded: bool):
   '''
   Test changing the main password but failing to confirm it fails.
   '''
-  data = tmp_path / 'test_change_main_mismatch.json'
-  change_main_mismatch(True, data)
-
-def test_change_main_mismatch_single_threaded(tmp_path: Path):
-  '''
-  Same as test_change_main_mismatch, but restrict to a single thread.
-  '''
-  data = tmp_path / 'test_change_main_mismatch_single_threaded.json'
-  change_main_mismatch(False, data)
-
-def change_main_mismatch(multithreaded: bool, data: Path):
+  data = tmp_path / 'change_main_mismatch.json'
 
   # Setup an empty database.
   with open(data, 'wt') as f:
