@@ -2120,19 +2120,30 @@ def test_gui_chain_over_bypass(tmp_path: Path):
       assert p.stdout != f'value{i}\n'
       assert p.stderr != ''
 
-def chain_leak_strlen(tmp_path: Path, main_longer: bool):
+@pytest.mark.parametrize('main_longer', (False, True))
+def test_gui_chain_leak_strlen(tmp_path: Path, main_longer: bool):
+  '''
+  Check the GUI does not leak memory with mismatched password lengths.
+
+  When working on chained database support for the CLI, one of my
+  intermediate states accidentally introduced a memory leak in the secure
+  heap when the main database’s password was shorter than the chained
+  database’s password. While this leak did not exist in the GUI
+  implementation, it seemed prudent to add a paranoia test that we never
+  introduced such a thing.
+  '''
 
   # Two passwords of mismatched length
   short = 'short'
   long = 'long password'
 
   # Create a database with a single entry.
-  data = tmp_path / f'chain_leak_regression_{main_longer}.json'
+  data = tmp_path / f'chain_leak_strlen_{main_longer}.json'
   password = long if main_longer else short
   do_set(data, password, 'foo', 'bar', 'baz')
 
   # Create a chain database with a short password.
-  chain = tmp_path / f'chain_leak_regression_chain_{main_longer}.json'
+  chain = tmp_path / f'chain_leak_strlen_chain_{main_longer}.json'
   value = long if main_longer else short
   password = short if main_longer else long
   do_set(chain, password, 'foo', 'bar', value)
@@ -2146,22 +2157,3 @@ def chain_leak_strlen(tmp_path: Path, main_longer: bool):
   assert p.stdout == 'baz\n'
   assert p.stderr == ''
   p.check_returncode()
-
-def test_gui_chain_leak_strlen1(tmp_path: Path):
-  '''
-  Check the GUI does not leak memory with mismatched password lengths.
-
-  When working on chained database support for the CLI, one of my
-  intermediate states accidentally introduced a memory leak in the secure
-  heap when the main database’s password was shorter than the chained
-  database’s password. While this leak did not exist in the GUI
-  implementation, it seemed prudent to add a paranoia test that we never
-  introduced such a thing.
-  '''
-  chain_leak_strlen(tmp_path, False)
-
-def test_gui_chain_leak_strlen2(tmp_path: Path):
-  '''
-  See test_chain_leak_strlen1.
-  '''
-  chain_leak_strlen(tmp_path, True)
