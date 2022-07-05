@@ -49,5 +49,5 @@ typedef struct {
   void (*loop_body)(const char *space, const char *key, const char *value);
 
   // destructor
-  int (*finalize)(void);
+  int (*finalize)(bool failure_pending);
 } command_t;

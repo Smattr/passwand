@@ -686,14 +686,10 @@ def test_list_differing_password(tmp_path: Path, multithreaded: bool,
 @pytest.mark.parametrize('command', (
   ('change-main',),
   ('check',),
-  pytest.param(
-    ('generate', '--space', 'space4', '--key', 'key4'),
-    marks=pytest.mark.xfail(strict=True)),
+  ('generate', '--space', 'space4', '--key', 'key4'),
   ('get', '--space', 'space', '--key', 'key'),
   ('list',),
-  pytest.param(
-    ('set', '--space', 'space3', '--key', 'key3', '--value', 'value3'),
-    marks=pytest.mark.xfail(strict=True)),
+  ('set', '--space', 'space3', '--key', 'key3', '--value', 'value3'),
 ))
 @pytest.mark.parametrize('order', (False, True))
 @pytest.mark.parametrize('multithreaded', (False, True))
@@ -847,14 +843,10 @@ def test_list_differing_work_factor(tmp_path: Path, multithreaded: bool,
 @pytest.mark.parametrize('command', (
   ('change-main',),
   ('check',),
-  pytest.param(
-    ('generate', '--space', 'space4', '--key', 'key4'),
-    marks=pytest.mark.xfail(strict=True)),
+  ('generate', '--space', 'space4', '--key', 'key4'),
   ('get', '--space', 'space', '--key', 'key'),
   ('list',),
-  pytest.param(
-    ('set', '--space', 'space3', '--key', 'key3', '--value', 'value3'),
-    marks=pytest.mark.xfail(strict=True)),
+  ('set', '--space', 'space3', '--key', 'key3', '--value', 'value3'),
 ))
 @pytest.mark.parametrize('order', (False, True))
 @pytest.mark.parametrize('multithreaded', (False, True))

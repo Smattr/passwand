@@ -518,7 +518,7 @@ done:
   free(threads);
   free(tses);
   if (command_initialized && command->finalize != NULL) {
-    r = command->finalize();
+    r = command->finalize(ret != EXIT_SUCCESS);
     if (r != 0)
       ret = EXIT_FAILURE;
   }

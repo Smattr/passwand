@@ -47,7 +47,10 @@ static void loop_body(const char *space, const char *key,
   }
 }
 
-static int finalize(void) {
+static int finalize(bool failure_pending) {
+
+  // see the comment in update.c for why ignoring this is OK
+  (void)failure_pending;
 
   if (!found) {
     eprint("failed to find entry\n");

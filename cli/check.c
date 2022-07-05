@@ -400,7 +400,7 @@ static void loop_body(const char *space, const char *key, const char *value) {
   }
 }
 
-static int finalize(void) {
+static int finalize(bool failure_pending __attribute__((unused))) {
   if (dns_info != NULL)
     freeaddrinfo(dns_info);
 

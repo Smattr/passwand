@@ -62,12 +62,15 @@ void set_loop_body(const char *space, const char *key,
   }
 }
 
-int set_finalize(void) {
+int set_finalize(bool failure_pending) {
 
   if (found) {
     eprint("an entry for %s/%s already exists\n", options.space, options.key);
     return -1;
   }
+
+  if (failure_pending)
+    return 0;
 
   passwand_entry_t e;
   passwand_error_t err =
