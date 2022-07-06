@@ -205,9 +205,6 @@ typedef struct {
 
   const command_t *command;
 
-  passwand_error_t error;
-  size_t error_index;
-
   bool created;
 
 } thread_state_t;
@@ -217,6 +214,7 @@ static void *thread_loop(void *arg) {
 
   thread_state_t *ts = arg;
   assert(ts->command != NULL);
+  void *ret = NULL;
   const command_t *command = ts->command;
 
   for (;;) {
@@ -235,13 +233,12 @@ static void *thread_loop(void *arg) {
       passwand_error_t err = passwand_entry_do(
           ts->main, &ts->entries[index], entry_trampoline, command->loop_body);
       if (err != PW_OK) {
-        ts->error = err;
-        ts->error_index = index;
-        return (void *)-1;
+        eprint("failed to handle entry %zu: %s\n", index, passwand_error(err));
+        ret = (void *)-1;
       }
     }
   }
-  return NULL;
+  return ret;
 }
 
 /** Take a password entry from a chained database and consider it now the new
@@ -463,8 +460,6 @@ int main(int argc, char **argv) {
     tses[i].entry_len = entry_len;
     tses[i].main = mainpass->main;
     tses[i].command = command;
-    tses[i].error = PW_OK;
-    tses[i].error_index = SIZE_MAX;
     tses[i].created = false;
   }
 
@@ -488,11 +483,8 @@ int main(int argc, char **argv) {
 
   // join the other threads
   r = (int)(intptr_t)thread_loop(&tses[0]);
-  if (r != 0) {
-    eprint("failed to handle entry %zu: %s\n", tses[0].error_index,
-           passwand_error(tses[0].error));
+  if (r != 0)
     errors++;
-  }
 
   // collect the secondary threads
   for (size_t i = 1; i < options.jobs; i++) {
@@ -503,11 +495,8 @@ int main(int argc, char **argv) {
         eprint("failed to join thread %zu\n", i);
         errors++;
       } else {
-        if ((int)(intptr_t)retu != 0) {
-          eprint("failed to handle entry %zu: %s\n", tses[i].error_index,
-                 passwand_error(tses[i].error));
+        if ((int)(intptr_t)retu != 0)
           errors++;
-        }
       }
     }
   }

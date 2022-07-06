@@ -618,8 +618,7 @@ def test_list_basic(tmp_path: Path, multithreaded: bool):
   assert output.decode('utf-8', 'replace').strip() == 'space/key'
 
 @pytest.mark.parametrize('order', (False, True))
-@pytest.mark.parametrize('multithreaded',
-  (pytest.param(False, marks=pytest.mark.xfail), True))
+@pytest.mark.parametrize('multithreaded', (False, True))
 def test_list_differing_password(tmp_path: Path, multithreaded: bool,
                                  order: bool):
   '''
@@ -753,8 +752,7 @@ def test_cmd_differing_password(tmp_path: Path, multithreaded: bool,
     assert content == reference, 'corrupted database was modified'
 
 @pytest.mark.parametrize('order', (False, True))
-@pytest.mark.parametrize('multithreaded',
-  (pytest.param(False, marks=pytest.mark.xfail), True))
+@pytest.mark.parametrize('multithreaded', (False, True))
 def test_list_differing_work_factor(tmp_path: Path, multithreaded: bool,
                                     order: bool):
   '''
