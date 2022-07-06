@@ -11,7 +11,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import List, Union
+from typing import Iterable, List, Union
 import pexpect
 import pytest
 
@@ -616,6 +616,312 @@ def test_list_basic(tmp_path: Path, multithreaded: bool):
   p.close()
   assert p.exitstatus == 0
   assert output.decode('utf-8', 'replace').strip() == 'space/key'
+
+@pytest.mark.parametrize('order', (False, True))
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_list_differing_password(tmp_path: Path, multithreaded: bool,
+                                 order: bool):
+  '''
+  When entries in a database have differing passwords (corrupted database), it
+  should still be possible to list the ones that match the given password.
+  '''
+
+  # create a single entry database
+  one = tmp_path / 'one.json'
+  do_set(one, 'test', 'space', 'key', 'value', multithreaded)
+
+  # create another single entry database
+  two = tmp_path / 'two.json'
+  do_set(two, 'test2', 'space2', 'key2', 'value2', multithreaded)
+
+  # merge these into a single two entry database
+  data = []
+  with open(one, 'rt') as in1:
+    entry = json.load(in1)
+  assert len(entry) == 1
+  data += entry
+  with open(two, 'rt') as in2:
+    entry = json.load(in2)
+  assert len(entry) == 1
+  data += entry
+  if not order:
+    data = list(reversed(data))
+  combined = tmp_path / 'combined.json'
+  with open(combined, 'wt') as out:
+    json.dump(data, out)
+
+  # listing the entries with a bad password should fail and show neither
+  args = ['list', '--data', str(combined)]
+  if not multithreaded:
+    args += ['--jobs', '1']
+  p = pexpect.spawn('pw-cli', args, timeout=120)
+  type_password(p, 'test3')
+  output = p.read()
+  p.expect(pexpect.EOF)
+  p.close()
+  assert p.exitstatus != 0
+  assert 'space/key' not in output.decode('utf-8', 'replace')
+  assert 'space2/key2' not in output.decode('utf-8', 'replace')
+
+  # doing the same with the first password should still fail, but should show
+  # the entry that was successfully decrypted
+  p = pexpect.spawn('pw-cli', args, timeout=120)
+  type_password(p, 'test')
+  output = p.read()
+  p.expect(pexpect.EOF)
+  p.close()
+  assert p.exitstatus != 0
+  assert 'space/key' in output.decode('utf-8', 'replace')
+
+  # similarly for the second
+  p = pexpect.spawn('pw-cli', args, timeout=120)
+  type_password(p, 'test2')
+  output = p.read()
+  p.expect(pexpect.EOF)
+  p.close()
+  assert p.exitstatus != 0
+  assert 'space2/key2' in output.decode('utf-8', 'replace')
+
+@pytest.mark.parametrize('command', (
+  ('change-main',),
+  ('check',),
+  ('generate', '--space', 'space4', '--key', 'key4'),
+  ('get', '--space', 'space', '--key', 'key'),
+  ('list',),
+  ('set', '--space', 'space3', '--key', 'key3', '--value', 'value3'),
+))
+@pytest.mark.parametrize('order', (False, True))
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_cmd_differing_password(tmp_path: Path, multithreaded: bool,
+                                command: Iterable[str], order: bool):
+  '''
+  When entries in a database have differing passwords (corrupted database), all
+  commands should refuse to modify the database.
+  '''
+
+  # create a single entry database
+  one = tmp_path / 'one.json'
+  do_set(one, 'test', 'space', 'key', 'value', multithreaded)
+
+  # create another single entry database
+  two = tmp_path / 'two.json'
+  do_set(two, 'test2', 'space2', 'key2', 'value2', multithreaded)
+
+  # merge these into a single two entry database
+  data = []
+  with open(one, 'rt') as in1:
+    entry = json.load(in1)
+  assert len(entry) == 1
+  data += entry
+  with open(two, 'rt') as in2:
+    entry = json.load(in2)
+  assert len(entry) == 1
+  data += entry
+  if not order:
+    data = list(reversed(data))
+  reference = json.dumps(data)
+  combined = tmp_path / 'combined.json'
+  with open(combined, 'wt') as out:
+    out.write(reference)
+
+  # run the given command on this file with both passwords
+  for password in ('test', 'test2'):
+
+    args = list(command) + ['--data', str(combined)]
+    if not multithreaded:
+      args += ['--jobs', '1']
+    p = pexpect.spawn('pw-cli', args, timeout=120)
+    if args[0] == 'change-main':
+      type_password(p, password)
+      p.expect('new main password: ')
+      p.sendline('test3')
+      p.expect('confirm new main password: ')
+      p.sendline('test3')
+    elif args[0] in ('generate', 'set'):
+      type_password_with_confirmation(p, password)
+    else:
+      type_password(p, password)
+    p.expect(pexpect.EOF)
+    p.close()
+
+    if args[0] != 'get': # allow `get` to succeed because it can early exit
+      assert p.exitstatus != 0, 'command incorrectly succeeded'
+
+    with open(combined, 'rt') as f:
+      content = f.read()
+    assert content == reference, 'corrupted database was modified'
+
+@pytest.mark.parametrize('order', (False, True))
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_list_differing_work_factor(tmp_path: Path, multithreaded: bool,
+                                    order: bool):
+  '''
+  When entries in a database have differing work factors (corrupted database),
+  it should still be possible to list the ones that match the given password.
+  '''
+
+  # create a single entry database with work factor 10
+  one = tmp_path / 'one.json'
+  args = ['set', '--data', str(one), '--space', 'space', '--key', 'key',
+          '--value', 'value', '--work-factor', '10']
+  if not multithreaded:
+    args += ['--jobs', '1']
+  p = pexpect.spawn('pw-cli', args, timeout=120)
+  type_password_with_confirmation(p, 'test')
+  p.expect(pexpect.EOF)
+  p.close()
+  assert p.exitstatus == 0
+
+  # create another single entry database with work factor 12
+  two = tmp_path / 'two.json'
+  args = ['set', '--data', str(two), '--space', 'space1', '--key', 'key1',
+          '--value', 'value1', '--work-factor', '12']
+  if not multithreaded:
+    args += ['--jobs', '1']
+  p = pexpect.spawn('pw-cli', args, timeout=120)
+  type_password_with_confirmation(p, 'test')
+  p.expect(pexpect.EOF)
+  p.close()
+  assert p.exitstatus == 0
+
+  # merge these into a single two entry database
+  data = []
+  with open(one, 'rt') as in1:
+    entry = json.load(in1)
+  assert len(entry) == 1
+  data += entry
+  with open(two, 'rt') as in2:
+    entry = json.load(in2)
+  assert len(entry) == 1
+  data += entry
+  if not order:
+    data = list(reversed(data))
+  combined = tmp_path / 'combined.json'
+  with open(combined, 'wt') as out:
+    json.dump(data, out)
+
+  # listing the entries with a bad work factor should fail and show neither
+  args = ['list', '--data', str(combined), '--work-factor', '11']
+  if not multithreaded:
+    args += ['--jobs', '1']
+  p = pexpect.spawn('pw-cli', args, timeout=120)
+  type_password(p, 'test')
+  output = p.read()
+  p.expect(pexpect.EOF)
+  p.close()
+  assert p.exitstatus != 0
+  assert 'space/key' not in output.decode('utf-8', 'replace')
+  assert 'space1/key1' not in output.decode('utf-8', 'replace')
+
+  # doing the same with the first work factor should still fail, but should show
+  # the entry that was successfully decrypted
+  args = ['list', '--data', str(combined), '--work-factor', '10']
+  if not multithreaded:
+    args += ['--jobs', '1']
+  p = pexpect.spawn('pw-cli', args, timeout=120)
+  type_password(p, 'test')
+  output = p.read()
+  p.expect(pexpect.EOF)
+  p.close()
+  assert p.exitstatus != 0
+  assert 'space/key' in output.decode('utf-8', 'replace')
+
+  # similarly for the second
+  args = ['list', '--data', str(combined), '--work-factor', '12']
+  if not multithreaded:
+    args += ['--jobs', '1']
+  p = pexpect.spawn('pw-cli', args, timeout=120)
+  type_password(p, 'test')
+  output = p.read()
+  p.expect(pexpect.EOF)
+  p.close()
+  assert p.exitstatus != 0
+  assert 'space1/key1' in output.decode('utf-8', 'replace')
+
+@pytest.mark.parametrize('command', (
+  ('change-main',),
+  ('check',),
+  ('generate', '--space', 'space4', '--key', 'key4'),
+  ('get', '--space', 'space', '--key', 'key'),
+  ('list',),
+  ('set', '--space', 'space3', '--key', 'key3', '--value', 'value3'),
+))
+@pytest.mark.parametrize('order', (False, True))
+@pytest.mark.parametrize('multithreaded', (False, True))
+def test_cmd_differing_work_factor(tmp_path: Path, multithreaded: bool,
+                                   command: Iterable[str], order: bool):
+  '''
+  When entries in a database have differing work factors (corrupted database),
+  all commands should refuse to modify the database.
+  '''
+
+  # create a single entry database with work factor 10
+  one = tmp_path / 'one.json'
+  args = ['set', '--data', str(one), '--space', 'space', '--key', 'key',
+          '--value', 'value', '--work-factor', '10']
+  if not multithreaded:
+    args += ['--jobs', '1']
+  p = pexpect.spawn('pw-cli', args, timeout=120)
+  type_password_with_confirmation(p, 'test')
+  p.expect(pexpect.EOF)
+  p.close()
+  assert p.exitstatus == 0
+
+  # create another single entry database with work factor 12
+  two = tmp_path / 'two.json'
+  args = ['set', '--data', str(two), '--space', 'space1', '--key', 'key1',
+          '--value', 'value1', '--work-factor', '12']
+  if not multithreaded:
+    args += ['--jobs', '1']
+  p = pexpect.spawn('pw-cli', args, timeout=120)
+  type_password_with_confirmation(p, 'test')
+  p.expect(pexpect.EOF)
+  p.close()
+  assert p.exitstatus == 0
+
+  # merge these into a single two entry database
+  data = []
+  with open(one, 'rt') as in1:
+    entry = json.load(in1)
+  assert len(entry) == 1
+  data += entry
+  with open(two, 'rt') as in2:
+    entry = json.load(in2)
+  assert len(entry) == 1
+  data += entry
+  if not order:
+    data = list(reversed(data))
+  reference = json.dumps(data)
+  combined = tmp_path / 'combined.json'
+  with open(combined, 'wt') as out:
+    out.write(reference)
+
+  # run the given command on this file with both work factors
+  for wf in ('10', '12'):
+
+    args = list(command) + ['--data', str(combined), '--work-factor', wf]
+    if not multithreaded:
+      args += ['--jobs', '1']
+    p = pexpect.spawn('pw-cli', args, timeout=120)
+    if args[0] == 'change-main':
+      type_password(p, 'test')
+      p.expect('new main password: ')
+      p.sendline('test3')
+      p.expect('confirm new main password: ')
+      p.sendline('test3')
+    elif args[0] in ('generate', 'set'):
+      type_password_with_confirmation(p, 'test')
+    else:
+      type_password(p, 'test')
+    p.expect(pexpect.EOF)
+    p.close()
+
+    if args[0] != 'get': # allow `get` to succeed because it can early exit
+      assert p.exitstatus != 0, 'command incorrectly succeeded'
+
+    with open(combined, 'rt') as f:
+      content = f.read()
+    assert content == reference, 'corrupted database was modified'
 
 @pytest.mark.parametrize('target', (0, 1, 2))
 @pytest.mark.parametrize('multithreaded', (False, True))
@@ -1510,33 +1816,33 @@ def test_cli_empty_password():
     p.close()
     assert p.exitstatus == 0
 
-def test_work_factor_error(tmp_path: Path):
+@pytest.mark.parametrize('args', (
+  ('change-main',),
+  ('check',),
+  ('delete', '--space', 'foo', '--key', 'bar'),
+  ('get',    '--space', 'foo', '--key', 'bar'),
+  ('list',),
+  ('set',    '--space', 'foo', '--key', 'bar', '--value', 'baz'),
+  ('update', '--space', 'foo', '--key', 'bar', '--value', 'baz'),
+))
+@pytest.mark.parametrize('wf', ('9', '32'))
+def test_work_factor_error(tmp_path: Path, args: Iterable[str], wf: str):
   '''
   Passing an invalid --work-factor should result in a sensible error.
   '''
   data = tmp_path / 'cli_work_factor_error.json'
 
-  for args in (('change-main',),
-               ('check',),
-               ('delete', '--space', 'foo', '--key', 'bar'),
-               ('get',    '--space', 'foo', '--key', 'bar'),
-               ('list',),
-               ('set',    '--space', 'foo', '--key', 'bar', '--value', 'baz'),
-               ('update', '--space', 'foo', '--key', 'bar', '--value',
-                 'baz')):
-    for wf in ('9', '32'):
-      argv = list(args) + ['--data', str(data), '--work-factor', wf]
-      p = pexpect.spawn('pw-cli', argv, timeout=120)
+  argv = list(args) + ['--data', str(data), '--work-factor', wf]
+  p = pexpect.spawn('pw-cli', argv, timeout=120)
 
-      # The command should error with something mentioning
-      # --work-factor.
-      p.expect('--work-factor')
-      p.expect(pexpect.EOF)
-      p.close()
-      assert p.exitstatus != 0
+  # The command should error with something mentioning --work-factor.
+  p.expect('--work-factor')
+  p.expect(pexpect.EOF)
+  p.close()
+  assert p.exitstatus != 0
 
-      # The database should not have been created.
-      assert not data.exists()
+  # The database should not have been created.
+  assert not data.exists()
 
 def test_gui_empty_no_entry(tmp_path: Path):
   '''

@@ -80,11 +80,11 @@ done:
   return ret;
 }
 
-static int finalize(void) {
+static int finalize(bool failure_pending) {
 
   discard_main(&new_main);
 
-  if (err == PW_OK) {
+  if (!failure_pending && err == PW_OK) {
     err = passwand_export(options.db.path, new_entries, new_entries_len);
     if (err != PW_OK)
       eprint("failed to export entries: %s\n", passwand_error(err));

@@ -65,7 +65,16 @@ static void loop_body(const char *space, const char *key,
   }
 }
 
-static int finalize(void) {
+static int finalize(bool failure_pending) {
+
+  // There is an inherent race in `update` when running multithreaded or an
+  // equivalent deterministic situation when running single threaded wherein we
+  // can locate the entry to be updated before encountering later entries that
+  // fail to decrypt. To make behaviour more uniform, treat all decryption
+  // failures as non-fatal, despite how unorthodox that seems. This is not a
+  // security violation because we can only update an entry we _have_ decrypted
+  // successfully.
+  (void)failure_pending;
 
   if (!found) {
     eprint("entry not found\n");
