@@ -25,8 +25,18 @@ extern bool has_assertion_;
         .function = JOIN(test_, __LINE__),                                     \
         .description = desc,                                                   \
     };                                                                         \
-    JOIN(test_case_, __LINE__).next = test_cases;                              \
-    test_cases = &JOIN(test_case_, __LINE__);                                  \
+    for (test_case_t **t = &test_cases;; t = &(*t)->next) {                    \
+      if (*t == NULL || strcmp((desc), (*t)->description) < 0) {               \
+        JOIN(test_case_, __LINE__).next = *t;                                  \
+        *t = &JOIN(test_case_, __LINE__);                                      \
+        return;                                                                \
+      }                                                                        \
+      if (strcmp((desc), (*t)->description) == 0) {                            \
+        fprintf(stderr, "duplicate test cases \"%s\"\n", (desc));              \
+        abort();                                                               \
+      }                                                                        \
+    }                                                                          \
+    __builtin_unreachable();                                                   \
   }                                                                            \
   static void JOIN(test_, __LINE__)(void)
 
