@@ -71,7 +71,7 @@ TEST("malloc: limit") {
     n = m;
   }
 
-  // wow we should be able to do at least one allocation
+  // now we should be able to do at least one allocation
   int err = passwand_secure_malloc((void **)&n, sizeof(*n));
   CU_ASSERT_EQUAL_FATAL(err, 0);
   passwand_secure_free(n, sizeof(*n));
