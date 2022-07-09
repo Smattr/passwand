@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,6 +15,8 @@ extern test_case_t *test_cases;
 
 #define _JOIN(x, y) x##y
 #define JOIN(x, y) _JOIN(x, y)
+
+extern bool has_assertion_;
 
 #define TEST(desc)                                                             \
   static void JOIN(test_, __LINE__)(void);                                     \
@@ -36,6 +39,7 @@ extern test_case_t *test_cases;
 
 #define ASSERT_(a, a_name, op, b, b_name)                                      \
   do {                                                                         \
+    has_assertion_ = true;                                                     \
     __typeof__(a) _a = (a);                                                    \
     __typeof__(b) _b = (b);                                                    \
     if (!(_a op _b)) {                                                         \
@@ -58,6 +62,7 @@ extern test_case_t *test_cases;
 
 #define ASSERT(expr)                                                           \
   do {                                                                         \
+    has_assertion_ = true;                                                     \
     if (!(expr)) {                                                             \
       fprintf(stderr, "failed\n    %s:%d: assertion “%s” failed\n", __FILE__,  \
               __LINE__, #expr);                                                \
@@ -73,6 +78,7 @@ extern test_case_t *test_cases;
 
 #define ASSERT_STREQ(a, b)                                                     \
   do {                                                                         \
+    has_assertion_ = true;                                                     \
     const char *_a = (a);                                                      \
     const char *_b = (b);                                                      \
     if (strcmp(_a, _b) != 0) {                                                 \
@@ -88,6 +94,7 @@ extern test_case_t *test_cases;
 
 #define ASSERT_STRNE(a, b)                                                     \
   do {                                                                         \
+    has_assertion_ = true;                                                     \
     const char *_a = (a);                                                      \
     const char *_b = (b);                                                      \
     if (strcmp(_a, _b) == 0) {                                                 \
