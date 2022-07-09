@@ -37,6 +37,12 @@ find_library(CUNIT_LIBRARIES
 target_include_directories(passwand-tests SYSTEM PRIVATE ${CUNIT_INCLUDE_DIRS})
 target_link_libraries(passwand-tests PRIVATE ${CUNIT_LIBRARIES})
 
+find_package(PkgConfig REQUIRED)
+
+pkg_check_modules(OPENSSL REQUIRED openssl)
+target_include_directories(passwand-tests SYSTEM PRIVATE ${OPENSSL_INCLUDE_DIRS})
+target_link_libraries(passwand-tests PRIVATE ${OPENSSL_LIBRARIES})
+
 add_executable(pw-gui-test-stub
   gui-test-stub.c
   ../gui/main.c
