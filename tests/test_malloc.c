@@ -1,5 +1,4 @@
 #include "test.h"
-#include <CUnit/CUnit.h>
 #include <passwand/passwand.h>
 #include <stdbool.h>
 #include <string.h>
@@ -10,24 +9,24 @@ TEST("malloc: basic functionality") {
 
   char *p;
   int err = passwand_secure_malloc((void **)&p, 10);
-  CU_ASSERT_EQUAL_FATAL(err, 0);
+  ASSERT_EQ(err, 0);
   memcpy(p, buffer, 10);
 
   char *q;
   err = passwand_secure_malloc((void **)&q, 100);
-  CU_ASSERT_EQUAL_FATAL(err, 0);
+  ASSERT_EQ(err, 0);
   memcpy(q, buffer, sizeof(buffer));
 
   // the two pointers should not overlap
-  CU_ASSERT_EQUAL_FATAL(p + 10 <= q || q + 100 <= p, true);
+  ASSERT(p + 10 <= q || q + 100 <= p);
 
   passwand_secure_free(q, 100);
 
   // the memory should have been wiped
-  CU_ASSERT_NOT_EQUAL_FATAL(strncmp(q, buffer, sizeof(buffer)), 0);
+  ASSERT_NE(strncmp(q, buffer, sizeof(buffer)), 0);
 
   // the first block of memory should not have been touched
-  CU_ASSERT_EQUAL_FATAL(strncmp(p, buffer, 10), 0);
+  ASSERT_EQ(strncmp(p, buffer, 10), 0);
 
   passwand_secure_free(p, 10);
 }
@@ -36,7 +35,7 @@ TEST("malloc: forever { malloc(x); free(x); }") {
   for (unsigned i = 0; i < 10000; i++) {
     void *p;
     int err = passwand_secure_malloc(&p, 128);
-    CU_ASSERT_EQUAL_FATAL(err, 0);
+    ASSERT_EQ(err, 0);
     passwand_secure_free(p, 128);
   }
 }
@@ -62,7 +61,7 @@ TEST("malloc: limit") {
   }
 
   // we should have got at least one allocation done
-  CU_ASSERT_PTR_NOT_NULL_FATAL(n);
+  ASSERT_NOT_NULL(n);
 
   // now free everything we just malloced
   while (n != NULL) {
@@ -73,6 +72,6 @@ TEST("malloc: limit") {
 
   // now we should be able to do at least one allocation
   int err = passwand_secure_malloc((void **)&n, sizeof(*n));
-  CU_ASSERT_EQUAL_FATAL(err, 0);
+  ASSERT_EQ(err, 0);
   passwand_secure_free(n, sizeof(*n));
 }

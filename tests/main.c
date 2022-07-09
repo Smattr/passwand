@@ -1,10 +1,9 @@
 #include "test.h"
-#include <CUnit/Basic.h>
-#include <CUnit/CUnit.h>
-#include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 test_case_t *test_cases;
@@ -20,30 +19,36 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  if (CU_initialize_registry() != CUE_SUCCESS) {
-    CU_ErrorCode err = CU_get_error();
-    fprintf(stderr, "failed to initialise CUnit registry\n");
-    return err;
-  }
-
-  CU_pSuite suite = CU_add_suite("passwand", NULL, NULL);
-  if (suite == NULL) {
-    CU_ErrorCode err = CU_get_error();
-    CU_cleanup_registry();
-    fprintf(stderr, "failed to add suite\n");
-    return err;
-  }
+  printf("Passwand test suite\n");
 
   unsigned total = 0;
+  unsigned failed = 0;
   for (test_case_t *p = test_cases; p != NULL; p = p->next) {
     if (argc == 1 || strncmp(argv[1], p->description, strlen(argv[1])) == 0) {
-      if (CU_add_test(suite, p->description, p->function) == NULL) {
-        CU_ErrorCode err = CU_get_error();
-        fprintf(stderr, "failed to add test \"%s\"\n", p->description);
-        CU_cleanup_registry();
-        return err;
+
+      printf("  Test: %s ... ", p->description);
+      fflush(stdout);
+
+      pid_t pid = fork();
+      if (pid < 0) {
+        fprintf(stderr, "fork failed: %s\n", strerror(errno));
+        return EXIT_FAILURE;
       }
-      total++;
+
+      if (pid == 0) {
+        p->function();
+        printf("OK\n");
+        exit(EXIT_SUCCESS);
+
+      } else {
+        int status;
+        (void)waitpid(pid, &status, 0);
+
+        if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
+          ++failed;
+      }
+
+      ++total;
     }
   }
 
@@ -51,13 +56,6 @@ int main(int argc, char **argv) {
     fprintf(stderr, "no tests found\n");
     return EXIT_FAILURE;
   }
-
-  CU_basic_set_mode(CU_BRM_VERBOSE);
-  CU_basic_run_tests();
-
-  unsigned failed = CU_get_number_of_tests_failed();
-
-  CU_cleanup_registry();
 
   printf("%u/%u passed\n", total - failed, total);
 

@@ -1,10 +1,8 @@
 #include "../src/internal.h"
 #include "../src/types.h"
 #include "test.h"
-#include <CUnit/CUnit.h>
 #include <openssl/evp.h>
 #include <passwand/passwand.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -28,40 +26,40 @@ TEST("decrypt: decrypt(encrypt(x)) == x") {
   ct_t c;
 
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-  CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
+  ASSERT_NOT_NULL(ctx);
 
-  passwand_error_t err = aes_encrypt_init(key, iv, ctx);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  int err = aes_encrypt_init(key, iv, ctx);
+  ASSERT_EQ(err, PW_OK);
 
   err = aes_encrypt(ctx, &pp, &c);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  ASSERT_EQ(err, PW_OK);
 
   err = aes_encrypt_deinit(ctx);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  ASSERT_EQ(err, PW_OK);
 
-  CU_ASSERT_EQUAL_FATAL(c.length > 0, true);
+  ASSERT_GT(c.length, 0ul);
 
   // now, decrypting it should give us the original packed plain text
 
   EVP_CIPHER_CTX_free(ctx);
   ctx = EVP_CIPHER_CTX_new();
-  CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
+  ASSERT_NOT_NULL(ctx);
 
   ppt_t out;
 
   err = aes_decrypt_init(key, iv, ctx);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  ASSERT_EQ(err, PW_OK);
 
   err = aes_decrypt(ctx, &c, &out);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  ASSERT_EQ(err, PW_OK);
 
   err = aes_decrypt_deinit(ctx);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  ASSERT_EQ(err, PW_OK);
 
   EVP_CIPHER_CTX_free(ctx);
 
-  CU_ASSERT_EQUAL_FATAL(out.length, pp.length);
-  CU_ASSERT_EQUAL_FATAL(memcmp(pp.data, out.data, out.length), 0);
+  ASSERT_EQ(out.length, pp.length);
+  ASSERT_EQ(memcmp(pp.data, out.data, out.length), 0);
 
   free(c.data);
   passwand_secure_free(out.data, out.length);
@@ -84,31 +82,31 @@ TEST("decrypt: with bad key") {
   ct_t c;
 
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-  CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
+  ASSERT_NOT_NULL(ctx);
 
-  passwand_error_t err = aes_encrypt_init(key, iv, ctx);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  int err = aes_encrypt_init(key, iv, ctx);
+  ASSERT_EQ(err, PW_OK);
 
   err = aes_encrypt(ctx, &pp, &c);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  ASSERT_EQ(err, PW_OK);
 
   err = aes_encrypt_deinit(ctx);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  ASSERT_EQ(err, PW_OK);
 
-  CU_ASSERT_EQUAL_FATAL(c.length > 0, true);
+  ASSERT_GT(c.length, 0ul);
 
   // now modify the key and try to decrypt with it
 
   EVP_CIPHER_CTX_free(ctx);
   ctx = EVP_CIPHER_CTX_new();
-  CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
+  ASSERT_NOT_NULL(ctx);
 
   key[10] = 42;
 
   ppt_t out;
 
   err = aes_decrypt_init(key, iv, ctx);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  ASSERT_EQ(err, PW_OK);
 
   err = aes_decrypt(ctx, &c, &out);
 
@@ -118,9 +116,9 @@ TEST("decrypt: with bad key") {
   if (err == PW_OK) {
 
     err = aes_decrypt_deinit(ctx);
-    CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+    ASSERT_EQ(err, PW_OK);
 
-    CU_ASSERT_NOT_EQUAL_FATAL(memcmp(out.data, pp.data, out.length), 0);
+    ASSERT_NE(memcmp(out.data, pp.data, out.length), 0);
 
     passwand_secure_free(out.data, out.length);
   }
@@ -145,31 +143,31 @@ TEST("decrypt: with bad initialisation vector") {
   ct_t c;
 
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-  CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
+  ASSERT_NOT_NULL(ctx);
 
-  passwand_error_t err = aes_encrypt_init(key, iv, ctx);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  int err = aes_encrypt_init(key, iv, ctx);
+  ASSERT_EQ(err, PW_OK);
 
   err = aes_encrypt(ctx, &pp, &c);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  ASSERT_EQ(err, PW_OK);
 
   err = aes_encrypt_deinit(ctx);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  ASSERT_EQ(err, PW_OK);
 
-  CU_ASSERT_EQUAL_FATAL(c.length > 0, true);
+  ASSERT_GT(c.length, 0ul);
 
   // now modify the IV and try to decrypt with it
 
   EVP_CIPHER_CTX_free(ctx);
   ctx = EVP_CIPHER_CTX_new();
-  CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
+  ASSERT_NOT_NULL(ctx);
 
   iv[10] = 42;
 
   ppt_t out;
 
   err = aes_decrypt_init(key, iv, ctx);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  ASSERT_EQ(err, PW_OK);
 
   err = aes_decrypt(ctx, &c, &out);
 
@@ -179,9 +177,9 @@ TEST("decrypt: with bad initialisation vector") {
   if (err == PW_OK) {
 
     err = aes_decrypt_deinit(ctx);
-    CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+    ASSERT_EQ(err, PW_OK);
 
-    CU_ASSERT_NOT_EQUAL_FATAL(memcmp(out.data, pp.data, out.length), 0);
+    ASSERT_NE(memcmp(out.data, pp.data, out.length), 0);
 
     passwand_secure_free(out.data, out.length);
   }

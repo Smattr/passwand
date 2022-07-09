@@ -1,5 +1,4 @@
 #include "test.h"
-#include <CUnit/CUnit.h>
 #include <passwand/passwand.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,21 +11,21 @@ TEST("import: import(\"[]\")") {
   char tmp[sizeof("/tmp/tmp.XXXXXX")];
   strcpy(tmp, "/tmp/tmp.XXXXXX");
   int fd = mkstemp(tmp);
-  CU_ASSERT_NOT_EQUAL_FATAL(fd, -1);
+  ASSERT_NE(fd, -1);
   ssize_t written = write(fd, "[]", strlen("[]"));
   if (written != strlen("[]"))
     unlink(tmp);
-  CU_ASSERT_EQUAL_FATAL(written, strlen("[]"));
+  ASSERT_EQ((size_t)written, strlen("[]"));
 
   // now read in the entries
   passwand_entry_t *entries = NULL;
   size_t entry_len = 0;
   int r = passwand_import(tmp, &entries, &entry_len);
   unlink(tmp);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   // check we got nothing
-  CU_ASSERT_EQUAL_FATAL(entry_len, 0);
+  ASSERT_EQ(entry_len, 0ul);
 
   // clean up
   free(entries);
@@ -42,18 +41,18 @@ TEST("import: with a missing field") {
   char tmp[sizeof("/tmp/tmp.XXXXXX")];
   strcpy(tmp, "/tmp/tmp.XXXXXX");
   int fd = mkstemp(tmp);
-  CU_ASSERT_NOT_EQUAL_FATAL(fd, -1);
+  ASSERT_NE(fd, -1);
   ssize_t written = write(fd, data, strlen(data));
   if (written != (ssize_t)strlen(data))
     unlink(tmp);
-  CU_ASSERT_EQUAL_FATAL((size_t)written, strlen(data));
+  ASSERT_EQ((size_t)written, strlen(data));
 
   // now read in the entries
   passwand_entry_t *entries;
   size_t entry_len;
   int r = passwand_import(tmp, &entries, &entry_len);
   unlink(tmp);
-  CU_ASSERT_NOT_EQUAL_FATAL(r, 0);
+  ASSERT_NE(r, 0);
 }
 
 TEST("import: basic functionality") {
@@ -67,47 +66,47 @@ TEST("import: basic functionality") {
   char tmp[sizeof("/tmp/tmp.XXXXXX")];
   strcpy(tmp, "/tmp/tmp.XXXXXX");
   int fd = mkstemp(tmp);
-  CU_ASSERT_NOT_EQUAL_FATAL(fd, -1);
+  ASSERT_NE(fd, -1);
   ssize_t written = write(fd, data, strlen(data));
   if (written != (ssize_t)strlen(data))
     unlink(tmp);
-  CU_ASSERT_EQUAL_FATAL((size_t)written, strlen(data));
+  ASSERT_EQ((size_t)written, strlen(data));
 
   // now read in the entries
   passwand_entry_t *entries = NULL;
   size_t entry_len = 0;
   int r = passwand_import(tmp, &entries, &entry_len);
   unlink(tmp);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   // check we got an entry
-  CU_ASSERT_EQUAL_FATAL(entry_len, 1);
-  CU_ASSERT_EQUAL_FATAL(entries[0].space_len, strlen("hello world"));
-  CU_ASSERT_EQUAL_FATAL(strncmp((const char *)entries[0].space, "hello world",
-                                entries[0].space_len),
-                        0);
-  CU_ASSERT_EQUAL_FATAL(entries[0].key_len, strlen("hello world"));
-  CU_ASSERT_EQUAL_FATAL(
+  ASSERT_EQ(entry_len, 1ul);
+  ASSERT_EQ(entries[0].space_len, strlen("hello world"));
+  ASSERT_EQ(strncmp((const char *)entries[0].space, "hello world",
+                    entries[0].space_len),
+            0);
+  ASSERT_EQ(entries[0].key_len, strlen("hello world"));
+  ASSERT_EQ(
       strncmp((const char *)entries[0].key, "hello world", entries[0].key_len),
       0);
-  CU_ASSERT_EQUAL_FATAL(entries[0].value_len, strlen("hello world"));
-  CU_ASSERT_EQUAL_FATAL(strncmp((const char *)entries[0].value, "hello world",
-                                entries[0].value_len),
-                        0);
-  CU_ASSERT_EQUAL_FATAL(entries[0].hmac_len, strlen("hello world"));
-  CU_ASSERT_EQUAL_FATAL(strncmp((const char *)entries[0].hmac, "hello world",
-                                entries[0].hmac_len),
-                        0);
-  CU_ASSERT_EQUAL_FATAL(entries[0].hmac_salt_len, strlen("hello world"));
-  CU_ASSERT_EQUAL_FATAL(strncmp((const char *)entries[0].hmac_salt,
-                                "hello world", entries[0].hmac_salt_len),
-                        0);
-  CU_ASSERT_EQUAL_FATAL(entries[0].salt_len, strlen("hello world"));
-  CU_ASSERT_EQUAL_FATAL(strncmp((const char *)entries[0].salt, "hello world",
-                                entries[0].salt_len),
-                        0);
-  CU_ASSERT_EQUAL_FATAL(entries[0].iv_len, strlen("hello world"));
-  CU_ASSERT_EQUAL_FATAL(
+  ASSERT_EQ(entries[0].value_len, strlen("hello world"));
+  ASSERT_EQ(strncmp((const char *)entries[0].value, "hello world",
+                    entries[0].value_len),
+            0);
+  ASSERT_EQ(entries[0].hmac_len, strlen("hello world"));
+  ASSERT_EQ(strncmp((const char *)entries[0].hmac, "hello world",
+                    entries[0].hmac_len),
+            0);
+  ASSERT_EQ(entries[0].hmac_salt_len, strlen("hello world"));
+  ASSERT_EQ(strncmp((const char *)entries[0].hmac_salt, "hello world",
+                    entries[0].hmac_salt_len),
+            0);
+  ASSERT_EQ(entries[0].salt_len, strlen("hello world"));
+  ASSERT_EQ(strncmp((const char *)entries[0].salt, "hello world",
+                    entries[0].salt_len),
+            0);
+  ASSERT_EQ(entries[0].iv_len, strlen("hello world"));
+  ASSERT_EQ(
       strncmp((const char *)entries[0].iv, "hello world", entries[0].iv_len),
       0);
 
@@ -135,47 +134,47 @@ TEST("import: with an extra field") {
   char tmp[sizeof("/tmp/tmp.XXXXXX")];
   strcpy(tmp, "/tmp/tmp.XXXXXX");
   int fd = mkstemp(tmp);
-  CU_ASSERT_NOT_EQUAL_FATAL(fd, -1);
+  ASSERT_NE(fd, -1);
   ssize_t written = write(fd, data, strlen(data));
   if (written != (ssize_t)strlen(data))
     unlink(tmp);
-  CU_ASSERT_EQUAL_FATAL((size_t)written, strlen(data));
+  ASSERT_EQ((size_t)written, strlen(data));
 
   // now read in the entries
   passwand_entry_t *entries = NULL;
   size_t entry_len = 0;
   int r = passwand_import(tmp, &entries, &entry_len);
   unlink(tmp);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   // check we got an entry
-  CU_ASSERT_EQUAL_FATAL(entry_len, 1);
-  CU_ASSERT_EQUAL_FATAL(entries[0].space_len, strlen("hello world"));
-  CU_ASSERT_EQUAL_FATAL(strncmp((const char *)entries[0].space, "hello world",
-                                entries[0].space_len),
-                        0);
-  CU_ASSERT_EQUAL_FATAL(entries[0].key_len, strlen("hello world"));
-  CU_ASSERT_EQUAL_FATAL(
+  ASSERT_EQ(entry_len, 1ul);
+  ASSERT_EQ(entries[0].space_len, strlen("hello world"));
+  ASSERT_EQ(strncmp((const char *)entries[0].space, "hello world",
+                    entries[0].space_len),
+            0);
+  ASSERT_EQ(entries[0].key_len, strlen("hello world"));
+  ASSERT_EQ(
       strncmp((const char *)entries[0].key, "hello world", entries[0].key_len),
       0);
-  CU_ASSERT_EQUAL_FATAL(entries[0].value_len, strlen("hello world"));
-  CU_ASSERT_EQUAL_FATAL(strncmp((const char *)entries[0].value, "hello world",
-                                entries[0].value_len),
-                        0);
-  CU_ASSERT_EQUAL_FATAL(entries[0].hmac_len, strlen("hello world"));
-  CU_ASSERT_EQUAL_FATAL(strncmp((const char *)entries[0].hmac, "hello world",
-                                entries[0].hmac_len),
-                        0);
-  CU_ASSERT_EQUAL_FATAL(entries[0].hmac_salt_len, strlen("hello world"));
-  CU_ASSERT_EQUAL_FATAL(strncmp((const char *)entries[0].hmac_salt,
-                                "hello world", entries[0].hmac_salt_len),
-                        0);
-  CU_ASSERT_EQUAL_FATAL(entries[0].salt_len, strlen("hello world"));
-  CU_ASSERT_EQUAL_FATAL(strncmp((const char *)entries[0].salt, "hello world",
-                                entries[0].salt_len),
-                        0);
-  CU_ASSERT_EQUAL_FATAL(entries[0].iv_len, strlen("hello world"));
-  CU_ASSERT_EQUAL_FATAL(
+  ASSERT_EQ(entries[0].value_len, strlen("hello world"));
+  ASSERT_EQ(strncmp((const char *)entries[0].value, "hello world",
+                    entries[0].value_len),
+            0);
+  ASSERT_EQ(entries[0].hmac_len, strlen("hello world"));
+  ASSERT_EQ(strncmp((const char *)entries[0].hmac, "hello world",
+                    entries[0].hmac_len),
+            0);
+  ASSERT_EQ(entries[0].hmac_salt_len, strlen("hello world"));
+  ASSERT_EQ(strncmp((const char *)entries[0].hmac_salt, "hello world",
+                    entries[0].hmac_salt_len),
+            0);
+  ASSERT_EQ(entries[0].salt_len, strlen("hello world"));
+  ASSERT_EQ(strncmp((const char *)entries[0].salt, "hello world",
+                    entries[0].salt_len),
+            0);
+  ASSERT_EQ(entries[0].iv_len, strlen("hello world"));
+  ASSERT_EQ(
       strncmp((const char *)entries[0].iv, "hello world", entries[0].iv_len),
       0);
 
@@ -236,61 +235,54 @@ TEST("import: import(export(x)) == x") {
   // create a temporary file to export to
   char tmp[] = "/tmp/tmp.XXXXXX";
   int fd = mkstemp(tmp);
-  CU_ASSERT_NOT_EQUAL_FATAL(fd, -1);
+  ASSERT_NE(fd, -1);
   close(fd);
 
   // perform the export
-  passwand_error_t err = passwand_export(tmp, entries, entry_len);
+  int err = passwand_export(tmp, entries, entry_len);
   if (err != PW_OK)
     unlink(tmp);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  ASSERT_EQ(err, PW_OK);
 
   // now let us import them back in
   passwand_entry_t *new_entries;
   size_t new_entry_len;
   err = passwand_import(tmp, &new_entries, &new_entry_len);
   unlink(tmp);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  ASSERT_EQ(err, PW_OK);
 
   // now check we got back what we exported
-  CU_ASSERT_EQUAL_FATAL(entry_len, new_entry_len);
+  ASSERT_EQ(entry_len, new_entry_len);
   for (size_t i = 0; i < entry_len; i++) {
-    CU_ASSERT_EQUAL_FATAL(entries[i].space_len, new_entries[i].space_len);
-    CU_ASSERT_EQUAL_FATAL(strncmp((const char *)entries[i].space,
-                                  (const char *)new_entries[i].space,
-                                  entries[i].space_len),
-                          0);
-    CU_ASSERT_EQUAL_FATAL(entries[i].key_len, new_entries[i].key_len);
-    CU_ASSERT_EQUAL_FATAL(strncmp((const char *)entries[i].key,
-                                  (const char *)new_entries[i].key,
-                                  entries[i].key_len),
-                          0);
-    CU_ASSERT_EQUAL_FATAL(entries[i].value_len, new_entries[i].value_len);
-    CU_ASSERT_EQUAL_FATAL(strncmp((const char *)entries[i].value,
-                                  (const char *)new_entries[i].value,
-                                  entries[i].value_len),
-                          0);
-    CU_ASSERT_EQUAL_FATAL(entries[i].hmac_len, new_entries[i].hmac_len);
-    CU_ASSERT_EQUAL_FATAL(strncmp((const char *)entries[i].hmac,
-                                  (const char *)new_entries[i].hmac,
-                                  entries[i].hmac_len),
-                          0);
-    CU_ASSERT_EQUAL_FATAL(entries[i].hmac_salt_len,
-                          new_entries[i].hmac_salt_len);
-    CU_ASSERT_EQUAL_FATAL(strncmp((const char *)entries[i].hmac_salt,
-                                  (const char *)new_entries[i].hmac_salt,
-                                  entries[i].hmac_salt_len),
-                          0);
-    CU_ASSERT_EQUAL_FATAL(entries[i].salt_len, new_entries[i].salt_len);
-    CU_ASSERT_EQUAL_FATAL(strncmp((const char *)entries[i].salt,
-                                  (const char *)new_entries[i].salt,
-                                  entries[i].salt_len),
-                          0);
-    CU_ASSERT_EQUAL_FATAL(entries[i].iv_len, new_entries[i].iv_len);
-    CU_ASSERT_EQUAL_FATAL(strncmp((const char *)entries[i].iv,
-                                  (const char *)new_entries[i].iv,
-                                  entries[i].iv_len),
-                          0);
+    ASSERT_EQ(entries[i].space_len, new_entries[i].space_len);
+    ASSERT_EQ(strncmp((const char *)entries[i].space,
+                      (const char *)new_entries[i].space, entries[i].space_len),
+              0);
+    ASSERT_EQ(entries[i].key_len, new_entries[i].key_len);
+    ASSERT_EQ(strncmp((const char *)entries[i].key,
+                      (const char *)new_entries[i].key, entries[i].key_len),
+              0);
+    ASSERT_EQ(entries[i].value_len, new_entries[i].value_len);
+    ASSERT_EQ(strncmp((const char *)entries[i].value,
+                      (const char *)new_entries[i].value, entries[i].value_len),
+              0);
+    ASSERT_EQ(entries[i].hmac_len, new_entries[i].hmac_len);
+    ASSERT_EQ(strncmp((const char *)entries[i].hmac,
+                      (const char *)new_entries[i].hmac, entries[i].hmac_len),
+              0);
+    ASSERT_EQ(entries[i].hmac_salt_len, new_entries[i].hmac_salt_len);
+    ASSERT_EQ(strncmp((const char *)entries[i].hmac_salt,
+                      (const char *)new_entries[i].hmac_salt,
+                      entries[i].hmac_salt_len),
+              0);
+    ASSERT_EQ(entries[i].salt_len, new_entries[i].salt_len);
+    ASSERT_EQ(strncmp((const char *)entries[i].salt,
+                      (const char *)new_entries[i].salt, entries[i].salt_len),
+              0);
+    ASSERT_EQ(entries[i].iv_len, new_entries[i].iv_len);
+    ASSERT_EQ(strncmp((const char *)entries[i].iv,
+                      (const char *)new_entries[i].iv, entries[i].iv_len),
+              0);
   }
 
   // clean up

@@ -28,15 +28,6 @@ add_executable(passwand-tests
 
 target_link_libraries(passwand-tests PRIVATE passwand)
 
-find_path(CUNIT_INCLUDE_DIRS CUnit/CUnit.h HINTS ENV C_INCLUDE_PATH REQUIRED)
-find_library(CUNIT_LIBRARIES
-  NAMES cunit libcunit cunitlib
-  HINTS ENV LIBRARY_PATH
-  REQUIRED
-)
-target_include_directories(passwand-tests SYSTEM PRIVATE ${CUNIT_INCLUDE_DIRS})
-target_link_libraries(passwand-tests PRIVATE ${CUNIT_LIBRARIES})
-
 find_package(PkgConfig REQUIRED)
 
 pkg_check_modules(OPENSSL REQUIRED openssl)

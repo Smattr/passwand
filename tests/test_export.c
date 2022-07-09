@@ -1,5 +1,4 @@
 #include "test.h"
-#include <CUnit/CUnit.h>
 #include <passwand/passwand.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,28 +11,28 @@ TEST("export: 0 entries") {
   char tmp[sizeof("/tmp/tmp.XXXXXX")];
   strcpy(tmp, "/tmp/tmp.XXXXXX");
   int fd = mkstemp(tmp);
-  CU_ASSERT_NOT_EQUAL_FATAL(fd, -1);
+  ASSERT_NE(fd, -1);
   close(fd);
 
   // export to this path
   int r = passwand_export(tmp, NULL, 0);
   if (r != 0)
     unlink(tmp);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   // read back in the exported data
   FILE *f = fopen(tmp, "r");
   if (f == NULL)
     unlink(tmp);
-  CU_ASSERT_PTR_NOT_NULL_FATAL(f);
+  ASSERT_NOT_NULL(f);
   char buffer[100];
   char *p = fgets(buffer, sizeof(buffer), f);
   fclose(f);
   unlink(tmp);
 
   // check we got what we expect
-  CU_ASSERT_PTR_NOT_NULL_FATAL(p);
-  CU_ASSERT_STRING_EQUAL(buffer, "[]");
+  ASSERT_NOT_NULL(p);
+  ASSERT_STREQ(buffer, "[]");
 }
 
 TEST("export: basic functionality") {
@@ -42,7 +41,7 @@ TEST("export: basic functionality") {
   char tmp[sizeof("/tmp/tmp.XXXXXX")];
   strcpy(tmp, "/tmp/tmp.XXXXXX");
   int fd = mkstemp(tmp);
-  CU_ASSERT_NOT_EQUAL_FATAL(fd, -1);
+  ASSERT_NE(fd, -1);
   close(fd);
 
   // create an entry to export
@@ -69,5 +68,5 @@ TEST("export: basic functionality") {
   // export to this path
   int r = passwand_export(tmp, entries, sizeof(entries) / sizeof(entries[0]));
   unlink(tmp);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 }
