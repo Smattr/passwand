@@ -1,10 +1,8 @@
 #include "../src/internal.h"
 #include "../src/types.h"
 #include "test.h"
-#include <CUnit/CUnit.h>
 #include <assert.h>
 #include <passwand/passwand.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,9 +18,9 @@ TEST("pack: basic functionality") {
 
   ppt_t pp;
 
-  passwand_error_t r = pack_data(&p, iv, &pp);
-  CU_ASSERT_EQUAL_FATAL(r, PW_OK);
-  CU_ASSERT_EQUAL_FATAL(pp.length > 0, true);
+  int r = pack_data(&p, iv, &pp);
+  ASSERT_EQ(r, PW_OK);
+  ASSERT_GT(pp.length, 0ul);
 
   passwand_secure_free(pp.data, pp.length);
 }
@@ -39,10 +37,10 @@ TEST("pack: is aligned") {
 
   ppt_t pp;
 
-  passwand_error_t r = pack_data(&p, iv, &pp);
-  CU_ASSERT_EQUAL_FATAL(r, PW_OK);
-  CU_ASSERT_EQUAL_FATAL(pp.length > 0, true);
-  CU_ASSERT_EQUAL_FATAL(pp.length % 16, 0);
+  int r = pack_data(&p, iv, &pp);
+  ASSERT_EQ(r, PW_OK);
+  ASSERT_GT(pp.length, 0ul);
+  ASSERT_EQ(pp.length % 16, 0ul);
 
   passwand_secure_free(pp.data, pp.length);
 }

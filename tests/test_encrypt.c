@@ -1,7 +1,6 @@
 #include "../src/internal.h"
 #include "../src/types.h"
 #include "test.h"
-#include <CUnit/CUnit.h>
 #include <assert.h>
 #include <openssl/evp.h>
 #include <setjmp.h>
@@ -78,29 +77,29 @@ TEST("AES128 reads at most 128 bits of a supplied key") {
   assert(pagesize >= 16 && "AES key does not fit in a page");
   unsigned char *p;
   int r = posix_memalign((void **)&p, pagesize, pagesize * 2);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
   // make the second page inaccessible
   r = mprotect(p + pagesize, pagesize, PROT_NONE);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
   // write a dummy key into the end of the first page
   unsigned char *key = p + pagesize - 16;
   memset(key, 0, 16);
 
   // setup a context for encryption
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-  CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
+  ASSERT_NOT_NULL(ctx);
 
   // operations from here on may cause a SIGSEGV if we have got AES wrong, so
   // setup a signal handler so we can recover
   r = register_handler();
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
   int j = setjmp(env);
   if (j == 0) {
 
     // do a dummy encryption to force use of the key
 
     r = EVP_EncryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key, iv);
-    CU_ASSERT_EQUAL_FATAL(r, 1);
+    ASSERT_EQ(r, 1);
 
     unsigned char in[sizeof("hello world")];
     strcpy((char *)in, "hello world");
@@ -109,25 +108,25 @@ TEST("AES128 reads at most 128 bits of a supplied key") {
 
     int len;
     r = EVP_EncryptUpdate(ctx, out, &len, in, sizeof(in));
-    CU_ASSERT_EQUAL_FATAL(r, 1);
+    ASSERT_EQ(r, 1);
 
   } else if (j == 1) {
 
     // we unexpectedly triggered a SIGSEGV; fail
-    CU_FAIL("overread 128-bit buffer");
+    FAIL("overread 128-bit buffer");
   }
 
   // If we reached here, then we did not trigger a SIGSEGV. Yay!
 
   r = deregister_handler();
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   EVP_CIPHER_CTX_free(ctx);
 
   // we need to unprotect the page we previously protected because we are about
   // to give it back to the heap
   r = mprotect(p + pagesize, pagesize, PROT_READ | PROT_WRITE);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   free(p);
 }
@@ -146,29 +145,29 @@ TEST("AES128 reads at least 128 bits of a supplied key") {
   assert(pagesize >= 16 && "AES key does not fit in a page");
   unsigned char *p;
   int r = posix_memalign((void **)&p, pagesize, pagesize * 2);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
   // write a dummy key into the end of the first page and first byte of second
   unsigned char *key = p + pagesize - 15;
   memset(key, 0, 16);
   // make the second page inaccessible
   r = mprotect(p + pagesize, pagesize, PROT_NONE);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   // setup a context for encryption
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-  CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
+  ASSERT_NOT_NULL(ctx);
 
   // operations from here on should cause a SIGSEGV if we understand AES, so
   // setup a signal handler so we can recover
   r = register_handler();
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
   int j = setjmp(env);
   if (j == 0) {
 
     // do a dummy encryption to force use of the key
 
     r = EVP_EncryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key, iv);
-    CU_ASSERT_EQUAL_FATAL(r, 1);
+    ASSERT_EQ(r, 1);
 
     unsigned char in[sizeof("hello world")];
     strcpy((char *)in, "hello world");
@@ -177,24 +176,24 @@ TEST("AES128 reads at least 128 bits of a supplied key") {
 
     int len;
     r = EVP_EncryptUpdate(ctx, out, &len, in, sizeof(in));
-    CU_ASSERT_EQUAL_FATAL(r, 1);
+    ASSERT_EQ(r, 1);
 
     // if we reached here then we did not trigger SIGSEGV :(
-    CU_FAIL("failed to read to the end of 128-bit key");
+    FAIL("failed to read to the end of 128-bit key");
   }
 
   // if we reached here, then we should have triggered a SIGSEGV
-  CU_ASSERT_EQUAL_FATAL(j, 1);
+  ASSERT_EQ(j, 1);
 
   r = deregister_handler();
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   EVP_CIPHER_CTX_free(ctx);
 
   // we need to unprotect the page we previously protected because we are about
   // to give it back to the heap
   r = mprotect(p + pagesize, pagesize, PROT_READ | PROT_WRITE);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   free(p);
 }
@@ -216,29 +215,29 @@ TEST("AES128 reads at most 16 bytes of a supplied initialisation vector") {
   assert(pagesize >= 16 && "AES IV does not fit in a page");
   unsigned char *p;
   int r = posix_memalign((void **)&p, pagesize, pagesize * 2);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
   // make the second page inaccessible
   r = mprotect(p + pagesize, pagesize, PROT_NONE);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
   // write a dummy IV into the end of the first page
   unsigned char *iv = p + pagesize - 16;
   memset(iv, 0, 16);
 
   // setup a context for encryption
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-  CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
+  ASSERT_NOT_NULL(ctx);
 
   // operations from here on may cause a SIGSEGV if we have got AES wrong, so
   // setup a signal handler so we can recover
   r = register_handler();
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
   int j = setjmp(env);
   if (j == 0) {
 
     // do a dummy encryption to force use of the IV
 
     r = EVP_EncryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key, iv);
-    CU_ASSERT_EQUAL_FATAL(r, 1);
+    ASSERT_EQ(r, 1);
 
     unsigned char in[sizeof("hello world")];
     strcpy((char *)in, "hello world");
@@ -247,25 +246,25 @@ TEST("AES128 reads at most 16 bytes of a supplied initialisation vector") {
 
     int len;
     r = EVP_EncryptUpdate(ctx, out, &len, in, sizeof(in));
-    CU_ASSERT_EQUAL_FATAL(r, 1);
+    ASSERT_EQ(r, 1);
 
   } else if (j == 1) {
 
     // we unexpectedly triggered a SIGSEGV; fail
-    CU_FAIL("overread 16 byte IV");
+    FAIL("overread 16 byte IV");
   }
 
   // If we reached here, then we did not trigger a SIGSEGV. Yay!
 
   r = deregister_handler();
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   EVP_CIPHER_CTX_free(ctx);
 
   // we need to unprotect the page we previously protected because we are about
   // to give it back to the heap
   r = mprotect(p + pagesize, pagesize, PROT_READ | PROT_WRITE);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   free(p);
 }
@@ -281,29 +280,29 @@ TEST("AES128 reads at least 16 bytes of a supplied initialisation vector") {
   assert(pagesize >= 16 && "AES IV does not fit in a page");
   unsigned char *p;
   int r = posix_memalign((void **)&p, pagesize, pagesize * 2);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
   // write a dummy IV into the end of the first page
   unsigned char *iv = p + pagesize - 15;
   memset(iv, 0, 16);
   // make the second page inaccessible
   r = mprotect(p + pagesize, pagesize, PROT_NONE);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   // setup a context for encryption
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-  CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
+  ASSERT_NOT_NULL(ctx);
 
   // operations from here on should cause a SIGSEGV if we understand AES, so
   // setup a signal handler so we can recover
   r = register_handler();
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
   int j = setjmp(env);
   if (j == 0) {
 
     // do a dummy encryption to force use of the IV
 
     r = EVP_EncryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key, iv);
-    CU_ASSERT_EQUAL_FATAL(r, 1);
+    ASSERT_EQ(r, 1);
 
     unsigned char in[sizeof("hello world")];
     strcpy((char *)in, "hello world");
@@ -312,24 +311,24 @@ TEST("AES128 reads at least 16 bytes of a supplied initialisation vector") {
 
     int len;
     r = EVP_EncryptUpdate(ctx, out, &len, in, sizeof(in));
-    CU_ASSERT_EQUAL_FATAL(r, 1);
+    ASSERT_EQ(r, 1);
 
     // if we reached here then we did not trigger SIGSEGV :(
-    CU_FAIL("failed to read to the end of 16 byte IV");
+    FAIL("failed to read to the end of 16 byte IV");
   }
 
   // if we reached here, then we should have triggered a SIGSEGV
-  CU_ASSERT_EQUAL_FATAL(j, 1);
+  ASSERT_EQ(j, 1);
 
   r = deregister_handler();
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   EVP_CIPHER_CTX_free(ctx);
 
   // we need to unprotect the page we previously protected because we are about
   // to give it back to the heap
   r = mprotect(p + pagesize, pagesize, PROT_READ | PROT_WRITE);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   free(p);
 }
@@ -349,29 +348,29 @@ TEST("AES256 reads at most 256 bits of a supplied key") {
   assert(pagesize >= 32 && "AES key does not fit in a page");
   unsigned char *p;
   int r = posix_memalign((void **)&p, pagesize, pagesize * 2);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
   // make the second page inaccessible
   r = mprotect(p + pagesize, pagesize, PROT_NONE);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
   // write a dummy key into the end of the first page
   unsigned char *key = p + pagesize - 32;
   memset(key, 0, 32);
 
   // setup a context for encryption
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-  CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
+  ASSERT_NOT_NULL(ctx);
 
   // operations from here on may cause a SIGSEGV if we have got AES wrong, so
   // setup a signal handler so we can recover
   r = register_handler();
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
   int j = setjmp(env);
   if (j == 0) {
 
     // do a dummy encryption to force use of the key
 
     r = EVP_EncryptInit_ex(ctx, EVP_aes_256_ctr(), NULL, key, iv);
-    CU_ASSERT_EQUAL_FATAL(r, 1);
+    ASSERT_EQ(r, 1);
 
     unsigned char in[sizeof("hello world")];
     strcpy((char *)in, "hello world");
@@ -380,25 +379,25 @@ TEST("AES256 reads at most 256 bits of a supplied key") {
 
     int len;
     r = EVP_EncryptUpdate(ctx, out, &len, in, sizeof(in));
-    CU_ASSERT_EQUAL_FATAL(r, 1);
+    ASSERT_EQ(r, 1);
 
   } else if (j == 1) {
 
     // we unexpectedly triggered a SIGSEGV; fail
-    CU_FAIL("overread 256-bit buffer");
+    FAIL("overread 256-bit buffer");
   }
 
   // If we reached here, then we did not trigger a SIGSEGV. Yay!
 
   r = deregister_handler();
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   EVP_CIPHER_CTX_free(ctx);
 
   // we need to unprotect the page we previously protected because we are about
   // to give it back to the heap
   r = mprotect(p + pagesize, pagesize, PROT_READ | PROT_WRITE);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   free(p);
 }
@@ -413,29 +412,29 @@ TEST("AES256 reads at least 256 bits of a supplied key") {
   assert(pagesize >= 32 && "AES key does not fit in a page");
   unsigned char *p;
   int r = posix_memalign((void **)&p, pagesize, pagesize * 2);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
   // write a dummy key into the end of the first page and first byte of second
   unsigned char *key = p + pagesize - 31;
   memset(key, 0, 32);
   // make the second page inaccessible
   r = mprotect(p + pagesize, pagesize, PROT_NONE);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   // setup a context for encryption
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-  CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
+  ASSERT_NOT_NULL(ctx);
 
   // operations from here on should cause a SIGSEGV if we understand AES, so
   // setup a signal handler so we can recover
   r = register_handler();
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
   int j = setjmp(env);
   if (j == 0) {
 
     // do a dummy encryption to force use of the key
 
     r = EVP_EncryptInit_ex(ctx, EVP_aes_256_ctr(), NULL, key, iv);
-    CU_ASSERT_EQUAL_FATAL(r, 1);
+    ASSERT_EQ(r, 1);
 
     unsigned char in[sizeof("hello world")];
     strcpy((char *)in, "hello world");
@@ -444,24 +443,24 @@ TEST("AES256 reads at least 256 bits of a supplied key") {
 
     int len;
     r = EVP_EncryptUpdate(ctx, out, &len, in, sizeof(in));
-    CU_ASSERT_EQUAL_FATAL(r, 1);
+    ASSERT_EQ(r, 1);
 
     // if we reached here then we did not trigger SIGSEGV :(
-    CU_FAIL("failed to read to the end of 256-bit key");
+    FAIL("failed to read to the end of 256-bit key");
   }
 
   // if we reached here, then we should have triggered a SIGSEGV
-  CU_ASSERT_EQUAL_FATAL(j, 1);
+  ASSERT_EQ(j, 1);
 
   r = deregister_handler();
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   EVP_CIPHER_CTX_free(ctx);
 
   // we need to unprotect the page we previously protected because we are about
   // to give it back to the heap
   r = mprotect(p + pagesize, pagesize, PROT_READ | PROT_WRITE);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   free(p);
 }
@@ -483,29 +482,29 @@ TEST("AES256 reads at most 16 bytes of a supplied initialisation vector") {
   assert(pagesize >= 16 && "AES IV does not fit in a page");
   unsigned char *p;
   int r = posix_memalign((void **)&p, pagesize, pagesize * 2);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
   // make the second page inaccessible
   r = mprotect(p + pagesize, pagesize, PROT_NONE);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
   // write a dummy IV into the end of the first page
   unsigned char *iv = p + pagesize - 16;
   memset(iv, 0, 16);
 
   // setup a context for encryption
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-  CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
+  ASSERT_NOT_NULL(ctx);
 
   // operations from here on may cause a SIGSEGV if we have got AES wrong, so
   // setup a signal handler so we can recover
   r = register_handler();
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
   int j = setjmp(env);
   if (j == 0) {
 
     // do a dummy encryption to force use of the IV
 
     r = EVP_EncryptInit_ex(ctx, EVP_aes_256_ctr(), NULL, key, iv);
-    CU_ASSERT_EQUAL_FATAL(r, 1);
+    ASSERT_EQ(r, 1);
 
     unsigned char in[sizeof("hello world")];
     strcpy((char *)in, "hello world");
@@ -514,25 +513,25 @@ TEST("AES256 reads at most 16 bytes of a supplied initialisation vector") {
 
     int len;
     r = EVP_EncryptUpdate(ctx, out, &len, in, sizeof(in));
-    CU_ASSERT_EQUAL_FATAL(r, 1);
+    ASSERT_EQ(r, 1);
 
   } else if (j == 1) {
 
     // we unexpectedly triggered a SIGSEGV; fail
-    CU_FAIL("overread 16 byte IV");
+    FAIL("overread 16 byte IV");
   }
 
   // If we reached here, then we did not trigger a SIGSEGV. Yay!
 
   r = deregister_handler();
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   EVP_CIPHER_CTX_free(ctx);
 
   // we need to unprotect the page we previously protected because we are about
   // to give it back to the heap
   r = mprotect(p + pagesize, pagesize, PROT_READ | PROT_WRITE);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   free(p);
 }
@@ -548,29 +547,29 @@ TEST("AES256 reads at least 16 bytes of a supplied initialisation vector") {
   assert(pagesize >= 16 && "AES IV does not fit in a page");
   unsigned char *p;
   int r = posix_memalign((void **)&p, pagesize, pagesize * 2);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
   // write a dummy IV into the end of the first page
   unsigned char *iv = p + pagesize - 15;
   memset(iv, 0, 16);
   // make the second page inaccessible
   r = mprotect(p + pagesize, pagesize, PROT_NONE);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   // setup a context for encryption
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-  CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
+  ASSERT_NOT_NULL(ctx);
 
   // operations from here on should cause a SIGSEGV if we understand AES, so
   // setup a signal handler so we can recover
   r = register_handler();
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
   int j = setjmp(env);
   if (j == 0) {
 
     // do a dummy encryption to force use of the IV
 
     r = EVP_EncryptInit_ex(ctx, EVP_aes_256_ctr(), NULL, key, iv);
-    CU_ASSERT_EQUAL_FATAL(r, 1);
+    ASSERT_EQ(r, 1);
 
     unsigned char in[sizeof("hello world")];
     strcpy((char *)in, "hello world");
@@ -579,24 +578,24 @@ TEST("AES256 reads at least 16 bytes of a supplied initialisation vector") {
 
     int len;
     r = EVP_EncryptUpdate(ctx, out, &len, in, sizeof(in));
-    CU_ASSERT_EQUAL_FATAL(r, 1);
+    ASSERT_EQ(r, 1);
 
     // if we reached here then we did not trigger SIGSEGV :(
-    CU_FAIL("failed to read to the end of 16 byte IV");
+    FAIL("failed to read to the end of 16 byte IV");
   }
 
   // if we reached here, then we should have triggered a SIGSEGV
-  CU_ASSERT_EQUAL_FATAL(j, 1);
+  ASSERT_EQ(j, 1);
 
   r = deregister_handler();
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   EVP_CIPHER_CTX_free(ctx);
 
   // we need to unprotect the page we previously protected because we are about
   // to give it back to the heap
   r = mprotect(p + pagesize, pagesize, PROT_READ | PROT_WRITE);
-  CU_ASSERT_EQUAL_FATAL(r, 0);
+  ASSERT_EQ(r, 0);
 
   free(p);
 }
@@ -613,16 +612,16 @@ TEST("encrypt: encrypt(\"\")") {
   ct_t c;
 
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-  CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
+  ASSERT_NOT_NULL(ctx);
 
-  passwand_error_t err = aes_encrypt_init(key, iv, ctx);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  int err = aes_encrypt_init(key, iv, ctx);
+  ASSERT_EQ(err, PW_OK);
 
   err = aes_encrypt(ctx, &pp, &c);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  ASSERT_EQ(err, PW_OK);
 
   err = aes_encrypt_deinit(ctx);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  ASSERT_EQ(err, PW_OK);
 
   EVP_CIPHER_CTX_free(ctx);
   free(c.data);
@@ -641,17 +640,17 @@ TEST("encrypt: basic functionality") {
   ct_t c;
 
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-  CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
+  ASSERT_NOT_NULL(ctx);
 
-  passwand_error_t err = aes_encrypt_init(key, iv, ctx);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  int err = aes_encrypt_init(key, iv, ctx);
+  ASSERT_EQ(err, PW_OK);
 
   err = aes_encrypt(ctx, &pp, &c);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
-  CU_ASSERT_EQUAL_FATAL(c.length > 0, true);
+  ASSERT_EQ(err, PW_OK);
+  ASSERT_GT(c.length, 0ul);
 
   err = aes_encrypt_deinit(ctx);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  ASSERT_EQ(err, PW_OK);
 
   EVP_CIPHER_CTX_free(ctx);
   free(c.data);
@@ -670,13 +669,13 @@ TEST("encrypt: with unaligned data") {
   ct_t c;
 
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-  CU_ASSERT_PTR_NOT_NULL_FATAL(ctx);
+  ASSERT_NOT_NULL(ctx);
 
-  passwand_error_t err = aes_encrypt_init(key, iv, ctx);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  int err = aes_encrypt_init(key, iv, ctx);
+  ASSERT_EQ(err, PW_OK);
 
   err = aes_encrypt(ctx, &pp, &c);
-  CU_ASSERT_NOT_EQUAL_FATAL(err, PW_OK);
+  ASSERT_NE(err, PW_OK);
 
   EVP_CIPHER_CTX_free(ctx);
 }

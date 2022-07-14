@@ -1,5 +1,4 @@
 #include "test.h"
-#include <CUnit/CUnit.h>
 #include <passwand/passwand.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -75,9 +74,9 @@ TEST("integration: basic lifecycle") {
     const char *key = "username";
     const char *value = "bob";
 
-    passwand_error_t err = passwand_entry_new(&entries[0], mainpass, space, key,
-                                              value, work_factor);
-    CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+    int err = passwand_entry_new(&entries[0], mainpass, space, key, value,
+                                 work_factor);
+    ASSERT_EQ(err, PW_OK);
   }
 
   {
@@ -85,9 +84,9 @@ TEST("integration: basic lifecycle") {
     const char *key = "password";
     const char *value = "bob's password";
 
-    passwand_error_t err = passwand_entry_new(&entries[1], mainpass, space, key,
-                                              value, work_factor);
-    CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+    int err = passwand_entry_new(&entries[1], mainpass, space, key, value,
+                                 work_factor);
+    ASSERT_EQ(err, PW_OK);
   }
 
   {
@@ -95,9 +94,9 @@ TEST("integration: basic lifecycle") {
     const char *key = "username";
     const char *value = "alice";
 
-    passwand_error_t err = passwand_entry_new(&entries[2], mainpass, space, key,
-                                              value, work_factor);
-    CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+    int err = passwand_entry_new(&entries[2], mainpass, space, key, value,
+                                 work_factor);
+    ASSERT_EQ(err, PW_OK);
   }
 
   {
@@ -105,29 +104,29 @@ TEST("integration: basic lifecycle") {
     const char *key = "password";
     const char *value = "alice's password";
 
-    passwand_error_t err = passwand_entry_new(&entries[3], mainpass, space, key,
-                                              value, work_factor);
-    CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+    int err = passwand_entry_new(&entries[3], mainpass, space, key, value,
+                                 work_factor);
+    ASSERT_EQ(err, PW_OK);
   }
 
   char tmp[] = "/tmp/tmp.XXXXXX";
   {
     int fd = mkstemp(tmp);
-    CU_ASSERT_NOT_EQUAL_FATAL(fd, -1);
+    ASSERT_NE(fd, -1);
     close(fd);
 
-    passwand_error_t err = passwand_export(tmp, entries, entry_len);
-    CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+    int err = passwand_export(tmp, entries, entry_len);
+    ASSERT_EQ(err, PW_OK);
   }
 
   for (size_t i = 0; i < entry_len; i++)
     cleanup_entry(&entries[i]);
   free(entries);
 
-  passwand_error_t err = passwand_import(tmp, &entries, &entry_len);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
+  int err = passwand_import(tmp, &entries, &entry_len);
+  ASSERT_EQ(err, PW_OK);
 
-  CU_ASSERT_EQUAL_FATAL(entry_len, 4);
+  ASSERT_EQ(entry_len, 4ul);
 
   for (size_t i = 0; i < entry_len; i++)
     entries[i].work_factor = work_factor;
@@ -138,8 +137,8 @@ TEST("integration: basic lifecycle") {
   };
   for (size_t i = 0; i < entry_len; i++) {
     err = passwand_entry_do(mainpass, &entries[i], body, &st);
-    CU_ASSERT_EQUAL_FATAL(err, PW_OK);
-    CU_ASSERT_EQUAL_FATAL(st.failed, false);
+    ASSERT_EQ(err, PW_OK);
+    ASSERT(!st.failed);
   }
 
   unlink(tmp);

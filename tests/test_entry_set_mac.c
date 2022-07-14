@@ -1,5 +1,4 @@
 #include "test.h"
-#include <CUnit/CUnit.h>
 #include <passwand/passwand.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -16,10 +15,10 @@ TEST("entry_set_mac: basic functionality") {
       .work_factor = 14,
   };
 
-  passwand_error_t err = passwand_entry_set_mac("foo bar", &e);
-  CU_ASSERT_EQUAL_FATAL(err, PW_OK);
-  CU_ASSERT_PTR_NOT_NULL_FATAL(e.hmac);
-  CU_ASSERT_PTR_NOT_NULL_FATAL(e.hmac_salt);
+  int err = passwand_entry_set_mac("foo bar", &e);
+  ASSERT_EQ(err, PW_OK);
+  ASSERT_NOT_NULL(e.hmac);
+  ASSERT_NOT_NULL(e.hmac_salt);
   free(e.hmac);
   free(e.hmac_salt);
 }
