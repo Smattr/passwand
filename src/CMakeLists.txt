@@ -21,13 +21,23 @@ target_include_directories(passwand PUBLIC
   $<INSTALL_INTERFACE:include>
 )
 
-find_library(SCRYPTKDF_LIBRARIES
-  NAMES scrypt-kdf libscrypt-kdf
-  PATHS ENV LIBRARY_PATH
-  REQUIRED)
-find_path(SCRYPTKDF_INCLUDE_DIRS scrypt-kdf.h
-  PATHS ENV C_INCLUDE_PATH
-  REQUIRED)
+if(APPLE)
+  find_library(SCRYPTKDF_LIBRARIES
+    NAMES scrypt libscrypt
+    PATHS ENV LIBRARY_PATH
+    REQUIRED)
+  find_path(SCRYPTKDF_INCLUDE_DIRS libscrypt.h
+    PATHS ENV C_INCLUDE_PATH
+    REQUIRED)
+else()
+  find_library(SCRYPTKDF_LIBRARIES
+    NAMES scrypt-kdf libscrypt-kdf
+    PATHS ENV LIBRARY_PATH
+    REQUIRED)
+  find_path(SCRYPTKDF_INCLUDE_DIRS scrypt-kdf.h
+    PATHS ENV C_INCLUDE_PATH
+    REQUIRED)
+endif()
 target_include_directories(passwand SYSTEM PRIVATE ${SCRYPTKDF_INCLUDE_DIRS})
 target_link_libraries(passwand PRIVATE ${SCRYPTKDF_LIBRARIES})
 
