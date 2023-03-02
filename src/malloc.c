@@ -104,15 +104,13 @@ static int morecore(void **p) {
   assert(p != NULL);
 
   size_t page = pagesize();
-  if (page == 0 || page != EXPECTED_PAGE_SIZE)
+  if (page < EXPECTED_PAGE_SIZE)
     return -1;
-
-  assert(page % sizeof(long long) == 0);
 
   // allocate a new mlocked page
-  if (posix_memalign(p, page, page) != 0)
+  if (posix_memalign(p, page, EXPECTED_PAGE_SIZE) != 0)
     return -1;
-  if (mlock(*p, page) != 0) {
+  if (mlock(*p, EXPECTED_PAGE_SIZE) != 0) {
     free(*p);
     return -1;
   }
