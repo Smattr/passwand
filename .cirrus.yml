@@ -62,4 +62,4 @@ task:
     - name: clang-format
       container:
         image: silkeh/clang:14
-      test_script: git ls-files -z '**/*.c' '**/*.h' | xargs -0 -- clang-format --dry-run --style=file --Werror
+      test_script: uname -rms && apt-get update -y && apt-get install --no-install-recommends -y git && git ls-files -z '**/*.c' '**/*.h' | xargs -0 -- clang-format --dry-run --style=file --Werror
