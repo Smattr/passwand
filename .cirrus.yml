@@ -51,7 +51,7 @@ task:
 
     - name: macOS
       macos_instance:
-        image: ghcr.io/cirruslabs/macos-ventura-base:latest
+        image: ghcr.io/cirruslabs/macos-sonoma-base:latest
       environment:
         CFLAGS: -I/opt/homebrew/opt/openssl@3/include -I/opt/homebrew/include
         LDFLAGS: -L/opt/homebrew/opt/openssl@3/lib -L/opt/homebrew/lib
