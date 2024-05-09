@@ -12,7 +12,7 @@ task:
 
     - name: Linux, GCC, no GTK
       container:
-        image: gcc:13.2
+        image: gcc:14.1
       environment:
         DEBIAN_FRONTEND: noninteractive
         CFLAGS: -Werror -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=undefined -fuse-ld=gold
@@ -25,7 +25,7 @@ task:
 
     - name: Linux, GCC, GTK 2
       container:
-        image: gcc:13.2
+        image: gcc:14.1
       environment:
         DEBIAN_FRONTEND: noninteractive
         CFLAGS: -Werror -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=undefined -fuse-ld=gold -Wno-deprecated-declarations
@@ -38,7 +38,7 @@ task:
 
     - name: Linux, GCC, GTK 3
       container:
-        image: gcc:13.2
+        image: gcc:14.1
       environment:
         DEBIAN_FRONTEND: noninteractive
         CFLAGS: -Werror -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=undefined -fuse-ld=gold -Wno-deprecated-declarations
