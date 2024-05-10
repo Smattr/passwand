@@ -89,8 +89,7 @@ passwand_error_t decode(const char *s, uint8_t **d, size_t *len) {
 
   // Figure out how much space we need to decode. Note that this
   // overestimates.
-  BUF_MEM *pp __attribute__((unused));
-  long sz = BIO_get_mem_data(b64, &pp);
+  long sz = BIO_get_mem_data(b64, &(BUF_MEM *){NULL});
   *d = malloc(sz);
   if (*d == NULL) {
     rc = PW_NO_MEM;
