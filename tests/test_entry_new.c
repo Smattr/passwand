@@ -10,8 +10,7 @@ static const char *key = "key";
 static const char *value = "value";
 
 TEST("entry_new: basic functionality") {
-  passwand_entry_t e;
-  memset(&e, 0, sizeof(e));
+  passwand_entry_t e = {0};
   int err = passwand_entry_new(&e, mainpass, space, key, value, 14);
   ASSERT_EQ(err, PW_OK);
   ASSERT_NOT_NULL(e.space);

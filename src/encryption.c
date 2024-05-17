@@ -99,7 +99,7 @@ passwand_error_t aes_decrypt(EVP_CIPHER_CTX *ctx, const ct_t *c, ppt_t *pp) {
     rc = PW_NO_MEM;
     goto done;
   }
-  memset(buffer, 0, sizeof(*buffer));
+  *buffer = (buffer_t){0};
   if (passwand_secure_malloc((void **)&buffer->data,
                              c->length + AES_BLOCK_SIZE) != 0) {
     rc = PW_NO_MEM;

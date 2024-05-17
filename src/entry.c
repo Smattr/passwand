@@ -28,7 +28,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
   assert(key != NULL);
   assert(value != NULL);
 
-  memset(e, 0, sizeof(*e));
+  *e = (passwand_entry_t){0};
 
   m_t *m = NULL;
   k_t *k = NULL;
@@ -162,7 +162,7 @@ done:
     free(e->value);
     free(e->key);
     free(e->space);
-    memset(e, 0, sizeof(*e));
+    *e = (passwand_entry_t){0};
   }
   if (aes_encrypt_init_done) {
     assert(ctx != NULL);

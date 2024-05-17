@@ -258,7 +258,7 @@ static void process_chain_link(void *state,
   // we know we are only processing a single entry, so we can discard the main
   // password that is no longer needed
   passwand_secure_free(m->main, m->main_len);
-  memset(m, 0, sizeof(*m));
+  *m = (main_t){0};
 
   // `strdup` this next chained password into it
   if (passwand_secure_malloc((void **)&m->main, strlen(value) + 1) == PW_OK) {
