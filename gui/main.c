@@ -241,7 +241,7 @@ int main(int argc, char **argv) {
 
   // lock database that we are about to access
   if (access(options.db.path, R_OK) == 0) {
-    int fd = open(options.db.path, R_OK);
+    int fd = open(options.db.path, O_RDONLY);
     if (fd < 0)
       DIE("failed to open database");
     if (flock(fd, LOCK_EX | LOCK_NB) != 0)
