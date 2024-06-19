@@ -97,7 +97,7 @@ passwand_error_t passwand_export(const char *path, passwand_entry_t *entries,
     goto done;
   }
   sprintf(tmp, "%s~", path);
-  int fd = creat(tmp, 0600);
+  int fd = open(tmp, O_CLOEXEC | O_CREAT | O_WRONLY | O_TRUNC, 0600);
   if (fd == -1) {
     rc = PW_IO;
     goto done;
