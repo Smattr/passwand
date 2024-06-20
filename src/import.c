@@ -28,7 +28,7 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
   size_t ent_len = 0;
 
   // mmap the input so JSON-C can stream it
-  f = open(path, O_RDONLY);
+  f = open(path, O_RDONLY | O_CLOEXEC);
   if (f == -1) {
     rc = PW_IO;
     goto done;

@@ -188,7 +188,7 @@ static void type(int uinput, char c) {
 static int make_dev(void) {
 
   // connect to uinput
-  int fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
+  int fd = open("/dev/uinput", O_WRONLY | O_CLOEXEC | O_NONBLOCK);
   if (fd < 0) {
     error("failed to open /dev/uinput: %s", strerror(errno));
     return -1;

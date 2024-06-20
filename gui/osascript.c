@@ -43,6 +43,32 @@ typedef struct {
   int out;
 } proc_t;
 
+/// `pipe` that also sets close-on-exec
+static int pipe_(int pipefd[2]) {
+  assert(pipefd != NULL);
+
+  // macOS does not have `pipe2`, so we need to fall back on `pipe`+`fcntl`.
+
+  // create the pipe
+  if (pipe(pipefd) < 0)
+    return errno;
+
+  // set close-on-exec
+  for (size_t i = 0; i < 2; ++i) {
+    const int flags = fcntl(pipefd[i], F_GETFD);
+    if (fcntl(pipefd[i], F_SETFD, flags | FD_CLOEXEC) < 0) {
+      const int err = errno;
+      for (size_t j = 0; j < 2; ++j) {
+        (void)close(pipefd[j]);
+        pipefd[j] = -1;
+      }
+      return err;
+    }
+  }
+
+  return 0;
+}
+
 static int osascript_pipe(proc_t *proc) {
 
   assert(proc != NULL);
@@ -56,21 +82,15 @@ static int osascript_pipe(proc_t *proc) {
   if ((rc = posix_spawn_file_actions_init(&actions)))
     return rc;
 
-  if (pipe(in) < 0) {
+  if (pipe_(in) < 0) {
     rc = errno;
     goto done;
   }
 
-  if (pipe(out) < 0) {
+  if (pipe_(out) < 0) {
     rc = errno;
     goto done;
   }
-
-  // close the FDs we do not need
-  if ((rc = posix_spawn_file_actions_addclose(&actions, in[1])))
-    goto done;
-  if ((rc = posix_spawn_file_actions_addclose(&actions, out[0])))
-    goto done;
 
   // redirect stdin from the input pipe
   if ((rc = posix_spawn_file_actions_adddup2(&actions, in[0], STDIN_FILENO)))
