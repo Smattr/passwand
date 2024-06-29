@@ -7,6 +7,7 @@
 // Objective-C.” Given the fragility of this technique, we should exercise an
 // above average level of paranoia in this code.
 
+#include "../common/environ.h"
 #include "gui.h"
 #include <assert.h>
 #include <errno.h>
@@ -22,20 +23,6 @@
 #include <sys/uio.h>
 #include <sys/wait.h>
 #include <unistd.h>
-
-#ifdef __APPLE__
-#include <crt_externs.h>
-#endif
-
-static char **get_environ() {
-#ifdef __APPLE__
-  // bizarrely Apple do not give programs a symbol for environ, but have an
-  // indirect way of accessing it
-  return *_NSGetEnviron();
-#else
-  return environ;
-#endif
-}
 
 typedef struct {
   pid_t pid;
