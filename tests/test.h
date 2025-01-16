@@ -118,10 +118,10 @@ extern bool has_assertion_;
     }                                                                          \
   } while (0)
 
-#define FAIL(args...)                                                          \
+#define FAIL(...)                                                              \
   do {                                                                         \
     fprintf(stderr, "failed\n    ");                                           \
-    fprintf(stderr, args);                                                     \
+    fprintf(stderr, __VA_ARGS__);                                              \
     fflush(stderr);                                                            \
     abort();                                                                   \
   } while (0)

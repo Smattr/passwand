@@ -23,10 +23,10 @@
 #define FAILURE_CODE EXIT_FAILURE
 #endif
 
-#define DIE(args...)                                                           \
+#define DIE(...)                                                               \
   do {                                                                         \
     char *msg;                                                                 \
-    if (asprintf(&msg, ##args) >= 0) {                                         \
+    if (asprintf(&msg, __VA_ARGS__) >= 0) {                                    \
       show_error(msg);                                                         \
       free(msg);                                                               \
     }                                                                          \
