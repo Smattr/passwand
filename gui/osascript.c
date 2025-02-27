@@ -307,8 +307,7 @@ int send_text(const char *text) {
   return rc;
 }
 
-void flush_state() { /* no-op for osascript */
-}
+void flush_state() { /* no-op for osascript */ }
 
 void show_error(const char *message) {
 

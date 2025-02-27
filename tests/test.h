@@ -42,10 +42,10 @@ extern bool has_assertion_;
 
 #define PRINT_FMT(x)                                                           \
   _Generic((x),                                                                \
-           int: "%d",                                                          \
-           long: "%ld",                                                        \
-           unsigned long: "%lu",                                               \
-           const void*: "%p")
+      int: "%d",                                                               \
+      long: "%ld",                                                             \
+      unsigned long: "%lu",                                                    \
+      const void *: "%p")
 
 #define ASSERT_(a, a_name, op, b, b_name)                                      \
   do {                                                                         \
