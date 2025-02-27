@@ -69,15 +69,11 @@ static int osascript_pipe(proc_t *proc) {
   if ((rc = posix_spawn_file_actions_init(&actions)))
     return rc;
 
-  if (pipe_(in) < 0) {
-    rc = errno;
+  if ((rc = pipe_(in)))
     goto done;
-  }
 
-  if (pipe_(out) < 0) {
-    rc = errno;
+  if ((rc = pipe_(out)))
     goto done;
-  }
 
   // redirect stdin from the input pipe
   if ((rc = posix_spawn_file_actions_adddup2(&actions, in[0], STDIN_FILENO)))
@@ -311,8 +307,7 @@ int send_text(const char *text) {
   return rc;
 }
 
-void flush_state() { /* no-op for osascript */
-}
+void flush_state() { /* no-op for osascript */ }
 
 void show_error(const char *message) {
 
