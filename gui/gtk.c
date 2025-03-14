@@ -59,8 +59,12 @@ char *get_text(const char *title, const char *message, const char *initial,
   gtk_entry_set_activates_default(GTK_ENTRY(textbox), true);
   if (initial != NULL)
     gtk_entry_set_text(GTK_ENTRY(textbox), initial);
-  if (hidden)
+  if (hidden) {
     gtk_entry_set_visibility(GTK_ENTRY(textbox), false);
+#if GTK_CHECK_VERSION(3, 6, 0)
+    gtk_entry_set_input_purpose(GTK_ENTRY(textbox), GTK_INPUT_PURPOSE_PASSWORD);
+#endif
+  }
   gtk_container_add(GTK_CONTAINER(content), textbox);
 
   // display the dialog
