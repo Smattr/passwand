@@ -106,3 +106,15 @@ done:
 
   return rc;
 }
+
+// This back end is expected to be paired with gtk.c. The `gui_init` and
+// `gui_deinit` functions are implemented here rather than in gtk.c to have only
+// x11.c aware of gtk.c and not the other way around. This fits the N-to-1
+// ({x11.c|wayland.c}-to-gtk.c) relationship here.
+
+int gui_init(void) {
+  // nothing required
+  return 0;
+}
+
+void gui_deinit(void) { /* nothing required */ }

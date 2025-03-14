@@ -328,3 +328,10 @@ void show_error(const char *message) {
 
   free(m);
 }
+
+int gui_init(void) {
+  // nothing required
+  return 0;
+}
+
+void gui_deinit(void) { /* nothing required */ }

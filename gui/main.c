@@ -30,6 +30,7 @@
       show_error(msg);                                                         \
       free(msg);                                                               \
     }                                                                          \
+    gui_deinit();                                                              \
     if (mainpass != NULL) {                                                    \
       passwand_secure_free(mainpass, strlen(mainpass) + 1);                    \
     }                                                                          \
@@ -147,6 +148,11 @@ static void process_chain_link(void *state __attribute__((unused)),
 }
 
 int main(int argc, char **argv) {
+
+  // Initialise the back end. We assume this initialisation is unaffected by any
+  // of the command line options and thus can run before they are parsed.
+  if (gui_init() != 0)
+    return EXIT_FAILURE;
 
   if (parse(argc, argv) != 0)
     return EXIT_FAILURE;
