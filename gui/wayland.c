@@ -1,6 +1,18 @@
 /** implementation of part of the API described in gui.h using Wayland uinput
  *
  * This is based on https://www.kernel.org/doc/html/v4.12/input/uinput.html.
+ *
+ * To configure your environment to use this back end without friction, you will
+ * want to do something like:
+ *   1. Install Passwand to a path, e.g. /foo/bar
+ *   2. Add a rule to /etc/sudoers for passwordless `pw-gui`
+ *        alice ALL=(root) NOPASSWD: /foo/bar/bin/pw-gui
+ *   3. Remember (or script) to run as root, `sudo pw-gui …`
+ * The reason this is necessary is that Wayland makes it very hard to mimic a
+ * keyboard. There are good reasons for this, but it results in poor user
+ * experience. The documented techniques for securely creating a virtual
+ * keyboard The Right Way™ effectively breach your security as much as
+ * temporarily running as root, so we choose the latter for simplicity.
  */
 
 #include "../common/getenv.h"
