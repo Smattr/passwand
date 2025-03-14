@@ -17,7 +17,8 @@ pthread_mutex_t gtk_lock = PTHREAD_MUTEX_INITIALIZER;
 static bool inited;
 
 void gui_gtk_init(void) {
-  gtk_init(NULL, NULL);
+  if (!inited)
+    gtk_init(NULL, NULL);
   inited = true;
 }
 
@@ -40,8 +41,7 @@ char *get_text(const char *title, const char *message, const char *initial,
   int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);
   assert(err == 0);
 
-  if (!inited)
-    gui_gtk_init();
+  gui_gtk_init();
 
   // create dialog box
   GtkWidget *dialog =
@@ -115,8 +115,7 @@ void show_error(const char *message) {
   int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);
   assert(err == 0);
 
-  if (!inited)
-    gui_gtk_init();
+  gui_gtk_init();
 
   show_error_core(message);
 
