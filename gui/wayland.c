@@ -1,9 +1,22 @@
 /** implementation of part of the API described in gui.h using Wayland uinput
  *
  * This is based on https://www.kernel.org/doc/html/v4.12/input/uinput.html.
+ *
+ * To configure your environment to use this back end without friction, you will
+ * want to do something like:
+ *   1. Install Passwand to a path, e.g. /foo/bar
+ *   2. Add a rule to /etc/sudoers for passwordless `pw-gui`
+ *        alice ALL=(root) NOPASSWD: /foo/bar/bin/pw-gui
+ *   3. Remember (or script) to run as root, `sudo pw-gui …`
+ * The reason this is necessary is that Wayland makes it very hard to mimic a
+ * keyboard. There are good reasons for this, but it results in poor user
+ * experience. The documented techniques for securely creating a virtual
+ * keyboard The Right Way™ effectively breach your security as much as
+ * temporarily running as root, so we choose the latter for simplicity.
  */
 
-#include "gtk_lock.h"
+#include "../common/getenv.h"
+#include "gtk.h"
 #include "gui.h"
 #include <assert.h>
 #include <errno.h>
@@ -231,9 +244,6 @@ static int make_dev(void) {
     return -1;
   }
 
-  // stall to give userspace a chance to detect and initialise the device
-  sleep(1);
-
   return fd;
 }
 
@@ -292,6 +302,9 @@ int main(int argc, char **argv) {
   if (fd < 0)
     return EXIT_FAILURE;
 
+  // stall to give userspace a chance to detect and initialise the device
+  sleep(1);
+
   // type the user’s text
   for (const char *p = argv[1]; *p != '\0'; ++p)
     type(fd, *p);
@@ -303,6 +316,9 @@ int main(int argc, char **argv) {
 }
 
 #else
+/// a uinput-based device we will use to type characters
+static int virtual_keyboard;
+
 int send_text(const char *text) {
 
   assert(text != NULL);
@@ -324,24 +340,108 @@ int send_text(const char *text) {
     }
   }
 
-  // create a uinput device
-  int fd = make_dev();
-  if (fd < 0)
+  if (virtual_keyboard <= 0) {
+    error("virtual keyboard was not initialised");
     return -1;
+  }
 
   int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);
   assert(err == 0);
 
   // type the user’s text
   for (const char *p = text; *p != '\0'; ++p)
-    type(fd, *p);
+    type(virtual_keyboard, *p);
 
   err = pthread_mutex_unlock(&gtk_lock);
   assert(err == 0);
 
-  // remove the uinput device
-  destroy_dev(fd);
+  return 0;
+}
+
+/// if running under `sudo`, drop privileges
+static int demote_me(void) {
+
+  // are we root?
+  if (getuid() != 0)
+    return 0;
+  if (getgid() != 0)
+    return 0;
+
+  // are we `sudo`ing?
+  const char *uid_s = getenv_("SUDO_UID");
+  if (uid_s == NULL)
+    return 0;
+  const char *gid_s = getenv_("SUDO_GID");
+  if (gid_s == NULL)
+    return 0;
+
+  // decode numeric IDs
+  const int uid = atoi(uid_s);
+  if (uid == 0)
+    return 0;
+  const int gid = atoi(gid_s);
+  if (gid == 0)
+    return 0;
+
+  // become the original user
+  if (setgid(gid) < 0)
+    return errno;
+  if (setuid(uid) < 0)
+    return errno;
+
+  // As a nicety, try to reset the some commonly used environment variables.
+  // This avoids, e.g., confusing IBUS warnings.
+  const char *user = getenv_("SUDO_USER");
+  if (user != NULL) {
+    (void)setenv("USER", user, 1);
+    char *home = NULL;
+    if (asprintf(&home, "/home/%s", user) >= 0) {
+      (void)setenv("HOME", home, 1);
+      free(home);
+    }
+  }
 
   return 0;
+}
+
+// This back end is expected to be paired with gtk.c. The `gui_init` and
+// `gui_deinit` functions are implemented here rather than in gtk.c to have only
+// wayland.c aware of gtk.c and not the other way around. This fits the N-to-1
+// ({x11.c|wayland.c}-to-gtk.c) relationship here.
+
+int gui_init(void) {
+
+  int rc = 0;
+
+  assert(virtual_keyboard <= 0);
+  virtual_keyboard = make_dev();
+  if (virtual_keyboard < 0) {
+    rc = -1;
+    goto done;
+  }
+
+  // if we were started under `sudo` (in order to be able to open /dev/uinput)
+  // de-escalate our privileges now
+  if ((rc = demote_me())) {
+    error("failed to drop privileges: %s", strerror(rc));
+    goto done;
+  }
+
+  if ((rc = pthread_mutex_lock(&gtk_lock)))
+    goto done;
+
+  gui_gtk_init();
+
+  if ((rc = pthread_mutex_unlock(&gtk_lock)))
+    goto done;
+
+done:
+  return rc;
+}
+
+void gui_deinit(void) {
+  if (virtual_keyboard > 0)
+    destroy_dev(virtual_keyboard);
+  virtual_keyboard = 0;
 }
 #endif

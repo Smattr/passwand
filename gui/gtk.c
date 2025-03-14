@@ -1,6 +1,6 @@
 // implementation of part of the API described in gui.h using GTK 2/3
 
-#include "gtk_lock.h"
+#include "gtk.h"
 #include "gui.h"
 #include <assert.h>
 #include <gtk/gtk.h>
@@ -16,8 +16,9 @@ pthread_mutex_t gtk_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static bool inited;
 
-static void init() {
-  gtk_init(NULL, NULL);
+void gui_gtk_init(void) {
+  if (!inited)
+    gtk_init(NULL, NULL);
   inited = true;
 }
 
@@ -40,8 +41,7 @@ char *get_text(const char *title, const char *message, const char *initial,
   int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);
   assert(err == 0);
 
-  if (!inited)
-    init();
+  gui_gtk_init();
 
   // create dialog box
   GtkWidget *dialog =
@@ -59,8 +59,12 @@ char *get_text(const char *title, const char *message, const char *initial,
   gtk_entry_set_activates_default(GTK_ENTRY(textbox), true);
   if (initial != NULL)
     gtk_entry_set_text(GTK_ENTRY(textbox), initial);
-  if (hidden)
+  if (hidden) {
     gtk_entry_set_visibility(GTK_ENTRY(textbox), false);
+#if GTK_CHECK_VERSION(3, 6, 0)
+    gtk_entry_set_input_purpose(GTK_ENTRY(textbox), GTK_INPUT_PURPOSE_PASSWORD);
+#endif
+  }
   gtk_container_add(GTK_CONTAINER(content), textbox);
 
   // display the dialog
@@ -111,8 +115,7 @@ void show_error(const char *message) {
   int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);
   assert(err == 0);
 
-  if (!inited)
-    init();
+  gui_gtk_init();
 
   show_error_core(message);
 

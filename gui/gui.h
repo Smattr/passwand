@@ -52,6 +52,22 @@ static inline bool supported_upper(char c) {
   return false;
 }
 
+/** Setup GUI for use
+ *
+ * This function will be called on startup by the main program. Back ends
+ * implementing the API in this header must be prepared to receive `show_error`
+ * calls before this function is called and/or after it is called and has
+ * returned failure. In these scenarios, if the back end has no way to show the
+ * error itself, it can do nothing.
+ *
+ * If this function encounters an error, it is suggested that it present this to
+ * the user somehow (e.g. `show_error`). The caller does not notify the user of
+ * the error other than exiting with non-zero.
+ *
+ * @return 0 on success
+ */
+int gui_init(void);
+
 /** Prompt the user to enter some text
  *
  * @param title Window title to display
@@ -84,3 +100,11 @@ void flush_state(void);
  * @param message Message to show
  */
 void show_error(const char *message);
+
+/** Undo GUI setup
+ *
+ * Back ends implementing the API in this header must be prepared for this
+ * function to be called at any time, including before `gui_init` has been
+ * called.
+ */
+void gui_deinit(void);

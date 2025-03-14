@@ -49,3 +49,10 @@ void flush_state(void) {
 }
 
 void show_error(const char *message) { fprintf(stderr, "%s\n", message); }
+
+int gui_init(void) {
+  // nothing required
+  return 0;
+}
+
+void gui_deinit(void) { /* nothing required */ }
