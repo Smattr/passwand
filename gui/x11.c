@@ -1,7 +1,7 @@
 // implementation of part of the API described in gui.h using X11
 
 #include "../common/getenv.h"
-#include "gtk_lock.h"
+#include "gtk.h"
 #include "gui.h"
 #include <X11/XKBlib.h>
 #include <X11/Xlib.h>

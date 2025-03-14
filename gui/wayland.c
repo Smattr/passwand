@@ -3,7 +3,7 @@
  * This is based on https://www.kernel.org/doc/html/v4.12/input/uinput.html.
  */
 
-#include "gtk_lock.h"
+#include "gtk.h"
 #include "gui.h"
 #include <assert.h>
 #include <errno.h>

@@ -1,6 +1,6 @@
 // implementation of part of the API described in gui.h using GTK 2/3
 
-#include "gtk_lock.h"
+#include "gtk.h"
 #include "gui.h"
 #include <assert.h>
 #include <gtk/gtk.h>
