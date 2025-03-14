@@ -351,7 +351,19 @@ int send_text(const char *text) {
 // ({x11.c|wayland.c}-to-gtk.c) relationship here.
 
 int gui_init(void) {
-  // nothing required
+
+  {
+    int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);
+    assert(err == 0);
+  }
+
+  gui_gtk_init();
+
+  {
+    int err = pthread_mutex_unlock(&gtk_lock);
+    assert(err == 0);
+  }
+
   return 0;
 }
 
