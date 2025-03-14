@@ -377,6 +377,18 @@ static int demote_me(void) {
   if (setuid(uid) < 0)
     return errno;
 
+  // As a nicety, try to reset the some commonly used environment variables.
+  // This avoids, e.g., confusing IBUS warnings.
+  const char *user = getenv_("SUDO_USER");
+  if (user != NULL) {
+    (void)setenv("USER", user, 1);
+    char *home = NULL;
+    if (asprintf(&home, "/home/%s", user) >= 0) {
+      (void)setenv("HOME", home, 1);
+      free(home);
+    }
+  }
+
   return 0;
 }
 
