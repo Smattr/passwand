@@ -231,9 +231,6 @@ static int make_dev(void) {
     return -1;
   }
 
-  // stall to give userspace a chance to detect and initialise the device
-  sleep(1);
-
   return fd;
 }
 
@@ -291,6 +288,9 @@ int main(int argc, char **argv) {
   int fd = make_dev();
   if (fd < 0)
     return EXIT_FAILURE;
+
+  // stall to give userspace a chance to detect and initialise the device
+  sleep(1);
 
   // type the user’s text
   for (const char *p = argv[1]; *p != '\0'; ++p)
