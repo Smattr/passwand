@@ -303,6 +303,9 @@ int main(int argc, char **argv) {
 }
 
 #else
+/// a uinput-based device we will use to type characters
+static int virtual_keyboard;
+
 int send_text(const char *text) {
 
   assert(text != NULL);
@@ -324,23 +327,20 @@ int send_text(const char *text) {
     }
   }
 
-  // create a uinput device
-  int fd = make_dev();
-  if (fd < 0)
+  if (virtual_keyboard <= 0) {
+    error("virtual keyboard was not initialised");
     return -1;
+  }
 
   int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);
   assert(err == 0);
 
   // type the user’s text
   for (const char *p = text; *p != '\0'; ++p)
-    type(fd, *p);
+    type(virtual_keyboard, *p);
 
   err = pthread_mutex_unlock(&gtk_lock);
   assert(err == 0);
-
-  // remove the uinput device
-  destroy_dev(fd);
 
   return 0;
 }
@@ -364,8 +364,17 @@ int gui_init(void) {
     assert(err == 0);
   }
 
+  assert(virtual_keyboard <= 0);
+  virtual_keyboard = make_dev();
+  if (virtual_keyboard < 0)
+    return -1;
+
   return 0;
 }
 
-void gui_deinit(void) { /* nothing required */ }
+void gui_deinit(void) {
+  if (virtual_keyboard > 0)
+    destroy_dev(virtual_keyboard);
+  virtual_keyboard = 0;
+}
 #endif
