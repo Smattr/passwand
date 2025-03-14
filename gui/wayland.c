@@ -354,6 +354,13 @@ int gui_init(void) {
 
   int rc = 0;
 
+  assert(virtual_keyboard <= 0);
+  virtual_keyboard = make_dev();
+  if (virtual_keyboard < 0) {
+    rc = -1;
+    goto done;
+  }
+
   if ((rc = pthread_mutex_lock(&gtk_lock)))
     goto done;
 
@@ -361,13 +368,6 @@ int gui_init(void) {
 
   if ((rc = pthread_mutex_unlock(&gtk_lock)))
     goto done;
-
-  assert(virtual_keyboard <= 0);
-  virtual_keyboard = make_dev();
-  if (virtual_keyboard < 0) {
-    rc = -1;
-    goto done;
-  }
 
 done:
   return rc;
