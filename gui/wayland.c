@@ -3,6 +3,7 @@
  * This is based on https://www.kernel.org/doc/html/v4.12/input/uinput.html.
  */
 
+#include "../common/getenv.h"
 #include "gtk.h"
 #include "gui.h"
 #include <assert.h>
@@ -345,6 +346,40 @@ int send_text(const char *text) {
   return 0;
 }
 
+/// if running under `sudo`, drop privileges
+static int demote_me(void) {
+
+  // are we root?
+  if (getuid() != 0)
+    return 0;
+  if (getgid() != 0)
+    return 0;
+
+  // are we `sudo`ing?
+  const char *uid_s = getenv_("SUDO_UID");
+  if (uid_s == NULL)
+    return 0;
+  const char *gid_s = getenv_("SUDO_GID");
+  if (gid_s == NULL)
+    return 0;
+
+  // decode numeric IDs
+  const int uid = atoi(uid_s);
+  if (uid == 0)
+    return 0;
+  const int gid = atoi(gid_s);
+  if (gid == 0)
+    return 0;
+
+  // become the original user
+  if (setgid(gid) < 0)
+    return errno;
+  if (setuid(uid) < 0)
+    return errno;
+
+  return 0;
+}
+
 // This back end is expected to be paired with gtk.c. The `gui_init` and
 // `gui_deinit` functions are implemented here rather than in gtk.c to have only
 // wayland.c aware of gtk.c and not the other way around. This fits the N-to-1
@@ -358,6 +393,13 @@ int gui_init(void) {
   virtual_keyboard = make_dev();
   if (virtual_keyboard < 0) {
     rc = -1;
+    goto done;
+  }
+
+  // if we were started under `sudo` (in order to be able to open /dev/uinput)
+  // de-escalate our privileges now
+  if ((rc = demote_me())) {
+    error("failed to drop privileges: %s", strerror(rc));
     goto done;
   }
 
