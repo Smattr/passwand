@@ -16,7 +16,7 @@ pthread_mutex_t gtk_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static bool inited;
 
-static void init() {
+static void init(void) {
   gtk_init(NULL, NULL);
   inited = true;
 }
