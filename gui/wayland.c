@@ -352,24 +352,25 @@ int send_text(const char *text) {
 
 int gui_init(void) {
 
-  {
-    int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);
-    assert(err == 0);
-  }
+  int rc = 0;
+
+  if ((rc = pthread_mutex_lock(&gtk_lock)))
+    goto done;
 
   gui_gtk_init();
 
-  {
-    int err = pthread_mutex_unlock(&gtk_lock);
-    assert(err == 0);
-  }
+  if ((rc = pthread_mutex_unlock(&gtk_lock)))
+    goto done;
 
   assert(virtual_keyboard <= 0);
   virtual_keyboard = make_dev();
-  if (virtual_keyboard < 0)
-    return -1;
+  if (virtual_keyboard < 0) {
+    rc = -1;
+    goto done;
+  }
 
-  return 0;
+done:
+  return rc;
 }
 
 void gui_deinit(void) {
