@@ -121,9 +121,9 @@ static int osascript(const struct iovec *iov, size_t iovcnt, char **out) {
 
   assert(iov != NULL);
   assert(iovcnt > 0);
-  assert(out != NULL);
 
-  *out = NULL;
+  if (out != NULL)
+    *out = NULL;
   int rc = 0;
 
   int err __attribute__((unused)) = pthread_mutex_lock(&mutex);
@@ -181,7 +181,12 @@ static int osascript(const struct iovec *iov, size_t iovcnt, char **out) {
 
   if (WIFEXITED(status)) {
     if (WEXITSTATUS(status) == EXIT_SUCCESS) {
-      *out = buf;
+      if (out != NULL) {
+        *out = buf;
+        buf = NULL;
+      }
+      (void)passwand_erase(buf, size);
+      free(buf);
       return rc;
     }
     rc = WEXITSTATUS(status);
@@ -291,9 +296,7 @@ int send_text(const char *text) {
       IOV("\"\nend tell"),
   };
 
-  char *result = NULL;
-  int rc = osascript(iov, sizeof(iov) / sizeof(iov[0]), &result);
-  free(result);
+  int rc = osascript(iov, sizeof(iov) / sizeof(iov[0]), NULL);
 
   free(t);
 
@@ -326,9 +329,7 @@ void show_error(const char *message) {
           "icon stop"),
   };
 
-  char *result = NULL;
-  (void)osascript(iov, sizeof(iov) / sizeof(iov[0]), &result);
-  free(result);
+  (void)osascript(iov, sizeof(iov) / sizeof(iov[0]), NULL);
 
   free(m);
 }
