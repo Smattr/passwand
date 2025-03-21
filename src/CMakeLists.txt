@@ -30,6 +30,7 @@ if(APPLE)
     PATHS ENV C_INCLUDE_PATH
     REQUIRED)
 else()
+  set(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".so")
   find_library(SCRYPTKDF_LIBRARIES
     NAMES scrypt-kdf libscrypt-kdf
     PATHS ENV LIBRARY_PATH
