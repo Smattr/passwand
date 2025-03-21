@@ -141,11 +141,11 @@ static int osascript(const struct iovec *iov, size_t iovcnt, char **out) {
   close(proc.in);
 
   char *buf = NULL;
+  size_t size = 0;
 
   if (rc != 0)
     goto done;
 
-  size_t size;
   FILE *buffer = open_memstream(&buf, &size);
   if (buffer != NULL) {
     // open_memstream succeeded
@@ -164,6 +164,7 @@ static int osascript(const struct iovec *iov, size_t iovcnt, char **out) {
 
     if (r == -1) {
       // somewhere in the read loop we failed
+      (void)passwand_erase(buf, size);
       free(buf);
       buf = NULL;
     }
@@ -188,6 +189,7 @@ static int osascript(const struct iovec *iov, size_t iovcnt, char **out) {
 
   // If we reached here, we failed. E.g. because the user clicked Cancel.
 done:
+  (void)passwand_erase(buf, size);
   free(buf);
   return rc;
 }
@@ -262,11 +264,13 @@ char *get_text(const char *title, const char *message, const char *initial,
   if (hidden && result != NULL) {
     char *r;
     if (passwand_secure_malloc((void **)&r, strlen(result) + 1) != PW_OK) {
+      (void)passwand_erase(result, strlen(result) + 1);
       free(result);
       result = NULL;
       show_error("failed to allocate secure memory");
     } else {
       strcpy(r, result);
+      (void)passwand_erase(result, strlen(result) + 1);
       free(result);
       result = r;
     }
