@@ -25,15 +25,15 @@
 
 #define DIE(...)                                                               \
   do {                                                                         \
+    if (mainpass != NULL) {                                                    \
+      passwand_secure_free(mainpass, strlen(mainpass) + 1);                    \
+    }                                                                          \
     char *msg;                                                                 \
     if (asprintf(&msg, __VA_ARGS__) >= 0) {                                    \
       show_error(msg);                                                         \
       free(msg);                                                               \
     }                                                                          \
     gui_deinit();                                                              \
-    if (mainpass != NULL) {                                                    \
-      passwand_secure_free(mainpass, strlen(mainpass) + 1);                    \
-    }                                                                          \
     cleanup();                                                                 \
     exit(FAILURE_CODE);                                                        \
   } while (0)
