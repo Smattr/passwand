@@ -154,29 +154,37 @@ int main(int argc, char **argv) {
   if (gui_init() != 0)
     return EXIT_FAILURE;
 
-  if (parse(argc, argv) != 0)
+  if (parse(argc, argv) != 0) {
+    cleanup();
     return EXIT_FAILURE;
+  }
 
   if (options.length != 0)
     DIE("--length is not accepted by pw-gui");
 
   if (options.space == NULL)
     options.space = get_text("Passwand", "Name space?", NULL, false);
-  if (options.space == NULL)
+  if (options.space == NULL) {
+    cleanup();
     return EXIT_SUCCESS;
+  }
 
   if (options.key == NULL)
     options.key = get_text("Passwand", "Key?", "password", false);
-  if (options.key == NULL)
+  if (options.key == NULL) {
+    cleanup();
     return EXIT_SUCCESS;
+  }
 
   // how many chained databases to skip
   size_t chain_offset = 0;
 
   do {
     mainpass = get_text("Passwand", "Main passphrase?", NULL, true);
-    if (mainpass == NULL)
+    if (mainpass == NULL) {
+      cleanup();
       return EXIT_SUCCESS;
+    }
 
     // if the user entered an empty string, they want to skip a chained
     // database
