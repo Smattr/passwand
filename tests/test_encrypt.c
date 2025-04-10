@@ -75,11 +75,10 @@ TEST("AES128 reads at most 128 bits of a supplied key") {
   // reads more than 128 bits.
   int pagesize = sysconf(_SC_PAGESIZE);
   assert(pagesize >= 16 && "AES key does not fit in a page");
-  unsigned char *p;
-  int r = posix_memalign((void **)&p, pagesize, pagesize * 2);
-  ASSERT_EQ(r, 0);
+  unsigned char *p = aligned_alloc(pagesize, pagesize * 2);
+  ASSERT_NOT_NULL(p);
   // make the second page inaccessible
-  r = mprotect(p + pagesize, pagesize, PROT_NONE);
+  int r = mprotect(p + pagesize, pagesize, PROT_NONE);
   ASSERT_EQ(r, 0);
   // write a dummy key into the end of the first page
   unsigned char *key = p + pagesize - 16;
@@ -143,14 +142,13 @@ TEST("AES128 reads at least 128 bits of a supplied key") {
   // should allow us to detect if AES128 does not read to the end of the key.
   int pagesize = sysconf(_SC_PAGESIZE);
   assert(pagesize >= 16 && "AES key does not fit in a page");
-  unsigned char *p;
-  int r = posix_memalign((void **)&p, pagesize, pagesize * 2);
-  ASSERT_EQ(r, 0);
+  unsigned char *p = aligned_alloc(pagesize, pagesize * 2);
+  ASSERT_NOT_NULL(p);
   // write a dummy key into the end of the first page and first byte of second
   unsigned char *key = p + pagesize - 15;
   memset(key, 0, 16);
   // make the second page inaccessible
-  r = mprotect(p + pagesize, pagesize, PROT_NONE);
+  int r = mprotect(p + pagesize, pagesize, PROT_NONE);
   ASSERT_EQ(r, 0);
 
   // setup a context for encryption
@@ -213,11 +211,10 @@ TEST("AES128 reads at most 16 bytes of a supplied initialisation vector") {
   // reads more than 16 bytes.
   int pagesize = sysconf(_SC_PAGESIZE);
   assert(pagesize >= 16 && "AES IV does not fit in a page");
-  unsigned char *p;
-  int r = posix_memalign((void **)&p, pagesize, pagesize * 2);
-  ASSERT_EQ(r, 0);
+  unsigned char *p = aligned_alloc(pagesize, pagesize * 2);
+  ASSERT_NOT_NULL(p);
   // make the second page inaccessible
-  r = mprotect(p + pagesize, pagesize, PROT_NONE);
+  int r = mprotect(p + pagesize, pagesize, PROT_NONE);
   ASSERT_EQ(r, 0);
   // write a dummy IV into the end of the first page
   unsigned char *iv = p + pagesize - 16;
@@ -278,14 +275,13 @@ TEST("AES128 reads at least 16 bytes of a supplied initialisation vector") {
   // purpose of this is to detect if the AES algorithm reads less than 16 bytes.
   int pagesize = sysconf(_SC_PAGESIZE);
   assert(pagesize >= 16 && "AES IV does not fit in a page");
-  unsigned char *p;
-  int r = posix_memalign((void **)&p, pagesize, pagesize * 2);
-  ASSERT_EQ(r, 0);
+  unsigned char *p = aligned_alloc(pagesize, pagesize * 2);
+  ASSERT_NOT_NULL(p);
   // write a dummy IV into the end of the first page
   unsigned char *iv = p + pagesize - 15;
   memset(iv, 0, 16);
   // make the second page inaccessible
-  r = mprotect(p + pagesize, pagesize, PROT_NONE);
+  int r = mprotect(p + pagesize, pagesize, PROT_NONE);
   ASSERT_EQ(r, 0);
 
   // setup a context for encryption
@@ -346,11 +342,10 @@ TEST("AES256 reads at most 256 bits of a supplied key") {
   // reads more than 256 bits.
   int pagesize = sysconf(_SC_PAGESIZE);
   assert(pagesize >= 32 && "AES key does not fit in a page");
-  unsigned char *p;
-  int r = posix_memalign((void **)&p, pagesize, pagesize * 2);
-  ASSERT_EQ(r, 0);
+  unsigned char *p = aligned_alloc(pagesize, pagesize * 2);
+  ASSERT_NOT_NULL(p);
   // make the second page inaccessible
-  r = mprotect(p + pagesize, pagesize, PROT_NONE);
+  int r = mprotect(p + pagesize, pagesize, PROT_NONE);
   ASSERT_EQ(r, 0);
   // write a dummy key into the end of the first page
   unsigned char *key = p + pagesize - 32;
@@ -410,14 +405,13 @@ TEST("AES256 reads at least 256 bits of a supplied key") {
   // should allow us to detect if AES256 does not read to the end of the key.
   int pagesize = sysconf(_SC_PAGESIZE);
   assert(pagesize >= 32 && "AES key does not fit in a page");
-  unsigned char *p;
-  int r = posix_memalign((void **)&p, pagesize, pagesize * 2);
-  ASSERT_EQ(r, 0);
+  unsigned char *p = aligned_alloc(pagesize, pagesize * 2);
+  ASSERT_NOT_NULL(p);
   // write a dummy key into the end of the first page and first byte of second
   unsigned char *key = p + pagesize - 31;
   memset(key, 0, 32);
   // make the second page inaccessible
-  r = mprotect(p + pagesize, pagesize, PROT_NONE);
+  int r = mprotect(p + pagesize, pagesize, PROT_NONE);
   ASSERT_EQ(r, 0);
 
   // setup a context for encryption
@@ -480,11 +474,10 @@ TEST("AES256 reads at most 16 bytes of a supplied initialisation vector") {
   // reads more than 16 bytes.
   int pagesize = sysconf(_SC_PAGESIZE);
   assert(pagesize >= 16 && "AES IV does not fit in a page");
-  unsigned char *p;
-  int r = posix_memalign((void **)&p, pagesize, pagesize * 2);
-  ASSERT_EQ(r, 0);
+  unsigned char *p = aligned_alloc(pagesize, pagesize * 2);
+  ASSERT_NOT_NULL(p);
   // make the second page inaccessible
-  r = mprotect(p + pagesize, pagesize, PROT_NONE);
+  int r = mprotect(p + pagesize, pagesize, PROT_NONE);
   ASSERT_EQ(r, 0);
   // write a dummy IV into the end of the first page
   unsigned char *iv = p + pagesize - 16;
@@ -545,14 +538,13 @@ TEST("AES256 reads at least 16 bytes of a supplied initialisation vector") {
   // purpose of this is to detect if the AES algorithm reads less than 16 bytes.
   int pagesize = sysconf(_SC_PAGESIZE);
   assert(pagesize >= 16 && "AES IV does not fit in a page");
-  unsigned char *p;
-  int r = posix_memalign((void **)&p, pagesize, pagesize * 2);
-  ASSERT_EQ(r, 0);
+  unsigned char *p = aligned_alloc(pagesize, pagesize * 2);
+  ASSERT_NOT_NULL(p);
   // write a dummy IV into the end of the first page
   unsigned char *iv = p + pagesize - 15;
   memset(iv, 0, 16);
   // make the second page inaccessible
-  r = mprotect(p + pagesize, pagesize, PROT_NONE);
+  int r = mprotect(p + pagesize, pagesize, PROT_NONE);
   ASSERT_EQ(r, 0);
 
   // setup a context for encryption
