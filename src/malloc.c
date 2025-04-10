@@ -141,36 +141,32 @@ static size_t round_size(size_t size) {
   return size + (sizeof(long long) - size % sizeof(long long));
 }
 
-int passwand_secure_malloc(void **p, size_t size) {
+void *passwand_secure_malloc(size_t size) {
 
-  assert(p != NULL);
-
-  if (size == 0) {
-    *p = NULL;
-    return 0;
-  }
+  if (size == 0)
+    return NULL;
 
   if (SIZE_MAX - size < sizeof(long long))
-    return -1;
+    return NULL;
 
   size = round_size(size);
 
   // Do not allow allocations greater than a page. This avoids having to cope
   // with allocations that would span multiple chunks.
   if (size > EXPECTED_PAGE_SIZE)
-    return -1;
+    return NULL;
 
   lock();
 
   if (disabled) {
     unlock();
-    return -1;
+    return NULL;
   }
 
   if (!ptrace_disabled) {
     if (disable_ptrace() != 0) {
       unlock();
-      return -1;
+      return NULL;
     }
   }
 
@@ -199,10 +195,10 @@ int passwand_secure_malloc(void **p, size_t size) {
         // we found enough contiguous free bits!
         for (unsigned i = 0; i * sizeof(long long) < size; i++)
           write_bitmap(n, n->last_index + i, true);
-        *p = (char *)n->base + n->last_index * sizeof(long long);
+        void *const p = (char *)n->base + n->last_index * sizeof(long long);
         n->last_index += size / sizeof(long long);
         unlock();
-        return 0;
+        return p;
       }
 
       // jump past the region we just scanned
@@ -223,7 +219,7 @@ int passwand_secure_malloc(void **p, size_t size) {
   void *q;
   if (morecore(&q) != 0) {
     unlock();
-    return -1;
+    return NULL;
   }
 
   // fill this allocation using the end of the memory just acquired
@@ -233,7 +229,7 @@ int passwand_secure_malloc(void **p, size_t size) {
     assert(r == 0 && "munlock unexpectedly failed");
     free(q);
     unlock();
-    return -1;
+    return NULL;
   }
   c->base = q;
   c->next = freelist;
@@ -241,10 +237,10 @@ int passwand_secure_malloc(void **p, size_t size) {
   for (unsigned index = (EXPECTED_PAGE_SIZE - size) / sizeof(long long);
        index < EXPECTED_PAGE_SIZE / sizeof(long long); index++)
     write_bitmap(c, index, true);
-  *p = (char *)c->base + EXPECTED_PAGE_SIZE - size;
+  void *const p = (char *)c->base + EXPECTED_PAGE_SIZE - size;
 
   unlock();
-  return 0;
+  return p;
 }
 
 void passwand_secure_free(void *p, size_t size) {

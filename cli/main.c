@@ -55,8 +55,8 @@ main_t *getpassword(const char *prompt) {
   // at the expected page size if necessary.
   size_t size = BUFSIZ > EXPECTED_PAGE_SIZE ? EXPECTED_PAGE_SIZE : BUFSIZ;
 
-  char *m;
-  if (passwand_secure_malloc((void **)&m, size) != 0) {
+  char *m = passwand_secure_malloc(size);
+  if (m == NULL) {
     eprint("failed to allocate secure memory\n");
     return NULL;
   }
@@ -122,8 +122,8 @@ main_t *getpassword(const char *prompt) {
       // to one page for the reasons described above
       if (size < EXPECTED_PAGE_SIZE && new_size > EXPECTED_PAGE_SIZE)
         new_size = EXPECTED_PAGE_SIZE;
-      char *n;
-      if (passwand_secure_malloc((void **)&n, new_size) != 0) {
+      char *const n = passwand_secure_malloc(new_size);
+      if (n == NULL) {
         eprint("failed to reallocate secure memory\n");
         tcsetattr(fileno(devtty), 0, &old);
         fclose(devtty);
@@ -151,8 +151,8 @@ main_t *getpassword(const char *prompt) {
 
   m[index] = '\0';
 
-  main_t *mainpass;
-  if (passwand_secure_malloc((void **)&mainpass, sizeof(*mainpass)) != 0) {
+  main_t *const mainpass = passwand_secure_malloc(sizeof(*mainpass));
+  if (mainpass == NULL) {
     eprint("failed to reallocate secure memory\n");
     passwand_secure_free(m, size);
     return NULL;
@@ -261,8 +261,8 @@ static void process_chain_link(void *state,
   *m = (main_t){0};
 
   // `strdup` this next chained password into it
-  if (passwand_secure_malloc((void **)&m->main, strlen(value) + 1) == PW_OK) {
-    assert(m->main != NULL);
+  m->main = passwand_secure_malloc(strlen(value) + 1);
+  if (m->main != NULL) {
     strcpy(m->main, value);
     m->main_len = strlen(value) + 1;
 

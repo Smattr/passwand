@@ -95,13 +95,14 @@ passwand_error_t aes_decrypt(EVP_CIPHER_CTX *ctx, const ct_t *c, ppt_t *pp) {
     rc = PW_OVERFLOW;
     goto done;
   }
-  if (passwand_secure_malloc((void **)&buffer, sizeof(*buffer)) != 0) {
+  buffer = passwand_secure_malloc(sizeof(*buffer));
+  if (buffer == NULL) {
     rc = PW_NO_MEM;
     goto done;
   }
   *buffer = (buffer_t){0};
-  if (passwand_secure_malloc((void **)&buffer->data,
-                             c->length + AES_BLOCK_SIZE) != 0) {
+  buffer->data = passwand_secure_malloc(c->length + AES_BLOCK_SIZE);
+  if (buffer->data == NULL) {
     rc = PW_NO_MEM;
     goto done;
   }
@@ -119,7 +120,8 @@ passwand_error_t aes_decrypt(EVP_CIPHER_CTX *ctx, const ct_t *c, ppt_t *pp) {
   // Copy the internal buffer to the caller’s packed plain text struct. We do
   // this to ensure the caller’s idea of the “length” of the decrypted data
   // is suitable to pass to passwand_secure_free.
-  if (passwand_secure_malloc((void **)&pp->data, pp->length) != 0) {
+  pp->data = passwand_secure_malloc(pp->length);
+  if (pp->data == NULL && pp->length > 0) {
     rc = PW_NO_MEM;
     goto done;
   }

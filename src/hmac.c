@@ -20,7 +20,8 @@ passwand_error_t hmac(const m_t *mainkey, const data_t *data,
   uint8_t *mac_data = NULL;
   passwand_error_t rc = -1;
 
-  if (passwand_secure_malloc((void **)&k, sizeof(*k)) != 0) {
+  k = passwand_secure_malloc(sizeof(*k));
+  if (k == NULL) {
     rc = PW_NO_MEM;
     goto done;
   }

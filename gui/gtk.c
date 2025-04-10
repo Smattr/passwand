@@ -75,8 +75,8 @@ char *get_text(const char *title, const char *message, const char *initial,
   if (result == GTK_RESPONSE_OK) {
     const char *text = gtk_entry_get_text(GTK_ENTRY(textbox));
     if (hidden) {
-      if (passwand_secure_malloc((void **)&r, strlen(text) + 1) != PW_OK) {
-        r = NULL;
+      r = passwand_secure_malloc(strlen(text) + 1);
+      if (r == NULL) {
         show_error_core("failed to allocate secure memory");
       } else {
         strcpy(r, text);

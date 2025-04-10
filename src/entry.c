@@ -10,8 +10,8 @@
 #include <string.h>
 
 static m_t *make_m_t(const char *mainpass) {
-  m_t *m;
-  if (passwand_secure_malloc((void **)&m, sizeof(*m)) != 0)
+  m_t *const m = passwand_secure_malloc(sizeof(*m));
+  if (m == NULL)
     return NULL;
   m->data = (uint8_t *)mainpass;
   m->length = strlen(mainpass);
@@ -52,7 +52,8 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
     rc = PW_NO_MEM;
     goto done;
   }
-  if (passwand_secure_malloc((void **)&k, sizeof(*k)) != 0) {
+  k = passwand_secure_malloc(sizeof(*k));
+  if (k == NULL) {
     rc = PW_NO_MEM;
     goto done;
   }
@@ -80,15 +81,15 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
   // now pack and encrypt each field
 #define ENC(field)                                                             \
   do {                                                                         \
-    pt_t *p;                                                                   \
-    if (passwand_secure_malloc((void **)&p, sizeof(*p)) != 0) {                \
+    pt_t *const p = passwand_secure_malloc(sizeof(*p));                        \
+    if (p == NULL) {                                                           \
       rc = PW_NO_MEM;                                                          \
       goto done;                                                               \
     }                                                                          \
     p->data = (uint8_t *)field;                                                \
     p->length = strlen(field);                                                 \
-    ppt_t *pp;                                                                 \
-    if (passwand_secure_malloc((void **)&pp, sizeof(*pp)) != 0) {              \
+    ppt_t *const pp = passwand_secure_malloc(sizeof(*pp));                     \
+    if (pp == NULL) {                                                          \
       passwand_secure_free(p, sizeof(*p));                                     \
       rc = PW_NO_MEM;                                                          \
       goto done;                                                               \
@@ -333,7 +334,8 @@ passwand_entry_do(const char *mainpass, const passwand_entry_t *e,
       .data = e->salt,
       .length = e->salt_len,
   };
-  if (passwand_secure_malloc((void **)&k, sizeof(*k)) != 0) {
+  k = passwand_secure_malloc(sizeof(*k));
+  if (k == NULL) {
     rc = PW_NO_MEM;
     goto done;
   }
@@ -366,8 +368,8 @@ passwand_entry_do(const char *mainpass, const passwand_entry_t *e,
         .data = e->field,                                                      \
         .length = e->field##_len,                                              \
     };                                                                         \
-    ppt_t *pp;                                                                 \
-    if (passwand_secure_malloc((void **)&pp, sizeof(*pp)) != 0) {              \
+    ppt_t *const pp = passwand_secure_malloc(sizeof(*pp));                     \
+    if (pp == NULL) {                                                          \
       rc = PW_NO_MEM;                                                          \
       goto done;                                                               \
     }                                                                          \
@@ -376,8 +378,8 @@ passwand_entry_do(const char *mainpass, const passwand_entry_t *e,
       passwand_secure_free(pp, sizeof(*pp));                                   \
       goto done;                                                               \
     }                                                                          \
-    pt_t *p;                                                                   \
-    if (passwand_secure_malloc((void **)&p, sizeof(*p)) != 0) {                \
+    pt_t *const p = passwand_secure_malloc(sizeof(*p));                        \
+    if (p == NULL) {                                                           \
       passwand_secure_free(pp->data, pp->length);                              \
       passwand_secure_free(pp, sizeof(*pp));                                   \
       rc = PW_NO_MEM;                                                          \
@@ -405,7 +407,8 @@ passwand_entry_do(const char *mainpass, const passwand_entry_t *e,
       rc = PW_OVERFLOW;                                                        \
       goto done;                                                               \
     }                                                                          \
-    if (passwand_secure_malloc((void **)&field, p->length + 1) != 0) {         \
+    field = passwand_secure_malloc(p->length + 1);                             \
+    if (field == NULL) {                                                       \
       passwand_secure_free(p->data, p->length);                                \
       passwand_secure_free(p, sizeof(*p));                                     \
       rc = PW_NO_MEM;                                                          \

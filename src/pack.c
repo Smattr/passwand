@@ -55,7 +55,9 @@ passwand_error_t pack_data(const pt_t *p, const iv_t iv, ppt_t *pp) {
     return PW_OVERFLOW;
   pp->length = length + padding_len;
   assert(pp->length % AES_BLOCK_SIZE == 0);
-  if (passwand_secure_malloc((void **)&pp->data, pp->length) != 0)
+  pp->data = passwand_secure_malloc(pp->length);
+  assert(pp->length > 0);
+  if (pp->data == NULL)
     return PW_NO_MEM;
 
   // we are now ready to write the packed data
@@ -138,7 +140,8 @@ passwand_error_t unpack_data(const ppt_t *pp, const iv_t iv, pt_t *p) {
     return PW_BAD_PADDING;
 
   // now we are ready to unpack it
-  if (passwand_secure_malloc((void **)&p->data, p->length) != 0)
+  p->data = passwand_secure_malloc(p->length);
+  if (p->data == NULL && p->length > 0)
     return PW_NO_MEM;
   if (p->length > 0)
     memcpy(p->data, d.data + d.length - p->length, p->length);
