@@ -28,8 +28,8 @@ char *get_text(const char *title __attribute__((unused)),
       r = NULL;
     } else {
       strcpy(r, buffer);
-      free(buffer);
     }
+    free(buffer);
   } else {
     r = buffer;
   }
