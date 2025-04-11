@@ -105,8 +105,7 @@ TEST("AES128 reads at most 128 bits of a supplied key") {
 
     unsigned char out[sizeof(in) + 16 - 1];
 
-    int len;
-    r = EVP_EncryptUpdate(ctx, out, &len, in, sizeof(in));
+    r = EVP_EncryptUpdate(ctx, out, &(int){0}, in, sizeof(in));
     ASSERT_EQ(r, 1);
 
   } else if (j == 1) {
@@ -172,8 +171,7 @@ TEST("AES128 reads at least 128 bits of a supplied key") {
 
     unsigned char out[sizeof(in) + 16 - 1];
 
-    int len;
-    r = EVP_EncryptUpdate(ctx, out, &len, in, sizeof(in));
+    r = EVP_EncryptUpdate(ctx, out, &(int){0}, in, sizeof(in));
     ASSERT_EQ(r, 1);
 
     // if we reached here then we did not trigger SIGSEGV :(
@@ -241,8 +239,7 @@ TEST("AES128 reads at most 16 bytes of a supplied initialisation vector") {
 
     unsigned char out[sizeof(in) + 16 - 1];
 
-    int len;
-    r = EVP_EncryptUpdate(ctx, out, &len, in, sizeof(in));
+    r = EVP_EncryptUpdate(ctx, out, &(int){0}, in, sizeof(in));
     ASSERT_EQ(r, 1);
 
   } else if (j == 1) {
@@ -305,8 +302,7 @@ TEST("AES128 reads at least 16 bytes of a supplied initialisation vector") {
 
     unsigned char out[sizeof(in) + 16 - 1];
 
-    int len;
-    r = EVP_EncryptUpdate(ctx, out, &len, in, sizeof(in));
+    r = EVP_EncryptUpdate(ctx, out, &(int){0}, in, sizeof(in));
     ASSERT_EQ(r, 1);
 
     // if we reached here then we did not trigger SIGSEGV :(
@@ -372,8 +368,7 @@ TEST("AES256 reads at most 256 bits of a supplied key") {
 
     unsigned char out[sizeof(in) + 16 - 1];
 
-    int len;
-    r = EVP_EncryptUpdate(ctx, out, &len, in, sizeof(in));
+    r = EVP_EncryptUpdate(ctx, out, &(int){0}, in, sizeof(in));
     ASSERT_EQ(r, 1);
 
   } else if (j == 1) {
@@ -435,8 +430,7 @@ TEST("AES256 reads at least 256 bits of a supplied key") {
 
     unsigned char out[sizeof(in) + 16 - 1];
 
-    int len;
-    r = EVP_EncryptUpdate(ctx, out, &len, in, sizeof(in));
+    r = EVP_EncryptUpdate(ctx, out, &(int){0}, in, sizeof(in));
     ASSERT_EQ(r, 1);
 
     // if we reached here then we did not trigger SIGSEGV :(
@@ -504,8 +498,7 @@ TEST("AES256 reads at most 16 bytes of a supplied initialisation vector") {
 
     unsigned char out[sizeof(in) + 16 - 1];
 
-    int len;
-    r = EVP_EncryptUpdate(ctx, out, &len, in, sizeof(in));
+    r = EVP_EncryptUpdate(ctx, out, &(int){0}, in, sizeof(in));
     ASSERT_EQ(r, 1);
 
   } else if (j == 1) {
@@ -568,8 +561,7 @@ TEST("AES256 reads at least 16 bytes of a supplied initialisation vector") {
 
     unsigned char out[sizeof(in) + 16 - 1];
 
-    int len;
-    r = EVP_EncryptUpdate(ctx, out, &len, in, sizeof(in));
+    r = EVP_EncryptUpdate(ctx, out, &(int){0}, in, sizeof(in));
     ASSERT_EQ(r, 1);
 
     // if we reached here then we did not trigger SIGSEGV :(
