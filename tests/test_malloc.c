@@ -1,6 +1,7 @@
 #include "test.h"
 #include <passwand/passwand.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 
 TEST("malloc: basic functionality") {
@@ -18,7 +19,8 @@ TEST("malloc: basic functionality") {
   memcpy(q, buffer, sizeof(buffer));
 
   // the two pointers should not overlap
-  ASSERT(p + 10 <= q || q + 100 <= p);
+  ASSERT((uintptr_t)p + 10 <= (uintptr_t)q ||
+         (uintptr_t)q + 100 <= (uintptr_t)p);
 
   passwand_secure_free(q, 100);
 
