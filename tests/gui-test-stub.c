@@ -24,12 +24,10 @@ char *get_text(const char *title __attribute__((unused)),
 
   char *r;
   if (hidden) {
-    if (passwand_secure_malloc((void **)&r, strlen(buffer) + 1) != PW_OK) {
-      r = NULL;
-    } else {
+    r = passwand_secure_malloc(strlen(buffer) + 1);
+    if (r != NULL)
       strcpy(r, buffer);
-      free(buffer);
-    }
+    free(buffer);
   } else {
     r = buffer;
   }

@@ -1,24 +1,24 @@
 #include "test.h"
 #include <passwand/passwand.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 
 TEST("malloc: basic functionality") {
 
   const char buffer[] = "hello world";
 
-  char *p;
-  int err = passwand_secure_malloc((void **)&p, 10);
-  ASSERT_EQ(err, 0);
+  char *const p = passwand_secure_malloc(10);
+  ASSERT_NOT_NULL(p);
   memcpy(p, buffer, 10);
 
-  char *q;
-  err = passwand_secure_malloc((void **)&q, 100);
-  ASSERT_EQ(err, 0);
+  char *const q = passwand_secure_malloc(100);
+  ASSERT_NOT_NULL(q);
   memcpy(q, buffer, sizeof(buffer));
 
   // the two pointers should not overlap
-  ASSERT(p + 10 <= q || q + 100 <= p);
+  ASSERT((uintptr_t)p + 10 <= (uintptr_t)q ||
+         (uintptr_t)q + 100 <= (uintptr_t)p);
 
   passwand_secure_free(q, 100);
 
@@ -33,9 +33,8 @@ TEST("malloc: basic functionality") {
 
 TEST("malloc: forever { malloc(x); free(x); }") {
   for (unsigned i = 0; i < 10000; i++) {
-    void *p;
-    int err = passwand_secure_malloc(&p, 128);
-    ASSERT_EQ(err, 0);
+    void *const p = passwand_secure_malloc(128);
+    ASSERT_NOT_NULL(p);
     passwand_secure_free(p, 128);
   }
 }
@@ -52,9 +51,8 @@ TEST("malloc: limit") {
   // malloc 10000 pages or until we run out of space
   node_t *n = NULL;
   for (unsigned i = 0; i < 10000; i++) {
-    node_t *m;
-    int err = passwand_secure_malloc((void **)&m, sizeof(*m));
-    if (err != 0)
+    node_t *const m = passwand_secure_malloc(sizeof(*m));
+    if (m == NULL)
       break;
     m->next = n;
     n = m;
@@ -71,7 +69,7 @@ TEST("malloc: limit") {
   }
 
   // now we should be able to do at least one allocation
-  int err = passwand_secure_malloc((void **)&n, sizeof(*n));
-  ASSERT_EQ(err, 0);
+  n = passwand_secure_malloc(sizeof(*n));
+  ASSERT_NOT_NULL(n);
   passwand_secure_free(n, sizeof(*n));
 }

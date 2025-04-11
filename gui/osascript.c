@@ -267,8 +267,8 @@ char *get_text(const char *title, const char *message, const char *initial,
   }
 
   if (hidden && result != NULL) {
-    char *r;
-    if (passwand_secure_malloc((void **)&r, strlen(result) + 1) != PW_OK) {
+    char *const r = passwand_secure_malloc(strlen(result) + 1);
+    if (r == NULL) {
       (void)passwand_erase(result, strlen(result) + 1);
       free(result);
       result = NULL;

@@ -6,20 +6,13 @@
 #include <unistd.h>
 
 static void cleanup_entry(passwand_entry_t *e) {
-  if (e->space != NULL)
-    free(e->space);
-  if (e->key != NULL)
-    free(e->key);
-  if (e->value != NULL)
-    free(e->value);
-  if (e->hmac != NULL)
-    free(e->hmac);
-  if (e->hmac_salt != NULL)
-    free(e->hmac_salt);
-  if (e->salt != NULL)
-    free(e->salt);
-  if (e->iv != NULL)
-    free(e->iv);
+  free(e->space);
+  free(e->key);
+  free(e->value);
+  free(e->hmac);
+  free(e->hmac_salt);
+  free(e->salt);
+  free(e->iv);
 }
 
 typedef struct {

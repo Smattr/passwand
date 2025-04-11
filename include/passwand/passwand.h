@@ -148,11 +148,10 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
  * This function works similarly to malloc, but the backing memory is in a
  * secure region.
  *
- * @param[out] p Address of allocated memory
  * @param size Number of bytes to allocate
- * @return 0 on success
+ * @return Address of allocated memory or NULL On failure
  */
-int passwand_secure_malloc(void **p, size_t size);
+void *passwand_secure_malloc(size_t size);
 
 /** Free some secure memory.
  *

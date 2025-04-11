@@ -79,10 +79,9 @@ static void check(void *state, const char *space, const char *key,
   assert(key != NULL);
   if (strcmp(options.space, space) == 0 && strcmp(options.key, key) == 0) {
     assert(v != NULL);
-    if (passwand_secure_malloc((void **)v, strlen(value) + 1) == PW_OK) {
-      assert(*v != NULL);
+    *v = passwand_secure_malloc(strlen(value) + 1);
+    if (*v != NULL)
       strcpy(*v, value);
-    }
   }
 }
 
@@ -141,10 +140,9 @@ static void process_chain_link(void *state __attribute__((unused)),
   mainpass = NULL;
 
   // strdup() the replacement onto it
-  if (passwand_secure_malloc((void **)&mainpass, strlen(value) + 1) == PW_OK) {
-    assert(mainpass != NULL);
+  mainpass = passwand_secure_malloc(strlen(value) + 1);
+  if (mainpass != NULL)
     strcpy(mainpass, value);
-  }
 }
 
 int main(int argc, char **argv) {
