@@ -155,6 +155,11 @@ int passwand_secure_malloc(void **p, size_t size) {
 
   size = round_size(size);
 
+  // Do not allow allocations greater than a page. This avoids having to cope
+  // with allocations that would span multiple chunks.
+  if (size > EXPECTED_PAGE_SIZE)
+    return -1;
+
   lock();
 
   if (disabled) {
@@ -167,13 +172,6 @@ int passwand_secure_malloc(void **p, size_t size) {
       unlock();
       return -1;
     }
-  }
-
-  // Do not allow allocations greater than a page. This avoids having to cope
-  // with allocations that would span multiple chunks.
-  if (size > EXPECTED_PAGE_SIZE) {
-    unlock();
-    return -1;
   }
 
   for (chunk_t *n = freelist; n != NULL; n = n->next) {
