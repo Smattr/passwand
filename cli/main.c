@@ -244,7 +244,7 @@ static void *thread_loop(void *arg) {
 /** Take a password entry from a chained database and consider it now the new
  * main password
  *
- * @param state Pointer to the preivous `main_t` main password structure
+ * @param state Pointer to the previous `main_t` main password structure
  * @param value The password to update the main password to
  */
 static void process_chain_link(void *state,
