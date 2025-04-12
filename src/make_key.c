@@ -35,8 +35,7 @@ passwand_error_t make_key(const m_t *mainkey, const salt_t *salt,
   static const uint32_t p = 1;
 
   if (scrypt_kdf(mainkey->data, mainkey->length, salt->data, salt->length,
-                 ((uint64_t)1) << work_factor, r, p, (uint8_t *)key,
-                 AES_KEY_SIZE) != 0)
+                 ((uint64_t)1) << work_factor, r, p, key, AES_KEY_SIZE) != 0)
     return PW_CRYPTO;
 
   return PW_OK;
