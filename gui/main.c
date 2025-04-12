@@ -1,4 +1,5 @@
 #include "../common/argparse.h"
+#include "../common/streq.h"
 #include "gui.h"
 #include <assert.h>
 #include <fcntl.h>
@@ -77,7 +78,7 @@ static void check(void *state, const char *space, const char *key,
   assert(space != NULL);
   assert(options.key != NULL);
   assert(key != NULL);
-  if (strcmp(options.space, space) == 0 && strcmp(options.key, key) == 0) {
+  if (streq(options.space, space) && streq(options.key, key)) {
     assert(v != NULL);
     *v = passwand_secure_malloc(strlen(value) + 1);
     if (*v != NULL)
@@ -186,7 +187,7 @@ int main(int argc, char **argv) {
 
     // if the user entered an empty string, they want to skip a chained
     // database
-    if (strcmp(mainpass, "") == 0) {
+    if (streq(mainpass, "")) {
       passwand_secure_free(mainpass, strlen(mainpass) + 1);
       mainpass = NULL;
 

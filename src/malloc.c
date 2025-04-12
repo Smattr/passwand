@@ -100,22 +100,21 @@ static size_t pagesize(void) {
   return size;
 }
 
-static int morecore(void **p) {
-  assert(p != NULL);
-
+static void *morecore(void) {
   size_t page = pagesize();
   if (page < EXPECTED_PAGE_SIZE)
-    return -1;
+    return NULL;
 
   // allocate a new mlocked page
-  if (posix_memalign(p, page, EXPECTED_PAGE_SIZE) != 0)
-    return -1;
-  if (mlock(*p, EXPECTED_PAGE_SIZE) != 0) {
-    free(*p);
-    return -1;
+  void *const p = aligned_alloc(page, page);
+  if (p == NULL)
+    return NULL;
+  if (mlock(p, EXPECTED_PAGE_SIZE) != 0) {
+    free(p);
+    return NULL;
   }
 
-  return 0;
+  return p;
 }
 
 // The following logic prevents other processes attaching to us with
@@ -216,8 +215,8 @@ void *passwand_secure_malloc(size_t size) {
 
   // Did not find anything useful in the freelist. Acquire some more secure
   // memory.
-  void *q;
-  if (morecore(&q) != 0) {
+  void *const q = morecore();
+  if (q == NULL) {
     unlock();
     return NULL;
   }
@@ -256,6 +255,9 @@ void passwand_secure_free(void *p, size_t size) {
 
   size = round_size(size);
 
+  const uintptr_t p_start = (uintptr_t)p;
+  const uintptr_t p_end = p_start + size;
+
   lock();
 
   if (disabled) {
@@ -263,12 +265,20 @@ void passwand_secure_free(void *p, size_t size) {
     return;
   }
 
+  // is the range we were given invalid?
+  if (p_end < p_start) {
+    disabled = true;
+    unlock();
+    return;
+  }
+
   // find the chunk this allocation came from
   for (chunk_t *c = freelist; c != NULL; c = c->next) {
-    if (p >= c->base &&
-        (uintptr_t)p + size <= (uintptr_t)c->base + EXPECTED_PAGE_SIZE) {
+    const uintptr_t base_start = (uintptr_t)c->base;
+    const uintptr_t base_end = base_start + EXPECTED_PAGE_SIZE;
+    if (p_start >= base_start && p_end <= base_end) {
       // it came from this chunk
-      unsigned offset = ((uintptr_t)p - (uintptr_t)c->base) / sizeof(long long);
+      unsigned offset = (p_start - base_start) / sizeof(long long);
       for (unsigned index = 0; index * sizeof(long long) < size; index++) {
         assert(read_bitmap(c, index + offset));
         if (!read_bitmap(c, index + offset)) {

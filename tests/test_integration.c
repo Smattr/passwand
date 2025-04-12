@@ -1,3 +1,4 @@
+#include "../common/streq.h"
 #include "test.h"
 #include <passwand/passwand.h>
 #include <stdbool.h>
@@ -26,26 +27,23 @@ static void body(void *state, const char *space, const char *key,
   switch (st->index) {
 
   case 0:
-    st->failed |= !(strcmp(space, "foo.com") == 0 &&
-                    strcmp(key, "username") == 0 && strcmp(value, "bob") == 0);
+    st->failed |= !(streq(space, "foo.com") && streq(key, "username") &&
+                    streq(value, "bob"));
     break;
 
   case 1:
-    st->failed |=
-        !(strcmp(space, "foo.com") == 0 && strcmp(key, "password") == 0 &&
-          strcmp(value, "bob's password") == 0);
+    st->failed |= !(streq(space, "foo.com") && streq(key, "password") &&
+                    streq(value, "bob's password"));
     break;
 
   case 2:
-    st->failed |=
-        !(strcmp(space, "bar.com") == 0 && strcmp(key, "username") == 0 &&
-          strcmp(value, "alice") == 0);
+    st->failed |= !(streq(space, "bar.com") && streq(key, "username") &&
+                    streq(value, "alice"));
     break;
 
   case 3:
-    st->failed |=
-        !(strcmp(space, "bar.com") == 0 && strcmp(key, "password") == 0 &&
-          strcmp(value, "alice's password") == 0);
+    st->failed |= !(streq(space, "bar.com") && streq(key, "password") &&
+                    streq(value, "alice's password"));
     break;
 
   default:

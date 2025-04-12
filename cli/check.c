@@ -1,5 +1,6 @@
 #include "check.h"
 #include "../common/argparse.h"
+#include "../common/streq.h"
 #include "cli.h"
 #include "print.h"
 #include <assert.h>
@@ -59,7 +60,7 @@ static bool in_dictionary(const char *s) {
       if (line[strlen(line) - 1] == '\n')
         line[strlen(line) - 1] = '\0';
 
-      if (strcmp(s, line) == 0) {
+      if (streq(s, line)) {
         result = true;
         break;
       }
@@ -347,11 +348,11 @@ static void loop_body(const char *space, const char *key, const char *value) {
   assert(value != NULL);
 
   // if we were given a space, check that this entry is within it
-  if (options.space != NULL && strcmp(options.space, space) != 0)
+  if (options.space != NULL && !streq(options.space, space))
     return;
 
   // if we were given a key, check that this entry matches it
-  if (options.key != NULL && strcmp(options.key, key) != 0)
+  if (options.key != NULL && !streq(options.key, key))
     return;
 
   if (in_dictionary(value)) {

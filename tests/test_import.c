@@ -8,8 +8,7 @@
 TEST("import: import(\"[]\")") {
 
   // create a temporary file
-  char tmp[sizeof("/tmp/tmp.XXXXXX")];
-  strcpy(tmp, "/tmp/tmp.XXXXXX");
+  char tmp[] = "/tmp/tmp.XXXXXX";
   int fd = mkstemp(tmp);
   ASSERT_NE(fd, -1);
   ssize_t written = write(fd, "[]", strlen("[]"));
@@ -38,8 +37,7 @@ TEST("import: with a missing field") {
       "\"hmac_salt\":\"aGVsbG8gd29ybGQ=\", \"salt\":\"aGVsbG8gd29ybGQ=\"}]";
 
   // create a temporary file
-  char tmp[sizeof("/tmp/tmp.XXXXXX")];
-  strcpy(tmp, "/tmp/tmp.XXXXXX");
+  char tmp[] = "/tmp/tmp.XXXXXX";
   int fd = mkstemp(tmp);
   ASSERT_NE(fd, -1);
   ssize_t written = write(fd, data, strlen(data));
@@ -63,8 +61,7 @@ TEST("import: basic functionality") {
       "\"iv\":\"aGVsbG8gd29ybGQ=\"}]";
 
   // create a temporary file
-  char tmp[sizeof("/tmp/tmp.XXXXXX")];
-  strcpy(tmp, "/tmp/tmp.XXXXXX");
+  char tmp[] = "/tmp/tmp.XXXXXX";
   int fd = mkstemp(tmp);
   ASSERT_NE(fd, -1);
   ssize_t written = write(fd, data, strlen(data));
@@ -82,33 +79,20 @@ TEST("import: basic functionality") {
   // check we got an entry
   ASSERT_EQ(entry_len, 1ul);
   ASSERT_EQ(entries[0].space_len, strlen("hello world"));
-  ASSERT_EQ(strncmp((const char *)entries[0].space, "hello world",
-                    entries[0].space_len),
-            0);
+  ASSERT_EQ(memcmp(entries[0].space, "hello world", entries[0].space_len), 0);
   ASSERT_EQ(entries[0].key_len, strlen("hello world"));
-  ASSERT_EQ(
-      strncmp((const char *)entries[0].key, "hello world", entries[0].key_len),
-      0);
+  ASSERT_EQ(memcmp(entries[0].key, "hello world", entries[0].key_len), 0);
   ASSERT_EQ(entries[0].value_len, strlen("hello world"));
-  ASSERT_EQ(strncmp((const char *)entries[0].value, "hello world",
-                    entries[0].value_len),
-            0);
+  ASSERT_EQ(memcmp(entries[0].value, "hello world", entries[0].value_len), 0);
   ASSERT_EQ(entries[0].hmac_len, strlen("hello world"));
-  ASSERT_EQ(strncmp((const char *)entries[0].hmac, "hello world",
-                    entries[0].hmac_len),
-            0);
+  ASSERT_EQ(memcmp(entries[0].hmac, "hello world", entries[0].hmac_len), 0);
   ASSERT_EQ(entries[0].hmac_salt_len, strlen("hello world"));
-  ASSERT_EQ(strncmp((const char *)entries[0].hmac_salt, "hello world",
-                    entries[0].hmac_salt_len),
-            0);
-  ASSERT_EQ(entries[0].salt_len, strlen("hello world"));
-  ASSERT_EQ(strncmp((const char *)entries[0].salt, "hello world",
-                    entries[0].salt_len),
-            0);
-  ASSERT_EQ(entries[0].iv_len, strlen("hello world"));
   ASSERT_EQ(
-      strncmp((const char *)entries[0].iv, "hello world", entries[0].iv_len),
-      0);
+      memcmp(entries[0].hmac_salt, "hello world", entries[0].hmac_salt_len), 0);
+  ASSERT_EQ(entries[0].salt_len, strlen("hello world"));
+  ASSERT_EQ(memcmp(entries[0].salt, "hello world", entries[0].salt_len), 0);
+  ASSERT_EQ(entries[0].iv_len, strlen("hello world"));
+  ASSERT_EQ(memcmp(entries[0].iv, "hello world", entries[0].iv_len), 0);
 
   // clean up
   for (size_t i = 0; i < entry_len; i++) {
@@ -131,8 +115,7 @@ TEST("import: with an extra field") {
       "\"iv\":\"aGVsbG8gd29ybGQ=\",\"extra\":\"blah blah\"}]";
 
   // create a temporary file
-  char tmp[sizeof("/tmp/tmp.XXXXXX")];
-  strcpy(tmp, "/tmp/tmp.XXXXXX");
+  char tmp[] = "/tmp/tmp.XXXXXX";
   int fd = mkstemp(tmp);
   ASSERT_NE(fd, -1);
   ssize_t written = write(fd, data, strlen(data));
@@ -150,33 +133,20 @@ TEST("import: with an extra field") {
   // check we got an entry
   ASSERT_EQ(entry_len, 1ul);
   ASSERT_EQ(entries[0].space_len, strlen("hello world"));
-  ASSERT_EQ(strncmp((const char *)entries[0].space, "hello world",
-                    entries[0].space_len),
-            0);
+  ASSERT_EQ(memcmp(entries[0].space, "hello world", entries[0].space_len), 0);
   ASSERT_EQ(entries[0].key_len, strlen("hello world"));
-  ASSERT_EQ(
-      strncmp((const char *)entries[0].key, "hello world", entries[0].key_len),
-      0);
+  ASSERT_EQ(memcmp(entries[0].key, "hello world", entries[0].key_len), 0);
   ASSERT_EQ(entries[0].value_len, strlen("hello world"));
-  ASSERT_EQ(strncmp((const char *)entries[0].value, "hello world",
-                    entries[0].value_len),
-            0);
+  ASSERT_EQ(memcmp(entries[0].value, "hello world", entries[0].value_len), 0);
   ASSERT_EQ(entries[0].hmac_len, strlen("hello world"));
-  ASSERT_EQ(strncmp((const char *)entries[0].hmac, "hello world",
-                    entries[0].hmac_len),
-            0);
+  ASSERT_EQ(memcmp(entries[0].hmac, "hello world", entries[0].hmac_len), 0);
   ASSERT_EQ(entries[0].hmac_salt_len, strlen("hello world"));
-  ASSERT_EQ(strncmp((const char *)entries[0].hmac_salt, "hello world",
-                    entries[0].hmac_salt_len),
-            0);
-  ASSERT_EQ(entries[0].salt_len, strlen("hello world"));
-  ASSERT_EQ(strncmp((const char *)entries[0].salt, "hello world",
-                    entries[0].salt_len),
-            0);
-  ASSERT_EQ(entries[0].iv_len, strlen("hello world"));
   ASSERT_EQ(
-      strncmp((const char *)entries[0].iv, "hello world", entries[0].iv_len),
-      0);
+      memcmp(entries[0].hmac_salt, "hello world", entries[0].hmac_salt_len), 0);
+  ASSERT_EQ(entries[0].salt_len, strlen("hello world"));
+  ASSERT_EQ(memcmp(entries[0].salt, "hello world", entries[0].salt_len), 0);
+  ASSERT_EQ(entries[0].iv_len, strlen("hello world"));
+  ASSERT_EQ(memcmp(entries[0].iv, "hello world", entries[0].iv_len), 0);
 
   // clean up
   for (size_t i = 0; i < entry_len; i++) {
@@ -255,34 +225,28 @@ TEST("import: import(export(x)) == x") {
   ASSERT_EQ(entry_len, new_entry_len);
   for (size_t i = 0; i < entry_len; i++) {
     ASSERT_EQ(entries[i].space_len, new_entries[i].space_len);
-    ASSERT_EQ(strncmp((const char *)entries[i].space,
-                      (const char *)new_entries[i].space, entries[i].space_len),
-              0);
+    ASSERT_EQ(
+        memcmp(entries[i].space, new_entries[i].space, entries[i].space_len),
+        0);
     ASSERT_EQ(entries[i].key_len, new_entries[i].key_len);
-    ASSERT_EQ(strncmp((const char *)entries[i].key,
-                      (const char *)new_entries[i].key, entries[i].key_len),
+    ASSERT_EQ(memcmp(entries[i].key, new_entries[i].key, entries[i].key_len),
               0);
     ASSERT_EQ(entries[i].value_len, new_entries[i].value_len);
-    ASSERT_EQ(strncmp((const char *)entries[i].value,
-                      (const char *)new_entries[i].value, entries[i].value_len),
-              0);
+    ASSERT_EQ(
+        memcmp(entries[i].value, new_entries[i].value, entries[i].value_len),
+        0);
     ASSERT_EQ(entries[i].hmac_len, new_entries[i].hmac_len);
-    ASSERT_EQ(strncmp((const char *)entries[i].hmac,
-                      (const char *)new_entries[i].hmac, entries[i].hmac_len),
+    ASSERT_EQ(memcmp(entries[i].hmac, new_entries[i].hmac, entries[i].hmac_len),
               0);
     ASSERT_EQ(entries[i].hmac_salt_len, new_entries[i].hmac_salt_len);
-    ASSERT_EQ(strncmp((const char *)entries[i].hmac_salt,
-                      (const char *)new_entries[i].hmac_salt,
-                      entries[i].hmac_salt_len),
+    ASSERT_EQ(memcmp(entries[i].hmac_salt, new_entries[i].hmac_salt,
+                     entries[i].hmac_salt_len),
               0);
     ASSERT_EQ(entries[i].salt_len, new_entries[i].salt_len);
-    ASSERT_EQ(strncmp((const char *)entries[i].salt,
-                      (const char *)new_entries[i].salt, entries[i].salt_len),
+    ASSERT_EQ(memcmp(entries[i].salt, new_entries[i].salt, entries[i].salt_len),
               0);
     ASSERT_EQ(entries[i].iv_len, new_entries[i].iv_len);
-    ASSERT_EQ(strncmp((const char *)entries[i].iv,
-                      (const char *)new_entries[i].iv, entries[i].iv_len),
-              0);
+    ASSERT_EQ(memcmp(entries[i].iv, new_entries[i].iv, entries[i].iv_len), 0);
   }
 
   // clean up

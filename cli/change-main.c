@@ -1,5 +1,6 @@
 #include "change-main.h"
 #include "../common/argparse.h"
+#include "../common/streq.h"
 #include "cli.h"
 #include "print.h"
 #include <passwand/passwand.h>
@@ -56,7 +57,7 @@ static int initialize(const main_t *mainpass __attribute__((unused)),
     goto done;
   }
 
-  if (strcmp(new_main->main, confirm_new->main) != 0) {
+  if (!streq(new_main->main, confirm_new->main)) {
     eprint("passwords do not match\n");
     goto done;
   }

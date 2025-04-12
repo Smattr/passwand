@@ -8,8 +8,7 @@
 TEST("export: 0 entries") {
 
   // create a temporary path
-  char tmp[sizeof("/tmp/tmp.XXXXXX")];
-  strcpy(tmp, "/tmp/tmp.XXXXXX");
+  char tmp[] = "/tmp/tmp.XXXXXX";
   int fd = mkstemp(tmp);
   ASSERT_NE(fd, -1);
   close(fd);
@@ -38,8 +37,7 @@ TEST("export: 0 entries") {
 TEST("export: basic functionality") {
 
   // create a temporary path
-  char tmp[sizeof("/tmp/tmp.XXXXXX")];
-  strcpy(tmp, "/tmp/tmp.XXXXXX");
+  char tmp[] = "/tmp/tmp.XXXXXX";
   int fd = mkstemp(tmp);
   ASSERT_NE(fd, -1);
   close(fd);

@@ -25,7 +25,7 @@ TEST("decode: basic functionality") {
   ASSERT_EQ(err, PW_OK);
   ASSERT_NOT_NULL(r);
   ASSERT_EQ(r_len, strlen("hello world"));
-  ASSERT_EQ(strncmp((const char *)r, "hello world", r_len), 0);
+  ASSERT_EQ(memcmp(r, "hello world", r_len), 0);
   free(r);
 }
 
@@ -40,7 +40,7 @@ TEST("decode: == base64") {
 TEST("decode: decode(encode(x)) == x") {
 
   // some basic text to encode
-  const char *input =
+  const uint8_t input[] =
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod "
       "tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim "
       "veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea "
@@ -51,7 +51,7 @@ TEST("decode: decode(encode(x)) == x") {
 
   // encode the text
   char *encoded;
-  int err = encode((const uint8_t *)input, strlen(input), &encoded);
+  int err = encode(input, sizeof(input) - 1, &encoded);
   ASSERT_EQ(err, PW_OK);
   ASSERT_NOT_NULL(encoded);
 
@@ -65,8 +65,8 @@ TEST("decode: decode(encode(x)) == x") {
   free(encoded);
 
   // we should have got back what we put in
-  ASSERT_EQ(output_len, strlen(input));
-  ASSERT_EQ(strncmp((const char *)output, input, output_len), 0);
+  ASSERT_EQ(output_len, sizeof(input) - 1);
+  ASSERT_EQ(memcmp(output, input, output_len), 0);
 
   free(output);
 }

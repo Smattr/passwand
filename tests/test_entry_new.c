@@ -1,3 +1,4 @@
+#include "../common/streq.h"
 #include "test.h"
 #include <passwand/passwand.h>
 #include <stdbool.h>
@@ -46,7 +47,7 @@ TEST("entry_new: check_mac(entry_new(...))") {
 
 static void check(void *state, const char *s, const char *k, const char *v) {
   bool *st = state;
-  *st = strcmp(space, s) == 0 && strcmp(key, k) == 0 && strcmp(value, v) == 0;
+  *st = streq(space, s) && streq(key, k) && streq(value, v);
 }
 
 TEST("entry_new: recoverable") {

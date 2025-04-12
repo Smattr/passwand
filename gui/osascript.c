@@ -8,6 +8,7 @@
 // above average level of paranoia in this code.
 
 #include "../common/environ.h"
+#include "../common/streq.h"
 #include "gui.h"
 #include <assert.h>
 #include <errno.h>
@@ -15,6 +16,7 @@
 #include <passwand/passwand.h>
 #include <pthread.h>
 #include <spawn.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -232,6 +234,14 @@ char *get_text(const char *title, const char *message, const char *initial,
   char *m = escape(message);
   char *i = initial == NULL ? NULL : escape(initial);
 
+  if (t == NULL || m == NULL || (initial != NULL && i == NULL)) {
+    free(i);
+    free(m);
+    free(t);
+    show_error("failed to allocate escaping memory");
+    return NULL;
+  }
+
   struct iovec iov[] = {
       IOV("text returned of (display dialog \""),
       IOV(m),
@@ -261,7 +271,7 @@ char *get_text(const char *title, const char *message, const char *initial,
   free(t);
 
   // we need to strip the tailing newline to avoid confusing our caller
-  if (result != NULL && strcmp(result, "") != 0) {
+  if (result != NULL && !streq(result, "")) {
     assert(result[strlen(result) - 1] == '\n');
     result[strlen(result) - 1] = '\0';
   }
@@ -289,6 +299,10 @@ int send_text(const char *text) {
   assert(text != NULL);
 
   char *t = escape(text);
+  if (t == NULL) {
+    show_error("failed to allocate escaping memory");
+    return ENOMEM;
+  }
 
   struct iovec iov[] = {
       IOV("tell application \"System Events\"\nkeystroke \""),
@@ -320,7 +334,12 @@ void show_error(const char *message) {
 
   assert(message != NULL);
 
+  bool m_needs_free = true;
   char *m = escape(message);
+  if (m == NULL) {
+    m = "failed to allocate escaping memory";
+    m_needs_free = false;
+  }
 
   struct iovec iov[] = {
       IOV("display dialog \""),
@@ -331,7 +350,8 @@ void show_error(const char *message) {
 
   (void)osascript(iov, sizeof(iov) / sizeof(iov[0]), NULL);
 
-  free(m);
+  if (m_needs_free)
+    free(m);
 }
 
 int gui_init(void) {

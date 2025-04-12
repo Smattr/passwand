@@ -1,5 +1,6 @@
 #include "../common/argparse.h"
 #include "../common/privilege.h"
+#include "../common/streq.h"
 #include "change-main.h"
 #include "check.h"
 #include "cli.h"
@@ -41,7 +42,7 @@ static const struct {
 
 static const command_t *command_for(const char *name) {
   for (size_t i = 0; i < sizeof(COMMANDS) / sizeof(COMMANDS[0]); i++) {
-    if (strcmp(name, COMMANDS[i].name) == 0)
+    if (streq(name, COMMANDS[i].name))
       return COMMANDS[i].action;
   }
   return NULL;
@@ -275,14 +276,14 @@ static void process_chain_link(void *state,
 int main(int argc, char **argv) {
 
   // we need to make a network call if we are checking a password
-  bool need_network = argc >= 2 && strcmp(argv[1], "check") == 0;
+  bool need_network = argc >= 2 && streq(argv[1], "check");
 
   if (drop_privileges(need_network) != 0) {
     eprint("privilege downgrade failed\n");
     return EXIT_FAILURE;
   }
 
-  if (argc < 2 || strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-?") == 0)
+  if (argc < 2 || streq(argv[1], "--help") || streq(argv[1], "-?"))
     help();
 
   main_t *mainpass = NULL;
@@ -369,7 +370,7 @@ int main(int argc, char **argv) {
       if (mainpass == NULL) {
         eprint("failed to read main password\n");
         goto done;
-      } else if (strcmp(mainpass->main, "") == 0) {
+      } else if (streq(mainpass->main, "")) {
         // the user wants to bypass this chain link
         discard_main(&mainpass);
         discard_entries(&entries, &entry_len);
