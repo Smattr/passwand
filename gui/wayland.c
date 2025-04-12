@@ -16,6 +16,7 @@
  */
 
 #include "../common/getenv.h"
+#include "../common/streq.h"
 #include "gtk.h"
 #include "gui.h"
 #include <assert.h>
@@ -254,10 +255,6 @@ static void destroy_dev(int dev) {
   // destroy the device
   (void)ioctl(dev, UI_DEV_DESTROY);
   close(dev);
-}
-
-static __attribute__((unused)) bool streq(const char *a, const char *b) {
-  return strcmp(a, b) == 0;
 }
 
 #ifdef TEST_WAYLAND

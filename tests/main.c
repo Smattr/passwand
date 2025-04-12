@@ -1,3 +1,4 @@
+#include "../common/streq.h"
 #include "test.h"
 #include <errno.h>
 #include <stdbool.h>
@@ -13,8 +14,7 @@ bool has_assertion_;
 
 int main(int argc, char **argv) {
 
-  if (argc == 2 &&
-      (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0)) {
+  if (argc == 2 && (streq(argv[1], "--help") || streq(argv[1], "-h"))) {
     fprintf(stderr, "usage %s [test prefix]\n\ntest options:\n", argv[0]);
     for (test_case_t *p = test_cases; p != NULL; p = p->next) {
       fprintf(stderr, " %s\n", p->description);

@@ -8,6 +8,7 @@
 // above average level of paranoia in this code.
 
 #include "../common/environ.h"
+#include "../common/streq.h"
 #include "gui.h"
 #include <assert.h>
 #include <errno.h>
@@ -270,7 +271,7 @@ char *get_text(const char *title, const char *message, const char *initial,
   free(t);
 
   // we need to strip the tailing newline to avoid confusing our caller
-  if (result != NULL && strcmp(result, "") != 0) {
+  if (result != NULL && !streq(result, "")) {
     assert(result[strlen(result) - 1] == '\n');
     result[strlen(result) - 1] = '\0';
   }

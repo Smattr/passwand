@@ -1,5 +1,6 @@
 #include "delete.h"
 #include "../common/argparse.h"
+#include "../common/streq.h"
 #include "cli.h"
 #include "print.h"
 #include <assert.h>
@@ -40,7 +41,7 @@ static void loop_body(const char *space, const char *key,
   assert(options.space != NULL);
   assert(options.key != NULL);
 
-  if (strcmp(options.space, space) == 0 && strcmp(options.key, key) == 0) {
+  if (streq(options.space, space) && streq(options.key, key)) {
     bool expected = false;
     if (atomic_compare_exchange_strong(&found, &expected, true))
       found_index = current_index;

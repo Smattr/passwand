@@ -1,5 +1,6 @@
 #include "get.h"
 #include "../common/argparse.h"
+#include "../common/streq.h"
 #include "cli.h"
 #include "print.h"
 #include <assert.h>
@@ -27,7 +28,7 @@ static void loop_body(const char *space, const char *key, const char *value) {
   assert(key != NULL);
   assert(value != NULL);
 
-  if (strcmp(options.space, space) == 0 && strcmp(options.key, key) == 0) {
+  if (streq(options.space, space) && streq(options.key, key)) {
     print("%s\n", value);
     found = true;
   }

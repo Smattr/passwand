@@ -1,5 +1,6 @@
 #include "update.h"
 #include "../common/argparse.h"
+#include "../common/streq.h"
 #include "cli.h"
 #include "print.h"
 #include <assert.h>
@@ -33,7 +34,7 @@ static int initialize(const main_t *mainpass, passwand_entry_t *entries,
       eprint("out of memory\n");
       return -1;
     }
-    bool r = strcmp(mainpass->main, confirm->main) == 0;
+    bool r = streq(mainpass->main, confirm->main);
     discard_main(&confirm);
     if (!r) {
       eprint("passwords do not match\n");
@@ -54,7 +55,7 @@ static void loop_body(const char *space, const char *key,
   assert(space != NULL);
   assert(key != NULL);
 
-  if (strcmp(options.space, space) == 0 && strcmp(options.key, key) == 0) {
+  if (streq(options.space, space) && streq(options.key, key)) {
     // This entry matches the one we are after. Mark it. This cmpxchg should
     // never fail because there should only ever be a single matching entry
     // (this one) but maybe we're operating on a tampered with or corrupted

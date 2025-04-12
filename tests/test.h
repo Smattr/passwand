@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../common/streq.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,7 +32,7 @@ extern bool has_assertion_;
         *t = &JOIN(test_case_, __LINE__);                                      \
         return;                                                                \
       }                                                                        \
-      if (strcmp((desc), (*t)->description) == 0) {                            \
+      if (streq((desc), (*t)->description)) {                                  \
         fprintf(stderr, "duplicate test cases \"%s\"\n", (desc));              \
         abort();                                                               \
       }                                                                        \
@@ -91,7 +92,7 @@ extern bool has_assertion_;
     has_assertion_ = true;                                                     \
     const char *_a = (a);                                                      \
     const char *_b = (b);                                                      \
-    if (strcmp(_a, _b) != 0) {                                                 \
+    if (!streq(_a, _b)) {                                                      \
       fprintf(stderr,                                                          \
               "failed\n    %s:%d: assertion “strcmp(%s, %s) == 0” failed\n",   \
               __FILE__, __LINE__, #a, #b);                                     \
@@ -107,7 +108,7 @@ extern bool has_assertion_;
     has_assertion_ = true;                                                     \
     const char *_a = (a);                                                      \
     const char *_b = (b);                                                      \
-    if (strcmp(_a, _b) == 0) {                                                 \
+    if (streq(_a, _b)) {                                                       \
       fprintf(stderr,                                                          \
               "failed\n    %s:%d: assertion “strcmp(%s, %s) != 0” failed\n",   \
               __FILE__, __LINE__, #a, #b);                                     \
