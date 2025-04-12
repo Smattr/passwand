@@ -245,10 +245,9 @@ passwand_error_t passwand_entry_set_mac(const char *mainpass,
 
   static const size_t HMAC_SALT_LEN = 8; // bytes
 
-  if (e->hmac != NULL) {
-    free(e->hmac);
-    e->hmac = NULL;
-  }
+  free(e->hmac);
+  e->hmac = NULL;
+
   if (e->hmac_salt == NULL) {
     // no existing salt; generate one now
     uint8_t *s = malloc(HMAC_SALT_LEN);
