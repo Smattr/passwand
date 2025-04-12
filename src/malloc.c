@@ -255,6 +255,9 @@ void passwand_secure_free(void *p, size_t size) {
 
   size = round_size(size);
 
+  const uintptr_t p_start = (uintptr_t)p;
+  const uintptr_t p_end = p_start + size;
+
   lock();
 
   if (disabled) {
@@ -262,12 +265,20 @@ void passwand_secure_free(void *p, size_t size) {
     return;
   }
 
+  // is the range we were given invalid?
+  if (p_end < p_start) {
+    disabled = true;
+    unlock();
+    return;
+  }
+
   // find the chunk this allocation came from
   for (chunk_t *c = freelist; c != NULL; c = c->next) {
-    if (p >= c->base &&
-        (uintptr_t)p + size <= (uintptr_t)c->base + EXPECTED_PAGE_SIZE) {
+    const uintptr_t base_start = (uintptr_t)c->base;
+    const uintptr_t base_end = base_start + EXPECTED_PAGE_SIZE;
+    if (p_start >= base_start && p_end <= base_end) {
       // it came from this chunk
-      unsigned offset = ((uintptr_t)p - (uintptr_t)c->base) / sizeof(long long);
+      unsigned offset = (p_start - base_start) / sizeof(long long);
       for (unsigned index = 0; index * sizeof(long long) < size; index++) {
         assert(read_bitmap(c, index + offset));
         if (!read_bitmap(c, index + offset)) {
