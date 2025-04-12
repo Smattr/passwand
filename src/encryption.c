@@ -144,9 +144,10 @@ done:
 passwand_error_t aes_decrypt_deinit(EVP_CIPHER_CTX *ctx) {
 
   // we should not receive any further data because padding is disabled
-  unsigned char temp[AES_BLOCK_SIZE];
   int len;
-  if (EVP_DecryptFinal(ctx, temp, &len) != 1 || len != 0)
+  if (EVP_DecryptFinal(ctx, (unsigned char[AES_BLOCK_SIZE]){0}, &len) != 1)
+    return PW_CRYPTO;
+  if (len != 0)
     return PW_CRYPTO;
 
   return PW_OK;
