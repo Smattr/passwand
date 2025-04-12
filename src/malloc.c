@@ -100,22 +100,21 @@ static size_t pagesize(void) {
   return size;
 }
 
-static int morecore(void **p) {
-  assert(p != NULL);
-
+static void *morecore(void) {
   size_t page = pagesize();
   if (page < EXPECTED_PAGE_SIZE)
-    return -1;
+    return NULL;
 
   // allocate a new mlocked page
-  if (posix_memalign(p, page, EXPECTED_PAGE_SIZE) != 0)
-    return -1;
-  if (mlock(*p, EXPECTED_PAGE_SIZE) != 0) {
-    free(*p);
-    return -1;
+  void *p;
+  if (posix_memalign(&p, page, EXPECTED_PAGE_SIZE) != 0)
+    return NULL;
+  if (mlock(p, EXPECTED_PAGE_SIZE) != 0) {
+    free(p);
+    return NULL;
   }
 
-  return 0;
+  return p;
 }
 
 // The following logic prevents other processes attaching to us with
@@ -216,8 +215,8 @@ void *passwand_secure_malloc(size_t size) {
 
   // Did not find anything useful in the freelist. Acquire some more secure
   // memory.
-  void *q;
-  if (morecore(&q) != 0) {
+  void *const q = morecore();
+  if (q == NULL) {
     unlock();
     return NULL;
   }
