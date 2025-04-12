@@ -25,7 +25,7 @@ TEST("decode: basic functionality") {
   ASSERT_EQ(err, PW_OK);
   ASSERT_NOT_NULL(r);
   ASSERT_EQ(r_len, strlen("hello world"));
-  ASSERT_EQ(strncmp((const char *)r, "hello world", r_len), 0);
+  ASSERT_EQ(memcmp(r, "hello world", r_len), 0);
   free(r);
 }
 
@@ -66,7 +66,7 @@ TEST("decode: decode(encode(x)) == x") {
 
   // we should have got back what we put in
   ASSERT_EQ(output_len, strlen(input));
-  ASSERT_EQ(strncmp((const char *)output, input, output_len), 0);
+  ASSERT_EQ(memcmp(output, input, output_len), 0);
 
   free(output);
 }
