@@ -64,16 +64,17 @@ void help(void) {
   // run man to display the help text
   pid_t man = 0;
   {
-    const char *argv[] = {
-        "man",
-#ifdef __linux__
-        "--local-file",
+    char argv0[] = "man";
+    char local[] __attribute__((unused)) = "--local-file";
+    char prompt[] __attribute__((unused)) =
         "--prompt= Manual page passwand(1) ?ltline %lt?L/%L.:byte %bB?s/%s..? "
-        "(END):?pB %pB\\%.. (press h for help or q to quit)",
+        "(END):?pB %pB\\%.. (press h for help or q to quit)";
+    char *const argv[] = {argv0,
+#ifdef __linux__
+                          local, prompt,
 #endif
-        path, NULL};
-    char *const *args = (char *const *)argv;
-    if ((rc = posix_spawnp(&man, argv[0], NULL, NULL, args, get_environ())))
+                          path, NULL};
+    if ((rc = posix_spawnp(&man, argv0, NULL, NULL, argv, get_environ())))
       goto done;
   }
 
