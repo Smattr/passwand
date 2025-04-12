@@ -2,23 +2,23 @@
 #include "test.h"
 #include "util.h"
 #include <passwand/passwand.h>
+#include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 
 TEST("encode: encode(\"\")") {
-  const char *empty = "";
+  const uint8_t empty[] = {0};
   char *r;
-  int err = encode((const uint8_t *)empty, strlen(empty), &r);
+  int err = encode(empty, sizeof(empty) - 1, &r);
   ASSERT_EQ(err, PW_OK);
   ASSERT_NOT_NULL(r);
-  ASSERT_STREQ(empty, r);
+  ASSERT_STREQ("", r);
   free(r);
 }
 
 TEST("encode: basic functionality") {
-  const char *basic = "hello world";
+  const uint8_t basic[] = "hello world";
   char *r;
-  int err = encode((const uint8_t *)basic, strlen(basic), &r);
+  int err = encode(basic, sizeof(basic) - 1, &r);
   ASSERT_EQ(err, PW_OK);
   ASSERT_NOT_NULL(r);
   ASSERT_STREQ(r, "aGVsbG8gd29ybGQ=");
