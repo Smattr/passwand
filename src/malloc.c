@@ -106,8 +106,8 @@ static void *morecore(void) {
     return NULL;
 
   // allocate a new mlocked page
-  void *p;
-  if (posix_memalign(&p, page, EXPECTED_PAGE_SIZE) != 0)
+  void *const p = aligned_alloc(page, page);
+  if (p == NULL)
     return NULL;
   if (mlock(p, EXPECTED_PAGE_SIZE) != 0) {
     free(p);
