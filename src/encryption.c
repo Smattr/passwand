@@ -58,9 +58,10 @@ passwand_error_t aes_encrypt_deinit(EVP_CIPHER_CTX *ctx) {
 
   // this finalisation should return no further data because we have disabled
   // padding
-  unsigned char temp[AES_BLOCK_SIZE];
   int excess;
-  if (EVP_EncryptFinal(ctx, temp, &excess) != 1 || excess != 0)
+  if (EVP_EncryptFinal(ctx, (unsigned char[AES_BLOCK_SIZE]){0}, &excess) != 1)
+    return PW_CRYPTO;
+  if (excess != 0)
     return PW_CRYPTO;
 
   return PW_OK;
