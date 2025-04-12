@@ -10,16 +10,14 @@ TEST("erase: erase(NULL)") {
 }
 
 TEST("erase: basic functionality") {
-  char basic[20];
-  strcpy(basic, "hello world");
+  char basic[20] = "hello world";
   int r = passwand_erase((uint8_t *)basic, strlen(basic));
   ASSERT_EQ(r, 0);
   ASSERT_STRNE(basic, "hello world");
 }
 
 TEST("erase: erase(\"\")") {
-  char empty[1];
-  strcpy(empty, "");
+  char empty[] = "";
   int r = passwand_erase((uint8_t *)empty, strlen(empty));
   ASSERT_EQ(r, 0);
 }

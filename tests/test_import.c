@@ -8,8 +8,7 @@
 TEST("import: import(\"[]\")") {
 
   // create a temporary file
-  char tmp[sizeof("/tmp/tmp.XXXXXX")];
-  strcpy(tmp, "/tmp/tmp.XXXXXX");
+  char tmp[] = "/tmp/tmp.XXXXXX";
   int fd = mkstemp(tmp);
   ASSERT_NE(fd, -1);
   ssize_t written = write(fd, "[]", strlen("[]"));
@@ -38,8 +37,7 @@ TEST("import: with a missing field") {
       "\"hmac_salt\":\"aGVsbG8gd29ybGQ=\", \"salt\":\"aGVsbG8gd29ybGQ=\"}]";
 
   // create a temporary file
-  char tmp[sizeof("/tmp/tmp.XXXXXX")];
-  strcpy(tmp, "/tmp/tmp.XXXXXX");
+  char tmp[] = "/tmp/tmp.XXXXXX";
   int fd = mkstemp(tmp);
   ASSERT_NE(fd, -1);
   ssize_t written = write(fd, data, strlen(data));
@@ -63,8 +61,7 @@ TEST("import: basic functionality") {
       "\"iv\":\"aGVsbG8gd29ybGQ=\"}]";
 
   // create a temporary file
-  char tmp[sizeof("/tmp/tmp.XXXXXX")];
-  strcpy(tmp, "/tmp/tmp.XXXXXX");
+  char tmp[] = "/tmp/tmp.XXXXXX";
   int fd = mkstemp(tmp);
   ASSERT_NE(fd, -1);
   ssize_t written = write(fd, data, strlen(data));
@@ -131,8 +128,7 @@ TEST("import: with an extra field") {
       "\"iv\":\"aGVsbG8gd29ybGQ=\",\"extra\":\"blah blah\"}]";
 
   // create a temporary file
-  char tmp[sizeof("/tmp/tmp.XXXXXX")];
-  strcpy(tmp, "/tmp/tmp.XXXXXX");
+  char tmp[] = "/tmp/tmp.XXXXXX";
   int fd = mkstemp(tmp);
   ASSERT_NE(fd, -1);
   ssize_t written = write(fd, data, strlen(data));
