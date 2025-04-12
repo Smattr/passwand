@@ -108,8 +108,7 @@ passwand_error_t unpack_data(const ppt_t *pp, const iv_t iv, pt_t *p) {
   ppt_t d = *pp;
 
   // check we have the correct header
-  if (d.length < strlen(HEADER) ||
-      strncmp((const char *)d.data, HEADER, strlen(HEADER)) != 0)
+  if (d.length < strlen(HEADER) || memcmp(d.data, HEADER, strlen(HEADER)) != 0)
     return PW_HEADER_MISMATCH;
   d.data += strlen(HEADER);
   d.length -= strlen(HEADER);
