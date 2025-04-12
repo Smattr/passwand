@@ -69,7 +69,7 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
 
   ent_len = json_object_array_length(j);
   ent = calloc(ent_len, sizeof(ent[0]));
-  if (ent == NULL) {
+  if (ent == NULL && ent_len > 0) {
     ent_len = 0;
     rc = PW_NO_MEM;
     goto done;
