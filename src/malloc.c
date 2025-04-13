@@ -34,6 +34,25 @@
 #include <sys/prctl.h>
 #endif
 
+#ifdef __has_feature
+#if __has_feature(address_sanitizer)
+#include <sanitizer/asan_interface.h>
+#define POISON(addr, size) ASAN_POISON_MEMORY_REGION((addr), (size))
+#define UNPOISON(addr, size) ASAN_UNPOISON_MEMORY_REGION((addr), (size))
+#endif
+#endif
+
+#ifndef POISON
+#define POISON(addr, size)                                                     \
+  do {                                                                         \
+  } while (0)
+#endif
+#ifndef UNPOISON
+#define UNPOISON(addr, size)                                                   \
+  do {                                                                         \
+  } while (0)
+#endif
+
 // basic no-init-required spinlock implementation
 static atomic_long l;
 static void lock(void) {
@@ -113,6 +132,9 @@ static void *morecore(void) {
     free(p);
     return NULL;
   }
+
+  // poison the new pool, marking it initially unusable
+  POISON(p, EXPECTED_PAGE_SIZE);
 
   return p;
 }
@@ -197,6 +219,10 @@ void *passwand_secure_malloc(size_t size) {
         void *const p = (char *)n->base + n->last_index * sizeof(long long);
         n->last_index += size / sizeof(long long);
         unlock();
+
+        // mark the memory we are handing out usable
+        UNPOISON(p, size);
+
         return p;
       }
 
@@ -239,6 +265,10 @@ void *passwand_secure_malloc(size_t size) {
   void *const p = (char *)c->base + EXPECTED_PAGE_SIZE - size;
 
   unlock();
+
+  // mark the memory we are handing out usable
+  UNPOISON(p, size);
+
   return p;
 }
 
@@ -290,6 +320,7 @@ void passwand_secure_free(void *p, size_t size) {
         write_bitmap(c, index + offset, false);
       }
       passwand_erase(p, size);
+      POISON(p, size);
       unlock();
       return;
     }
