@@ -34,6 +34,25 @@
 #include <sys/prctl.h>
 #endif
 
+#ifdef __has_feature
+#if __has_feature(address_sanitizer)
+#include <sanitizer/asan_interface.h>
+#define POISON(addr, size) ASAN_POISON_MEMORY_REGION((addr), (size))
+#define UNPOISON(addr, size) ASAN_UNPOISON_MEMORY_REGION((addr), (size))
+#endif
+#endif
+
+#ifndef POISON
+#define POISON(addr, size)                                                     \
+  do {                                                                         \
+  } while (0)
+#endif
+#ifndef UNPOISON
+#define UNPOISON(addr, size)                                                   \
+  do {                                                                         \
+  } while (0)
+#endif
+
 // basic no-init-required spinlock implementation
 static atomic_long l;
 static void lock(void) {
@@ -114,6 +133,9 @@ static void *morecore(void) {
     return NULL;
   }
 
+  // poison the new pool, marking it initially unusable
+  POISON(p, EXPECTED_PAGE_SIZE);
+
   return p;
 }
 
@@ -148,11 +170,11 @@ void *passwand_secure_malloc(size_t size) {
   if (SIZE_MAX - size < sizeof(long long))
     return NULL;
 
-  size = round_size(size);
+  const size_t rounded = round_size(size);
 
   // Do not allow allocations greater than a page. This avoids having to cope
   // with allocations that would span multiple chunks.
-  if (size > EXPECTED_PAGE_SIZE)
+  if (rounded > EXPECTED_PAGE_SIZE)
     return NULL;
 
   lock();
@@ -181,22 +203,27 @@ void *passwand_secure_malloc(size_t size) {
              read_bitmap(n, n->last_index))
         n->last_index++;
 
-      // scan for `size` unset bits
+      // scan for `rounded` unset bits
       unsigned offset;
-      for (offset = 0; offset * sizeof(long long) < size &&
+      for (offset = 0; offset * sizeof(long long) < rounded &&
                        n->last_index + offset < sizeof(n->free) * 8;
            offset++) {
         if (read_bitmap(n, n->last_index + offset))
           break;
       }
 
-      if (offset * sizeof(long long) == size) {
+      if (offset * sizeof(long long) == rounded) {
         // we found enough contiguous free bits!
-        for (unsigned i = 0; i * sizeof(long long) < size; i++)
+        for (unsigned i = 0; i * sizeof(long long) < rounded; i++)
           write_bitmap(n, n->last_index + i, true);
         void *const p = (char *)n->base + n->last_index * sizeof(long long);
-        n->last_index += size / sizeof(long long);
+        n->last_index += rounded / sizeof(long long);
         unlock();
+
+        // mark the memory we are handing out (only the prefix `size` not the
+        // full `rounded` allocation) usable
+        UNPOISON(p, size);
+
         return p;
       }
 
@@ -207,7 +234,7 @@ void *passwand_secure_malloc(size_t size) {
     // reset the index for any future scans
     n->last_index = 0;
 
-    if (first_index * sizeof(long long) >= size)
+    if (first_index * sizeof(long long) >= rounded)
       // there are entries at the front of the bitmap we have not scanned that
       // cover enough memory to possibly fill this request
       goto retry;
@@ -233,12 +260,17 @@ void *passwand_secure_malloc(size_t size) {
   c->base = q;
   c->next = freelist;
   freelist = c;
-  for (unsigned index = (EXPECTED_PAGE_SIZE - size) / sizeof(long long);
+  for (unsigned index = (EXPECTED_PAGE_SIZE - rounded) / sizeof(long long);
        index < EXPECTED_PAGE_SIZE / sizeof(long long); index++)
     write_bitmap(c, index, true);
-  void *const p = (char *)c->base + EXPECTED_PAGE_SIZE - size;
+  void *const p = (char *)c->base + EXPECTED_PAGE_SIZE - rounded;
 
   unlock();
+
+  // mark the memory we are handing out (only the prefix `size` not the full
+  // `rounded` allocation) usable
+  UNPOISON(p, size);
+
   return p;
 }
 
@@ -253,10 +285,10 @@ void passwand_secure_free(void *p, size_t size) {
   if (SIZE_MAX - size < sizeof(long long))
     return;
 
-  size = round_size(size);
+  const size_t rounded = round_size(size);
 
   const uintptr_t p_start = (uintptr_t)p;
-  const uintptr_t p_end = p_start + size;
+  const uintptr_t p_end = p_start + rounded;
 
   lock();
 
@@ -279,7 +311,7 @@ void passwand_secure_free(void *p, size_t size) {
     if (p_start >= base_start && p_end <= base_end) {
       // it came from this chunk
       unsigned offset = (p_start - base_start) / sizeof(long long);
-      for (unsigned index = 0; index * sizeof(long long) < size; index++) {
+      for (unsigned index = 0; index * sizeof(long long) < rounded; index++) {
         assert(read_bitmap(c, index + offset));
         if (!read_bitmap(c, index + offset)) {
           // This memory was not in use. Double free?
@@ -290,6 +322,7 @@ void passwand_secure_free(void *p, size_t size) {
         write_bitmap(c, index + offset, false);
       }
       passwand_erase(p, size);
+      POISON(p, rounded);
       unlock();
       return;
     }

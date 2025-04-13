@@ -4,6 +4,25 @@
 #include <stdint.h>
 #include <string.h>
 
+#ifdef __has_feature
+#if __has_feature(address_sanitizer)
+#include <sanitizer/asan_interface.h>
+#define POISON(addr, size) ASAN_POISON_MEMORY_REGION((addr), (size))
+#define UNPOISON(addr, size) ASAN_UNPOISON_MEMORY_REGION((addr), (size))
+#endif
+#endif
+
+#ifndef POISON
+#define POISON(addr, size)                                                     \
+  do {                                                                         \
+  } while (0)
+#endif
+#ifndef UNPOISON
+#define UNPOISON(addr, size)                                                   \
+  do {                                                                         \
+  } while (0)
+#endif
+
 TEST("malloc: basic functionality") {
 
   const char buffer[] = "hello world";
@@ -22,8 +41,14 @@ TEST("malloc: basic functionality") {
 
   passwand_secure_free(q, 100);
 
+  // cheat slightly and allow access to this memory that we know the allocator
+  // has still retained internally
+  UNPOISON(q, 100);
+
   // the memory should have been wiped
   ASSERT_NE(strncmp(q, buffer, sizeof(buffer)), 0);
+
+  POISON(q, 100);
 
   // the first block of memory should not have been touched
   ASSERT_EQ(strncmp(p, buffer, 10), 0);
