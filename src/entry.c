@@ -13,8 +13,15 @@ static m_t *make_m_t(const char *mainpass) {
   m_t *const m = passwand_secure_malloc(sizeof(*m));
   if (m == NULL)
     return NULL;
-  m->data = (uint8_t *)mainpass;
-  m->length = strlen(mainpass);
+  const size_t length = strlen(mainpass);
+  m->data = passwand_secure_malloc(length);
+  if (m->data == NULL && length > 0) {
+    passwand_secure_free(m, sizeof(*m));
+    return NULL;
+  }
+  if (length > 0)
+    memcpy(m->data, mainpass, length);
+  m->length = length;
   return m;
 }
 
@@ -173,8 +180,10 @@ done:
     EVP_CIPHER_CTX_free(ctx);
   if (k != NULL)
     passwand_secure_free(k, sizeof(*k));
-  if (m != NULL)
+  if (m != NULL) {
+    passwand_secure_free(m->data, m->length);
     passwand_secure_free(m, sizeof(*m));
+  }
 
   return rc;
 }
@@ -232,6 +241,7 @@ static passwand_error_t get_mac(const char *mainpass, const passwand_entry_t *e,
   }
   passwand_error_t err = hmac(m, &data, &salt, mac, e->work_factor);
   free(data.data);
+  passwand_secure_free(m->data, m->length);
   passwand_secure_free(m, sizeof(*m));
 
   return err;
@@ -458,8 +468,10 @@ done:
     EVP_CIPHER_CTX_free(ctx);
   if (k != NULL)
     passwand_secure_free(k, sizeof(*k));
-  if (m != NULL)
+  if (m != NULL) {
+    passwand_secure_free(m->data, m->length);
     passwand_secure_free(m, sizeof(*m));
+  }
 
   return rc;
 }
