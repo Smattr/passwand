@@ -62,5 +62,6 @@ add_custom_target(check
   COMMAND env
     PATH=${CMAKE_BINARY_DIR}/cli:${CMAKE_CURRENT_BINARY_DIR}:$ENV{PATH}
     ${Python3_EXECUTABLE} -m pytest
+    --override-ini=cache_dir=${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/integration-tests.py --verbose
 )
