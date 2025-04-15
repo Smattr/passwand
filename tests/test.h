@@ -82,6 +82,7 @@ void run_cleanups(void);
   } while (0)
 
 #define ASSERT_EQ(a, b) ASSERT_(a, a, ==, b, b)
+#define ASSERT_GE(a, b) ASSERT_(a, a, >=, b, b)
 #define ASSERT_GT(a, b) ASSERT_(a, a, >, b, b)
 #define ASSERT_NE(a, b) ASSERT_(a, a, !=, b, b)
 
@@ -144,3 +145,6 @@ void run_cleanups(void);
     run_cleanups();                                                            \
     abort();                                                                   \
   } while (0)
+
+/// create a dynamic string which will be freed on exit
+__attribute__((format(printf, 1, 2))) char *aprintf(const char *fmt, ...);
