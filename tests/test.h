@@ -148,3 +148,6 @@ void run_cleanups(void);
 
 /// create a dynamic string which will be freed on exit
 __attribute__((format(printf, 1, 2))) char *aprintf(const char *fmt, ...);
+
+/// create a unique path, which will be attempted to be removed on exit
+char *mkpath(void);

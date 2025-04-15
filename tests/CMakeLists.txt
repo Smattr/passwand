@@ -10,6 +10,7 @@ add_executable(passwand-tests
   aprintf.c
   cleanup.c
   main.c
+  mkpath.c
   test_decode.c
   test_decrypt.c
   test_encode.c
