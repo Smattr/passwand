@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 static void cleanup_entry(passwand_entry_t *e) {
   free(e->space);
@@ -100,12 +99,8 @@ TEST("integration: basic lifecycle") {
     ASSERT_EQ(err, PW_OK);
   }
 
-  char tmp[] = "/tmp/tmp.XXXXXX";
+  const char *const tmp = mkpath();
   {
-    int fd = mkstemp(tmp);
-    ASSERT_NE(fd, -1);
-    close(fd);
-
     int err = passwand_export(tmp, entries, entry_len);
     ASSERT_EQ(err, PW_OK);
   }
@@ -131,8 +126,6 @@ TEST("integration: basic lifecycle") {
     ASSERT_EQ(err, PW_OK);
     ASSERT(!st.failed);
   }
-
-  unlink(tmp);
 
   for (size_t i = 0; i < entry_len; i++)
     cleanup_entry(&entries[i]);
