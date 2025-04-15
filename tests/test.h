@@ -19,6 +19,19 @@ extern test_case_t *test_cases;
 
 extern bool has_assertion_;
 
+/// an action to be run on (success or fail) exit in a test case
+typedef struct cleanup_ {
+  void (*function)(void *arg);
+  void *arg;
+  struct cleanup_ *next;
+} cleanup_t;
+
+/// registered cleanup actions of the current test case
+extern cleanup_t *cleanups;
+
+/// run and deregister all cleanup actions
+void run_cleanups(void);
+
 #define TEST(desc)                                                             \
   static void JOIN(test_, __LINE__)(void);                                     \
   static void __attribute__((constructor)) JOIN(add_test_, __LINE__)(void) {   \
@@ -63,6 +76,7 @@ extern bool has_assertion_;
       fprintf(stderr, PRINT_FMT(_b), _b);                                      \
       fprintf(stderr, "\n");                                                   \
       fflush(stderr);                                                          \
+      run_cleanups();                                                          \
       abort();                                                                 \
     }                                                                          \
   } while (0)
@@ -77,6 +91,7 @@ extern bool has_assertion_;
     if (!(expr)) {                                                             \
       fprintf(stderr, "failed\n    %s:%d: assertion “%s” failed\n", __FILE__,  \
               __LINE__, #expr);                                                \
+      run_cleanups();                                                          \
       abort();                                                                 \
     }                                                                          \
   } while (0)
@@ -99,6 +114,7 @@ extern bool has_assertion_;
       fprintf(stderr, "      %s = \"%s\"\n", #a, _a);                          \
       fprintf(stderr, "      %s = \"%s\"\n", #b, _b);                          \
       fflush(stderr);                                                          \
+      run_cleanups();                                                          \
       abort();                                                                 \
     }                                                                          \
   } while (0)
@@ -115,6 +131,7 @@ extern bool has_assertion_;
       fprintf(stderr, "      %s = \"%s\"\n", #a, _a);                          \
       fprintf(stderr, "      %s = \"%s\"\n", #b, _b);                          \
       fflush(stderr);                                                          \
+      run_cleanups();                                                          \
       abort();                                                                 \
     }                                                                          \
   } while (0)
@@ -124,5 +141,6 @@ extern bool has_assertion_;
     fprintf(stderr, "failed\n    ");                                           \
     fprintf(stderr, __VA_ARGS__);                                              \
     fflush(stderr);                                                            \
+    run_cleanups();                                                            \
     abort();                                                                   \
   } while (0)

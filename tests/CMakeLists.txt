@@ -7,6 +7,7 @@ add_executable(passwand-tests
   ../src/random.c
     
   # actual test sources
+  cleanup.c
   main.c
   test_decode.c
   test_decrypt.c
