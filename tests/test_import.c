@@ -3,24 +3,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+
+/// create a temporary file with the given content
+static char *make_file(const char *content) {
+  char *const tmp = mkpath();
+  FILE *const f = fopen(tmp, "w");
+  const int rc = fputs(content, f);
+  (void)fclose(f);
+  ASSERT_GE(rc, 0);
+  return tmp;
+}
 
 TEST("import: import(\"[]\")") {
 
-  // create a temporary file
-  char tmp[] = "/tmp/tmp.XXXXXX";
-  int fd = mkstemp(tmp);
-  ASSERT_NE(fd, -1);
-  ssize_t written = write(fd, "[]", strlen("[]"));
-  if (written != strlen("[]"))
-    unlink(tmp);
-  ASSERT_EQ((size_t)written, strlen("[]"));
+  // create a temporary database
+  const char *const tmp = make_file("[]");
 
   // now read in the entries
   passwand_entry_t *entries = NULL;
   size_t entry_len = 0;
   int r = passwand_import(tmp, &entries, &entry_len);
-  unlink(tmp);
   ASSERT_EQ(r, 0);
 
   // check we got nothing
@@ -37,19 +39,12 @@ TEST("import: with a missing field") {
       "\"hmac_salt\":\"aGVsbG8gd29ybGQ=\", \"salt\":\"aGVsbG8gd29ybGQ=\"}]";
 
   // create a temporary file
-  char tmp[] = "/tmp/tmp.XXXXXX";
-  int fd = mkstemp(tmp);
-  ASSERT_NE(fd, -1);
-  ssize_t written = write(fd, data, strlen(data));
-  if (written != (ssize_t)strlen(data))
-    unlink(tmp);
-  ASSERT_EQ((size_t)written, strlen(data));
+  const char *const tmp = make_file(data);
 
   // now read in the entries
   passwand_entry_t *entries;
   size_t entry_len;
   int r = passwand_import(tmp, &entries, &entry_len);
-  unlink(tmp);
   ASSERT_NE(r, 0);
 }
 
@@ -60,20 +55,13 @@ TEST("import: basic functionality") {
       "\"hmac_salt\":\"aGVsbG8gd29ybGQ=\", \"salt\":\"aGVsbG8gd29ybGQ=\", "
       "\"iv\":\"aGVsbG8gd29ybGQ=\"}]";
 
-  // create a temporary file
-  char tmp[] = "/tmp/tmp.XXXXXX";
-  int fd = mkstemp(tmp);
-  ASSERT_NE(fd, -1);
-  ssize_t written = write(fd, data, strlen(data));
-  if (written != (ssize_t)strlen(data))
-    unlink(tmp);
-  ASSERT_EQ((size_t)written, strlen(data));
+  // create a temporary database
+  const char *const tmp = make_file(data);
 
   // now read in the entries
   passwand_entry_t *entries = NULL;
   size_t entry_len = 0;
   int r = passwand_import(tmp, &entries, &entry_len);
-  unlink(tmp);
   ASSERT_EQ(r, 0);
 
   // check we got an entry
@@ -114,20 +102,13 @@ TEST("import: with an extra field") {
       "\"hmac_salt\":\"aGVsbG8gd29ybGQ=\", \"salt\":\"aGVsbG8gd29ybGQ=\", "
       "\"iv\":\"aGVsbG8gd29ybGQ=\",\"extra\":\"blah blah\"}]";
 
-  // create a temporary file
-  char tmp[] = "/tmp/tmp.XXXXXX";
-  int fd = mkstemp(tmp);
-  ASSERT_NE(fd, -1);
-  ssize_t written = write(fd, data, strlen(data));
-  if (written != (ssize_t)strlen(data))
-    unlink(tmp);
-  ASSERT_EQ((size_t)written, strlen(data));
+  // create a temporary database
+  const char *const tmp = make_file(data);
 
   // now read in the entries
   passwand_entry_t *entries = NULL;
   size_t entry_len = 0;
   int r = passwand_import(tmp, &entries, &entry_len);
-  unlink(tmp);
   ASSERT_EQ(r, 0);
 
   // check we got an entry
@@ -166,36 +147,36 @@ TEST("import: import(export(x)) == x") {
   // first create a couple of entries that we are going to export
   passwand_entry_t entries[] = {
       {
-          .space = (uint8_t *)"hello world",
+          .space = (uint8_t[]){"hello world"},
           .space_len = strlen("hello world"),
-          .key = (uint8_t *)"hello world",
+          .key = (uint8_t[]){"hello world"},
           .key_len = strlen("hello world"),
-          .value = (uint8_t *)"hello world",
+          .value = (uint8_t[]){"hello world"},
           .value_len = strlen("hello world"),
-          .hmac = (uint8_t *)"hello world",
+          .hmac = (uint8_t[]){"hello world"},
           .hmac_len = strlen("hello world"),
-          .hmac_salt = (uint8_t *)"hello world",
+          .hmac_salt = (uint8_t[]){"hello world"},
           .hmac_salt_len = strlen("hello world"),
-          .salt = (uint8_t *)"hello world",
+          .salt = (uint8_t[]){"hello world"},
           .salt_len = strlen("hello world"),
-          .iv = (uint8_t *)"hello world",
+          .iv = (uint8_t[]){"hello world"},
           .iv_len = strlen("hello world"),
           .work_factor = 14,
       },
       {
-          .space = (uint8_t *)"foo bar",
+          .space = (uint8_t[]){"foo bar"},
           .space_len = strlen("foo bar"),
-          .key = (uint8_t *)"foo bar",
+          .key = (uint8_t[]){"foo bar"},
           .key_len = strlen("foo bar"),
-          .value = (uint8_t *)"foo bar",
+          .value = (uint8_t[]){"foo bar"},
           .value_len = strlen("foo bar"),
-          .hmac = (uint8_t *)"foo bar",
+          .hmac = (uint8_t[]){"foo bar"},
           .hmac_len = strlen("foo bar"),
-          .hmac_salt = (uint8_t *)"foo bar",
+          .hmac_salt = (uint8_t[]){"foo bar"},
           .hmac_salt_len = strlen("foo bar"),
-          .salt = (uint8_t *)"foo bar",
+          .salt = (uint8_t[]){"foo bar"},
           .salt_len = strlen("foo bar"),
-          .iv = (uint8_t *)"foo bar",
+          .iv = (uint8_t[]){"foo bar"},
           .iv_len = strlen("foo bar"),
           .work_factor = 15,
       },
@@ -203,22 +184,16 @@ TEST("import: import(export(x)) == x") {
   size_t entry_len = sizeof(entries) / sizeof(entries[0]);
 
   // create a temporary file to export to
-  char tmp[] = "/tmp/tmp.XXXXXX";
-  int fd = mkstemp(tmp);
-  ASSERT_NE(fd, -1);
-  close(fd);
+  const char *const tmp = mkpath();
 
   // perform the export
   int err = passwand_export(tmp, entries, entry_len);
-  if (err != PW_OK)
-    unlink(tmp);
   ASSERT_EQ(err, PW_OK);
 
   // now let us import them back in
   passwand_entry_t *new_entries;
   size_t new_entry_len;
   err = passwand_import(tmp, &new_entries, &new_entry_len);
-  unlink(tmp);
   ASSERT_EQ(err, PW_OK);
 
   // now check we got back what we exported
