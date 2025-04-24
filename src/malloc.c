@@ -58,9 +58,11 @@ static atomic_flag l = ATOMIC_FLAG_INIT;
 static void lock(void) {
   while (atomic_flag_test_and_set(&l))
     ;
+  atomic_thread_fence(memory_order_acq_rel);
 }
 static void unlock(void) {
   assert(atomic_flag_test_and_set(&l));
+  atomic_thread_fence(memory_order_acq_rel);
   atomic_flag_clear(&l);
 }
 
