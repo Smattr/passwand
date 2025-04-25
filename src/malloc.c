@@ -54,18 +54,16 @@
 #endif
 
 // basic no-init-required spinlock implementation
-static atomic_long l;
+static atomic_flag l = ATOMIC_FLAG_INIT;
 static void lock(void) {
-  long expected;
-  do {
-    expected = 0;
-  } while (!atomic_compare_exchange_weak(&l, &expected, 1));
+  while (atomic_flag_test_and_set_explicit(&l, memory_order_acq_rel))
+    ;
+  atomic_thread_fence(memory_order_acq_rel);
 }
 static void unlock(void) {
-  long expected;
-  do {
-    expected = 1;
-  } while (!atomic_compare_exchange_weak(&l, &expected, 0));
+  assert(atomic_flag_test_and_set(&l));
+  atomic_thread_fence(memory_order_acq_rel);
+  atomic_flag_clear_explicit(&l, memory_order_release);
 }
 
 // Expected hardware page size. This is checked at runtime.
