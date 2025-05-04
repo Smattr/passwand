@@ -306,7 +306,7 @@ int main(int argc, char **argv) {
   if (parse(argc - 1, argv + 1) != 0)
     goto done;
 
-    // validate flags
+  // validate flags
 #define HANDLE(field)                                                          \
   do {                                                                         \
     if (command->need_##field == REQUIRED && options.field == NULL) {          \
