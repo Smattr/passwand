@@ -12,7 +12,7 @@ task:
 
     - name: Linux, GCC, no GTK
       container:
-        image: gcc:14.2
+        image: gcc:15.1
       environment:
         DEBIAN_FRONTEND: noninteractive
         CFLAGS: -Werror -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=undefined -fuse-ld=gold
@@ -25,7 +25,7 @@ task:
 
     - name: Linux, GCC, GTK 2
       container:
-        image: gcc:14.2
+        image: gcc:15.1
       environment:
         DEBIAN_FRONTEND: noninteractive
         CFLAGS: -Werror -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=undefined -fuse-ld=gold -Wno-deprecated-declarations
@@ -38,7 +38,7 @@ task:
 
     - name: Linux, GCC, GTK 3
       container:
-        image: gcc:14.2
+        image: gcc:15.1
       environment:
         DEBIAN_FRONTEND: noninteractive
         CFLAGS: -Werror -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=undefined -fuse-ld=gold -Wno-deprecated-declarations
@@ -51,15 +51,15 @@ task:
 
     - name: macOS
       macos_instance:
-        image: ghcr.io/cirruslabs/macos-sonoma-base:latest
+        image: ghcr.io/cirruslabs/macos-runner:sequoia
       environment:
         CFLAGS: -I/opt/homebrew/opt/openssl@3/include -I/opt/homebrew/include
         LDFLAGS: -L/opt/homebrew/opt/openssl@3/lib -L/opt/homebrew/lib
         PKG_CONFIG_PATH: /opt/homebrew/opt/openssl@3/lib/pkgconfig
-      install_script: brew update && brew install json-c libscrypt openssl python3 && python3 -m pip install --break-system-packages pexpect pytest
+      install_script: brew update && brew install json-c libscrypt openssl python3 && env PIP_BREAK_SYSTEM_PACKAGES=1 python3 -m pip install pexpect pytest
       test_script: uname -sr && python3 --version && mkdir build && cd build && cmake .. && cmake --build . && cmake --build . -- check && sudo cmake --build . -- install
 
     - name: clang-format
       container:
-        image: silkeh/clang:18
+        image: silkeh/clang:19
       test_script: uname -rms && apt-get update -y && apt-get install --no-install-recommends -y git && git ls-files -z '**/*.c' '**/*.h' | xargs -0 -- clang-format --dry-run --style=file --Werror
