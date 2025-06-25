@@ -294,6 +294,8 @@ char *get_text(const char *title, const char *message, const char *initial,
   return result;
 }
 
+const char *describe_input(void) { return "osascript"; }
+
 int send_text(const char *text) {
 
   assert(text != NULL);
@@ -327,6 +329,8 @@ int send_text(const char *text) {
 
   return rc;
 }
+
+const char *describe_output(void) { return "osascript"; }
 
 void flush_state() { /* no-op for osascript */ }
 

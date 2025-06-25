@@ -148,6 +148,15 @@ static void process_chain_link(void *state __attribute__((unused)),
 
 int main(int argc, char **argv) {
 
+  if (argc < 2 || streq(argv[1], "--help") || streq(argv[1], "-?")) {
+    fprintf(stderr,
+            "Passwand GUI, using %s for input and %s for output\n"
+            "see `pw-cli --help` for more information\n",
+            describe_input(), describe_output());
+    cleanup();
+    return EXIT_SUCCESS;
+  }
+
   // Initialise the back end. We assume this initialisation is unaffected by any
   // of the command line options and thus can run before they are parsed.
   if (gui_init() != 0)

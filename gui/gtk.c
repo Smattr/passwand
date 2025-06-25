@@ -97,6 +97,16 @@ char *get_text(const char *title, const char *message, const char *initial,
   return r;
 }
 
+const char *describe_input(void) {
+#if GTK_MAJOR_VERSION == 2
+  return "GTK 2";
+#elif GTK_MAJOR_VERSION == 3
+  return "GTK 3";
+#else
+#error "unsupported configuration"
+#endif
+}
+
 void flush_state(void) {
 
   int err __attribute__((unused)) = pthread_mutex_lock(&gtk_lock);

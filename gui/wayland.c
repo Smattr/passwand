@@ -355,6 +355,8 @@ int send_text(const char *text) {
   return 0;
 }
 
+const char *describe_output(void) { return "wayland"; }
+
 /// if running under `sudo`, drop privileges
 static int demote_me(void) {
 
