@@ -35,11 +35,15 @@ char *get_text(const char *title __attribute__((unused)),
   return r;
 }
 
+const char *describe_input(void) { return "stdin"; }
+
 int send_text(const char *text) {
   assert(text != NULL);
   printf("%s\n", text);
   return 0;
 }
+
+const char *describe_output(void) { return "stdout"; }
 
 void flush_state(void) {
   fflush(stdout);

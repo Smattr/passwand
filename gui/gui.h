@@ -79,12 +79,30 @@ int gui_init(void);
 char *get_text(const char *title, const char *message, const char *initial,
                bool hidden);
 
+/** get a string describing the mechanism used to back `get_text`
+ *
+ * This function may be called at any time, regardless of whether `gui_init` has
+ * been called.
+ *
+ * @return A human-readable description of the input transport
+ */
+const char *describe_input(void);
+
 /** Type text into the active window
  *
  * @param text String of characters to type
  * @return 0 on success
  */
 int send_text(const char *text);
+
+/** get a string describing the mechanism used to back `send_text`
+ *
+ * This function may be called at any time, regardless of whether `gui_init` has
+ * been called.
+ *
+ * @return A human-readable description of the output transport
+ */
+const char *describe_output(void);
 
 /** Flush current GUI state
  *

@@ -107,6 +107,8 @@ done:
   return rc;
 }
 
+const char *describe_output(void) { return "x11"; }
+
 // This back end is expected to be paired with gtk.c. The `gui_init` and
 // `gui_deinit` functions are implemented here rather than in gtk.c to have only
 // x11.c aware of gtk.c and not the other way around. This fits the N-to-1
