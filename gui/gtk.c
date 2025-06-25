@@ -1,6 +1,7 @@
 // implementation of part of the API described in gui.h using GTK 2/3
 
 #include "gtk.h"
+#include "../common/getenv.h"
 #include "gui.h"
 #include <assert.h>
 #include <gtk/gtk.h>
@@ -17,8 +18,14 @@ pthread_mutex_t gtk_lock = PTHREAD_MUTEX_INITIALIZER;
 static bool inited;
 
 void gui_gtk_init(void) {
-  if (!inited)
+  if (!inited) {
+    if (getenv_("DISPLAY") == NULL)
+      fprintf(stderr, "warning: $DISPLAY not set so GTK may fail\n");
+    if (getenv_("XAUTHORITY") == NULL)
+      fprintf(stderr, "warning: $XAUTHORITY not set so GTK may fail\n");
+
     gtk_init(NULL, NULL);
+  }
   inited = true;
 }
 
