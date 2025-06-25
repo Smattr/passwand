@@ -5,9 +5,9 @@
  * To configure your environment to use this back end without friction, you will
  * want to do something like:
  *   1. Install Passwand to a path, e.g. /foo/bar
- *   2. Add a rule to /etc/sudoers for passwordless `pw-gui`
- *        alice ALL=(root) NOPASSWD: /foo/bar/bin/pw-gui
- *   3. Remember (or script) to run as root, `sudo pw-gui …`
+ *   2. Remember (or script) to run as root:
+ *        pkexec /usr/bin/env DISPLAY=${DISPLAY} SUDO_GID=${GID} \
+ *          SUDO_UID=${UID} SUDO_USER=${USER} XAUTHORITY=${XAUTHORITY} pw-gui
  * The reason this is necessary is that Wayland makes it very hard to mimic a
  * keyboard. There are good reasons for this, but it results in poor user
  * experience. The documented techniques for securely creating a virtual
