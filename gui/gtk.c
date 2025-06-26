@@ -24,7 +24,10 @@ void gui_gtk_init(void) {
     if (getenv_("XAUTHORITY") == NULL)
       fprintf(stderr, "warning: $XAUTHORITY not set so GTK may fail\n");
 
-    gtk_init(NULL, NULL);
+    if (!gtk_init_check(NULL, NULL)) {
+      fprintf(stderr, "GTK failed to initialise\n");
+      exit(EXIT_FAILURE);
+    }
   }
   inited = true;
 }
