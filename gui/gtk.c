@@ -17,6 +17,16 @@ pthread_mutex_t gtk_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static bool inited;
 
+// The inner logic of `show_error`. This function assumes the caller has already
+// taken `gtk_lock`.
+static void show_error_core(const char *message) {
+  GtkWidget *dialog = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_ERROR,
+                                             GTK_BUTTONS_OK, "%s", message);
+  gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
+  gtk_widget_show_all(dialog);
+  gtk_dialog_run(GTK_DIALOG(dialog));
+}
+
 void gui_gtk_init(void) {
   if (!inited) {
     if (getenv_("DISPLAY") == NULL)
@@ -30,16 +40,6 @@ void gui_gtk_init(void) {
     }
   }
   inited = true;
-}
-
-// The inner logic of `show_error`. This function assumes the caller has already
-// taken `gtk_lock`.
-static void show_error_core(const char *message) {
-  GtkWidget *dialog = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_ERROR,
-                                             GTK_BUTTONS_OK, "%s", message);
-  gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
-  gtk_widget_show_all(dialog);
-  gtk_dialog_run(GTK_DIALOG(dialog));
 }
 
 char *get_text(const char *title, const char *message, const char *initial,
