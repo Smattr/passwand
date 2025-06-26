@@ -3,6 +3,8 @@
 #include <pthread.h>
 
 /** Initialise GTK-based back end
+ *
+ * It is assumed that the caller holds `gtk_lock`.
  */
 void gui_gtk_init(void);
 
