@@ -38,8 +38,25 @@ void gui_gtk_init(void) {
       fprintf(stderr, "GTK failed to initialise\n");
       exit(EXIT_FAILURE);
     }
+
+    inited = true;
+
+    // try to catch Wayland vs X11 mismatches
+    const char *const session = getenv_("XDG_SESSION_TYPE");
+    const char *const typer = describe_output();
+    if (session == NULL || strcmp(session, typer) != 0) {
+      char *msg = NULL;
+      if (asprintf(&msg,
+                   "session type (%s) does not match output back end (%s)",
+                   session == NULL ? "<null>" : session, typer) < 0) {
+        show_error_core("out of memory");
+      } else {
+        show_error_core(msg);
+        free(msg);
+      }
+      exit(EXIT_FAILURE);
+    }
   }
-  inited = true;
 }
 
 char *get_text(const char *title, const char *message, const char *initial,
