@@ -184,6 +184,9 @@ static void type(int uinput, char c) {
       emit(uinput, EV_KEY, keys[i].code, 1);
       emit(uinput, EV_SYN, SYN_REPORT, 0);
 
+      // ensure the key press is registered
+      usleep(100);
+
       // release the key
       emit(uinput, EV_KEY, keys[i].code, 0);
       emit(uinput, EV_SYN, SYN_REPORT, 0);
@@ -193,6 +196,9 @@ static void type(int uinput, char c) {
         emit(uinput, EV_KEY, KEY_LEFTSHIFT, 0);
         emit(uinput, EV_SYN, SYN_REPORT, 0);
       }
+
+      // ensure the key release is registered
+      usleep(100);
 
       return;
     }
