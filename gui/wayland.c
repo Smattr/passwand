@@ -380,7 +380,7 @@ static int demote_me(void) {
   // decode numeric ID
   const int uid = atoi(uid_s);
   if (uid == 0)
-    return 0;
+    return EINVAL;
 
   // get full user information
   errno = 0;
