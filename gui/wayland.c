@@ -6,8 +6,7 @@
  * want to do something like:
  *   1. Install Passwand to a path, e.g. /foo/bar
  *   2. Remember (or script) to run as root:
- *        pkexec /usr/bin/env DISPLAY=${DISPLAY} SUDO_GID=${GID} \
- *          SUDO_UID=${UID} SUDO_USER=${USER} XAUTHORITY=${XAUTHORITY} \
+ *        pkexec /usr/bin/env DISPLAY=${DISPLAY} XAUTHORITY=${XAUTHORITY} \
  *          XDG_SESSION_TYPE=${XDG_SESSION_TYPE} pw-gui
  * The reason this is necessary is that Wayland makes it very hard to mimic a
  * keyboard. There are good reasons for this, but it results in poor user
@@ -25,12 +24,14 @@
 #include <fcntl.h>
 #include <linux/uinput.h>
 #include <pthread.h>
+#include <pwd.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 static __attribute__((format(printf, 1, 2))) void error(const char *fmt, ...) {
@@ -364,48 +365,45 @@ int send_text(const char *text) {
 
 const char *describe_output(void) { return "wayland"; }
 
-/// if running under `sudo`, drop privileges
+/// if running under `sudo` or `pkexec`, drop privileges
 static int demote_me(void) {
 
   // are we root?
   if (getuid() != 0)
     return 0;
-  if (getgid() != 0)
-    return 0;
 
   // are we `sudo`ing?
   const char *uid_s = getenv_("SUDO_UID");
+  // are we `pkexec`-ing?
   if (uid_s == NULL)
-    return 0;
-  const char *gid_s = getenv_("SUDO_GID");
-  if (gid_s == NULL)
-    return 0;
+    uid_s = getenv_("PKEXEC_UID");
+  if (uid_s == NULL)
+    return EACCES;
 
-  // decode numeric IDs
+  // decode numeric ID
   const int uid = atoi(uid_s);
   if (uid == 0)
-    return 0;
-  const int gid = atoi(gid_s);
-  if (gid == 0)
-    return 0;
+    return EINVAL;
+
+  // get full user information
+  errno = 0;
+  const struct passwd *const pw = getpwuid(uid);
+  if (pw == NULL) {
+    if (errno == 0)
+      return ENOENT;
+    return errno;
+  }
 
   // become the original user
-  if (setgid(gid) < 0)
+  if (setgid(pw->pw_gid) < 0)
     return errno;
-  if (setuid(uid) < 0)
+  if (setuid(pw->pw_uid) < 0)
     return errno;
 
   // As a nicety, try to reset the some commonly used environment variables.
   // This avoids, e.g., confusing IBUS warnings.
-  const char *user = getenv_("SUDO_USER");
-  if (user != NULL) {
-    (void)setenv("USER", user, 1);
-    char *home = NULL;
-    if (asprintf(&home, "/home/%s", user) >= 0) {
-      (void)setenv("HOME", home, 1);
-      free(home);
-    }
-  }
+  (void)setenv("USER", pw->pw_name, 1);
+  (void)setenv("HOME", pw->pw_dir, 1);
 
   return 0;
 }
@@ -426,7 +424,7 @@ int gui_init(void) {
     goto done;
   }
 
-  // if we were started under `sudo` (in order to be able to open /dev/uinput)
+  // if we were started as root (in order to be able to open /dev/uinput)
   // de-escalate our privileges now
   if ((rc = demote_me())) {
     error("failed to drop privileges: %s", strerror(rc));
