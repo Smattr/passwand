@@ -6,9 +6,8 @@
  * want to do something like:
  *   1. Install Passwand to a path, e.g. /foo/bar
  *   2. Remember (or script) to run as root:
- *        pkexec /usr/bin/env DISPLAY=${DISPLAY} SUDO_GID=${GID} \
- *          SUDO_UID=${UID} SUDO_USER=${USER} XAUTHORITY=${XAUTHORITY} \
- *          XDG_SESSION_TYPE=${XDG_SESSION_TYPE} pw-gui
+ *        pkexec /usr/bin/env DISPLAY=${DISPLAY} SUDO_UID=${UID} \
+ *          XAUTHORITY=${XAUTHORITY} XDG_SESSION_TYPE=${XDG_SESSION_TYPE} pw-gui
  * The reason this is necessary is that Wayland makes it very hard to mimic a
  * keyboard. There are good reasons for this, but it results in poor user
  * experience. The documented techniques for securely creating a virtual
@@ -25,12 +24,14 @@
 #include <fcntl.h>
 #include <linux/uinput.h>
 #include <pthread.h>
+#include <pwd.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 static __attribute__((format(printf, 1, 2))) void error(const char *fmt, ...) {
@@ -370,42 +371,36 @@ static int demote_me(void) {
   // are we root?
   if (getuid() != 0)
     return 0;
-  if (getgid() != 0)
-    return 0;
 
   // are we `sudo`ing?
   const char *uid_s = getenv_("SUDO_UID");
   if (uid_s == NULL)
     return 0;
-  const char *gid_s = getenv_("SUDO_GID");
-  if (gid_s == NULL)
-    return 0;
 
-  // decode numeric IDs
+  // decode numeric ID
   const int uid = atoi(uid_s);
   if (uid == 0)
     return 0;
-  const int gid = atoi(gid_s);
-  if (gid == 0)
-    return 0;
+
+  // get full user information
+  errno = 0;
+  const struct passwd *const pw = getpwuid(uid);
+  if (pw == NULL) {
+    if (errno == 0)
+      return ENOENT;
+    return errno;
+  }
 
   // become the original user
-  if (setgid(gid) < 0)
+  if (setgid(pw->pw_gid) < 0)
     return errno;
-  if (setuid(uid) < 0)
+  if (setuid(pw->pw_uid) < 0)
     return errno;
 
   // As a nicety, try to reset the some commonly used environment variables.
   // This avoids, e.g., confusing IBUS warnings.
-  const char *user = getenv_("SUDO_USER");
-  if (user != NULL) {
-    (void)setenv("USER", user, 1);
-    char *home = NULL;
-    if (asprintf(&home, "/home/%s", user) >= 0) {
-      (void)setenv("HOME", home, 1);
-      free(home);
-    }
-  }
+  (void)setenv("USER", pw->pw_name, 1);
+  (void)setenv("HOME", pw->pw_dir, 1);
 
   return 0;
 }
