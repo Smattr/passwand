@@ -378,7 +378,7 @@ static int demote_me(void) {
   if (uid_s == NULL)
     uid_s = getenv_("PKEXEC_UID");
   if (uid_s == NULL)
-    return 0;
+    return EACCES;
 
   // decode numeric ID
   const int uid = atoi(uid_s);
