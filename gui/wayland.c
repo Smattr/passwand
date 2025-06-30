@@ -6,8 +6,8 @@
  * want to do something like:
  *   1. Install Passwand to a path, e.g. /foo/bar
  *   2. Remember (or script) to run as root:
- *        pkexec /usr/bin/env DISPLAY=${DISPLAY} SUDO_UID=${UID} \
- *          XAUTHORITY=${XAUTHORITY} XDG_SESSION_TYPE=${XDG_SESSION_TYPE} pw-gui
+ *        pkexec /usr/bin/env DISPLAY=${DISPLAY} XAUTHORITY=${XAUTHORITY} \
+ *          XDG_SESSION_TYPE=${XDG_SESSION_TYPE} pw-gui
  * The reason this is necessary is that Wayland makes it very hard to mimic a
  * keyboard. There are good reasons for this, but it results in poor user
  * experience. The documented techniques for securely creating a virtual
@@ -365,7 +365,7 @@ int send_text(const char *text) {
 
 const char *describe_output(void) { return "wayland"; }
 
-/// if running under `sudo`, drop privileges
+/// if running under `sudo` or `pkexec`, drop privileges
 static int demote_me(void) {
 
   // are we root?
@@ -374,6 +374,9 @@ static int demote_me(void) {
 
   // are we `sudo`ing?
   const char *uid_s = getenv_("SUDO_UID");
+  // are we `pkexec`-ing?
+  if (uid_s == NULL)
+    uid_s = getenv_("PKEXEC_UID");
   if (uid_s == NULL)
     return 0;
 
@@ -421,7 +424,7 @@ int gui_init(void) {
     goto done;
   }
 
-  // if we were started under `sudo` (in order to be able to open /dev/uinput)
+  // if we were started as root (in order to be able to open /dev/uinput)
   // de-escalate our privileges now
   if ((rc = demote_me())) {
     error("failed to drop privileges: %s", strerror(rc));
