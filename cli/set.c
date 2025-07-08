@@ -9,7 +9,6 @@
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/file.h>
 
 static const main_t *saved_main;
