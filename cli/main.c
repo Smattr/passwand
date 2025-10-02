@@ -467,7 +467,7 @@ int main(int argc, char **argv) {
   // allocate threads
   assert(options.jobs >= 1);
   threads = calloc(options.jobs - 1, sizeof(threads[0]));
-  if (threads == NULL) {
+  if (options.jobs > 1 && threads == NULL) {
     eprint("out of memory\n");
     goto done;
   }
