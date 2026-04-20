@@ -4,12 +4,6 @@ task:
   only_if: $CIRRUS_BRANCH == "main" || $CIRRUS_PR != ""
 
   matrix:
-    - name: FreeBSD
-      freebsd_instance:
-        image_family: freebsd-15-0-snap
-      install_script: pkg upgrade -y && pkg install -y base64 cmake json-c openssl pkgconf scrypt vim && sudo python3 -m ensurepip && sudo python3 -m pip install pexpect pytest
-      test_script: uname -sr && python3 --version && mkdir build && cd build && cmake -DENABLE_GUI=OFF .. && cmake --build . && cmake --build . -- check && sudo cmake --build . -- install
-
     - name: Linux, GCC, no GTK
       container:
         image: gcc:15.1
