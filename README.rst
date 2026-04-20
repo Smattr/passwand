@@ -98,15 +98,21 @@ myself):
   their preference for CTR mode, but that it is not as widely available.
 
 * We use **AES256 encryption**. 1Password switched from 128-bit AES encryption
-  to 256-bit, though they themselves acknowledge that it provides no practical
-  increase in security. The only non-PR motivation they have for switching is
-  defending against brute force attacks by quantum computers. The time taken to
-  brute force a 128-bit key on a quantum computer is proportional to 2⁶⁴,
-  instead of 2¹²⁸, making this feasible. Brute forcing a 256-bit key on a
-  quantum computer is supposedly proportional to 2¹²⁸. A brute force attack
-  proportional to 2¹²⁸ (classical computer on a 128-bit key or quantum computer
-  on a 256-bit key) is currently considered infeasible. The NSA also uses this
-  motivation for their use of 256-bit keys. More_.
+  to 256-bit, though `they themselves acknowledge`_ that it provides no
+  practical increase in security. The only non-PR motivation they have for
+  switching is defending against brute force attacks by quantum computers. The
+  time taken to brute force a 128-bit key on a quantum computer was thought to
+  be proportional to 2⁶⁴, instead of 2¹²⁸, making this feasible. Brute forcing a
+  256-bit key on a quantum computer was thought to be proportional to 2¹²⁸. A
+  brute force attack proportional to 2¹²⁸ (classical computer on a 128-bit key
+  or quantum computer on a 256-bit key) is currently considered infeasible. The
+  NSA also uses this motivation for their use of 256-bit keys.
+
+  However subsequently a consensus seems to have emerged that
+  `this previous analysis was wrong`_. Brute forcing a 128-bit key on a quantum
+  computer is apparently not proportional to 2⁶⁴. Nevertheless having
+  implemented 256-bit encryption prior to this consensus, we have no reason to
+  downgrade to 128-bit encryption now.
 
 * We use a **default Scrypt work factor of 2¹⁴**. This is based on a
   `presentation from Colin Percival`_, wherein he recommends this work factor
@@ -117,5 +123,6 @@ myself):
 .. _CSPRNG: https://en.wikipedia.org/wiki/Cryptographically_secure_pseudorandom_number_generator
 .. _`IETF draft`: https://www.ietf.org/id/draft-mcgrew-aead-aes-cbc-hmac-sha2-01.txt
 .. _KDF: https://en.wikipedia.org/wiki/Key_derivation_function
-.. _More: https://blog.agilebits.com/2013/03/09/guess-why-were-moving-to-256-bit-aes-keys/
 .. _`presentation from Colin Percival`: https://www.tarsnap.com/scrypt/scrypt-slides.pdf
+.. _`they themselves acknowledge`: https://blog.agilebits.com/2013/03/09/guess-why-were-moving-to-256-bit-aes-keys/
+.. _`this previous analysis was wrong`: https://words.filippo.io/128-bits/
