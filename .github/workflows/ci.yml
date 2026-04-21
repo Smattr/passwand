@@ -26,9 +26,69 @@ jobs:
           cd wd
           git fetch -- origin ${{ github.event.pull_request.head.sha }}
           git checkout FETCH_HEAD
-          export CFLAGS="-Werror -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=address,undefined"
+          export CFLAGS="-pedantic -Werror -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=address,undefined"
           export UBSAN_OPTIONS=print_stacktrace=1
           cmake -DENABLE_GUI=OFF -B build -S .
           cmake --build build
           cmake --build build --target check
           cmake --install build
+
+  ubuntu2404_nogui:
+    name: Ubuntu 24.04, no GTK
+    runs-on: ubuntu-24.04
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      CFLAGS: -pedantic -Werror -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=address,undefined
+      UBSAN_OPTIONS: print_stacktrace=1
+    steps:
+      - run: uname -rms
+      - run: python3 --version
+      - run: sudo apt-get update
+      - run: sudo apt-get install --no-install-recommends -y cmake libjson-c-dev libscrypt-kdf1 libscrypt-kdf-dev python3-pexpect python3-pytest xxd
+      - run: echo "cloning ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
+      - run: git clone --no-checkout -- ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY} wd
+      - run: cd wd && git fetch -- origin ${{ github.event.pull_request.head.sha }} && git checkout FETCH_HEAD
+      - run: cmake -DENABLE_GUI=OFF -B build -S wd
+      - run: cmake --build build
+      - run: cmake --build build --target check
+      - run: sudo cmake --install build
+
+  ubuntu2404_gtk2:
+    name: Ubuntu 24.04, GTK 2
+    runs-on: ubuntu-24.04
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      CFLAGS: -pedantic -Werror -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=address,undefined
+      UBSAN_OPTIONS: print_stacktrace=1
+    steps:
+      - run: uname -rms
+      - run: python3 --version
+      - run: sudo apt-get update
+      - run: sudo apt-get install --no-install-recommends -y cmake libgtk2.0-dev libjson-c-dev libscrypt-kdf1 libscrypt-kdf-dev libxtst-dev python3-pexpect python3-pytest xxd
+      - run: echo "cloning ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
+      - run: git clone --no-checkout -- ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY} wd
+      - run: cd wd && git fetch -- origin ${{ github.event.pull_request.head.sha }} && git checkout FETCH_HEAD
+      - run: cmake -B build -S wd
+      - run: cmake --build build
+      - run: cmake --build build --target check
+      - run: sudo cmake --install build
+
+  ubuntu2404_gtk3:
+    name: Ubuntu 24.04, GTK 3
+    runs-on: ubuntu-24.04
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      CFLAGS: -pedantic -Werror -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=address,undefined
+      UBSAN_OPTIONS: print_stacktrace=1
+    steps:
+      - run: uname -rms
+      - run: python3 --version
+      - run: sudo apt-get update
+      - run: sudo apt-get install --no-install-recommends -y cmake libgtk-3-dev libjson-c-dev libscrypt-kdf1 libscrypt-kdf-dev libxtst-dev python3-pexpect python3-pytest xxd
+      - run: echo "cloning ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
+      - run: git clone --no-checkout -- ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY} wd
+      - run: cd wd && git fetch -- origin ${{ github.event.pull_request.head.sha }} && git checkout FETCH_HEAD
+      - run: cmake -B build -S wd
+      - run: cmake --build build
+      - run: cmake --build build --target check
+      - run: sudo cmake --install build
