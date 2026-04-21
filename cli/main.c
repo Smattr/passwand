@@ -194,8 +194,8 @@ static void discard_entries(passwand_entry_t **entries, size_t *entry_len) {
 // not need the state parameter
 static void entry_trampoline(void *state, const char *space, const char *key,
                              const char *value) {
-  void (*f)(const char *, const char *, const char *) = state;
-  f(space, key, value);
+  const command_t *const cmd = state;
+  cmd->loop_body(space, key, value);
 }
 
 typedef struct {
@@ -231,8 +231,9 @@ static void *thread_loop(void *arg) {
       break;
 
     if (command->loop_body != NULL) {
-      passwand_error_t err = passwand_entry_do(
-          ts->main, &ts->entries[index], entry_trampoline, command->loop_body);
+      passwand_error_t err =
+          passwand_entry_do(ts->main, &ts->entries[index], entry_trampoline,
+                            (command_t *)command);
       if (err != PW_OK) {
         eprint("failed to handle entry %zu: %s\n", index, passwand_error(err));
         ret = (void *)-1;
