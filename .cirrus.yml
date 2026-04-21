@@ -8,7 +8,7 @@ task:
       macos_instance:
         image: ghcr.io/cirruslabs/macos-runner:sequoia
       environment:
-        CFLAGS: -I/opt/homebrew/opt/openssl@3/include -I/opt/homebrew/include
+        CFLAGS: -pedantic -I/opt/homebrew/opt/openssl@3/include -I/opt/homebrew/include
         LDFLAGS: -L/opt/homebrew/opt/openssl@3/lib -L/opt/homebrew/lib
         PKG_CONFIG_PATH: /opt/homebrew/opt/openssl@3/lib/pkgconfig
       install_script: brew update && brew install json-c libscrypt openssl python3 && env PIP_BREAK_SYSTEM_PACKAGES=1 python3 -m pip install pexpect pytest
