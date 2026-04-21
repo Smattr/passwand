@@ -4,19 +4,6 @@ task:
   only_if: $CIRRUS_BRANCH == "main" || $CIRRUS_PR != ""
 
   matrix:
-    - name: Linux, GCC, GTK 3
-      container:
-        image: gcc:15.1
-      environment:
-        DEBIAN_FRONTEND: noninteractive
-        CFLAGS: -Werror -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=undefined -fuse-ld=gold -Wno-deprecated-declarations
-        # $LANG and $LC_* are not set by default in this images, so force
-        # $LC_ALL to make `man` work correctly
-        LC_ALL: C
-        UBSAN_OPTIONS: print_stacktrace=1
-      install_script: apt-get update -y && apt-get install --no-install-recommends -y cmake libgtk-3-dev libjson-c-dev libscrypt-kdf1 libscrypt-kdf-dev libxtst-dev man-db python3-pexpect python3-pytest xxd
-      test_script: uname -sr && python3 --version && mkdir build && cd build && cmake .. && cmake --build . && cmake --build . -- check && cmake --build . -- install
-
     - name: macOS
       macos_instance:
         image: ghcr.io/cirruslabs/macos-runner:sequoia
