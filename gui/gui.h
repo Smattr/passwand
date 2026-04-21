@@ -3,10 +3,12 @@
 #include <stdbool.h>
 
 static inline bool supported_lower(char c) {
+  if (c >= 'a' && c <= 'z')
+    return true;
+  if (c >= '0' && c <= '9')
+    return true;
   switch (c) {
-  case 'a' ... 'z':
   case '`':
-  case '0' ... '9':
   case '-':
   case '=':
   case '[':
@@ -24,8 +26,9 @@ static inline bool supported_lower(char c) {
 }
 
 static inline bool supported_upper(char c) {
+  if (c >= 'A' && c <= 'Z')
+    return true;
   switch (c) {
-  case 'A' ... 'Z':
   case '~':
   case '!':
   case '@':
