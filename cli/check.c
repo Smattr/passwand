@@ -83,7 +83,7 @@ static void hash(const char *s, char hex[static SHA_DIGEST_LENGTH * 2 + 1]) {
 
   // convert the digest to hex digits
   for (size_t i = 0; i < sizeof(digest); i++)
-    sprintf(&hex[i * 2], "%02X", (int)digest[i]);
+    snprintf(&hex[i * 2], 3, "%02X", (int)digest[i]);
 }
 
 static const char *get_ssl_error(const SSL *ssl, int ret) {
@@ -237,12 +237,12 @@ static char *hibp_data(const char *hex, const char **error) {
         "Host: api.pwnedpasswords.com\r\n"
         "User-Agent: passwand <https://github.com/Smattr/passwand>\r\n"
         "\r\n")];
-    sprintf(buffer,
-            "GET /range/%.5s HTTP/1.0\r\n"
-            "Host: api.pwnedpasswords.com\r\n"
-            "User-Agent: passwand <https://github.com/Smattr/passwand>\r\n"
-            "\r\n",
-            hex);
+    snprintf(buffer, sizeof(buffer),
+             "GET /range/%.5s HTTP/1.0\r\n"
+             "Host: api.pwnedpasswords.com\r\n"
+             "User-Agent: passwand <https://github.com/Smattr/passwand>\r\n"
+             "\r\n",
+             hex);
 
     size_t len = strlen(buffer);
     size_t sent = 0;
