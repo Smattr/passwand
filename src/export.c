@@ -91,7 +91,7 @@ passwand_error_t passwand_export(const char *path, passwand_entry_t *entries,
     rc = PW_OVERFLOW;
     goto done;
   }
-  tmp = malloc(strlen(path) + 2);
+  tmp = malloc(path_len + 2);
   if (tmp == NULL) {
     rc = PW_NO_MEM;
     goto done;
