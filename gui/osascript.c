@@ -332,7 +332,7 @@ int send_text(const char *text) {
 
 const char *describe_output(void) { return "osascript"; }
 
-void flush_state() { /* no-op for osascript */ }
+void flush_state(void) { /* no-op for osascript */ }
 
 void show_error(const char *message) {
 
