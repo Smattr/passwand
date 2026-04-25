@@ -332,17 +332,18 @@ int send_text(const char *text) {
 
 const char *describe_output(void) { return "osascript"; }
 
-void flush_state() { /* no-op for osascript */ }
+void flush_state(void) { /* no-op for osascript */ }
 
 void show_error(const char *message) {
 
   assert(message != NULL);
 
-  bool m_needs_free = true;
-  char *m = escape(message);
-  if (m == NULL) {
+  char *const escaped = escape(message);
+  const char *m;
+  if (escaped == NULL) {
     m = "failed to allocate escaping memory";
-    m_needs_free = false;
+  } else {
+    m = escaped;
   }
 
   struct iovec iov[] = {
@@ -354,8 +355,7 @@ void show_error(const char *message) {
 
   (void)osascript(iov, sizeof(iov) / sizeof(iov[0]), NULL);
 
-  if (m_needs_free)
-    free(m);
+  free(escaped);
 }
 
 int gui_init(void) {
