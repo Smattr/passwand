@@ -187,7 +187,7 @@ static void type(int uinput, char c) {
       emit(uinput, EV_SYN, SYN_REPORT, 0);
 
       // ensure the key press is registered
-      usleep(100);
+      usleep(200);
 
       // release the key
       emit(uinput, EV_KEY, keys[i].code, 0);
@@ -200,7 +200,7 @@ static void type(int uinput, char c) {
       }
 
       // ensure the key release is registered
-      usleep(100);
+      usleep(200);
 
       return;
     }
