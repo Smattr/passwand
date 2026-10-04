@@ -34,6 +34,7 @@ jobs:
           cmake --install build
 
   macos:
+    name: macOS 26 (Tahoe)
     runs-on: macos-26-intel
     env:
       CFLAGS: -pedantic -Werror -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=address,undefined
