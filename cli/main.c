@@ -1,5 +1,4 @@
 #include "../common/argparse.h"
-#include "../common/privilege.h"
 #include "../common/streq.h"
 #include "change-main.h"
 #include "cli.h"
@@ -273,11 +272,6 @@ static void process_chain_link(void *state,
 }
 
 int main(int argc, char **argv) {
-
-  if (drop_privileges() != 0) {
-    eprint("privilege downgrade failed\n");
-    return EXIT_FAILURE;
-  }
 
   if (argc < 2 || streq(argv[1], "--help") || streq(argv[1], "-?"))
     help();
