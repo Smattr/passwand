@@ -17,9 +17,6 @@ import pytest
 
 PathLike = Union[Path, str]
 
-# a long, hard to guess password for testing purposes
-HARD_PASSWORD = 'WEy2zHDJjLsNog8tE5hwvrIR0adAGrR4m5wh6y99ssyo1zzUESw9OWPp8yEL'
-
 def check_output(args: List[PathLike], input: str) -> str:
   return subprocess.check_output(args, input=input, universal_newlines=True)
 
@@ -684,7 +681,6 @@ def test_list_differing_password(tmp_path: Path, multithreaded: bool,
 
 @pytest.mark.parametrize('command', (
   ('change-main',),
-  ('check',),
   ('generate', '--space', 'space4', '--key', 'key4'),
   ('get', '--space', 'space', '--key', 'key'),
   ('list',),
@@ -840,7 +836,6 @@ def test_list_differing_work_factor(tmp_path: Path, multithreaded: bool,
 
 @pytest.mark.parametrize('command', (
   ('change-main',),
-  ('check',),
   ('generate', '--space', 'space4', '--key', 'key4'),
   ('get', '--space', 'space', '--key', 'key'),
   ('list',),
@@ -1153,142 +1148,6 @@ def test_concurrent_manipulation(tmp_path: Path, multithreaded: bool):
   assert get.exitstatus == 0
 
 @pytest.mark.parametrize('multithreaded', (False, True))
-def test_check_basic(tmp_path: Path, multithreaded: bool):
-  '''
-  Test basic functionality of checking an existing weak password entry.
-  '''
-  data = tmp_path / 'check_basic.json'
-
-  # Save a weak entry that would be easy to crack.
-  do_set(data, 'test', 'space', 'key', 'value', multithreaded)
-
-  # Now let's check the entry
-  args = ['check', '--data', str(data), '--space', 'space', '--key', 'key']
-  if not multithreaded:
-    args += ['--jobs', '1']
-  p = pexpect.spawn('pw-cli', args, timeout=120)
-
-  # Enter the main password.
-  type_password(p, 'test')
-
-  # Now passwand should exit with failure.
-  p.expect(pexpect.EOF)
-  p.close()
-  assert p.exitstatus != 0
-
-@pytest.mark.parametrize('multithreaded', (False, True))
-def test_check_basic2(tmp_path: Path, multithreaded: bool):
-  '''
-  Test basic functionality of checking an existing strong password entry.
-  '''
-  data = tmp_path / 'check_basic2.json'
-
-  # Save a strong entry that would be hard to crack.
-  do_set(data, 'test', 'space', 'key', HARD_PASSWORD)
-
-  # Now let's check the entry
-  args = ['check', '--data', str(data), '--space', 'space', '--key', 'key']
-  if not multithreaded:
-    args += ['--jobs', '1']
-  p = pexpect.spawn('pw-cli', args, timeout=120)
-
-  # Enter the main password.
-  type_password(p, 'test')
-
-  # Now passwand should exit with success.
-  p.expect(pexpect.EOF)
-  p.close()
-  assert p.exitstatus == 0
-
-@pytest.mark.parametrize('multithreaded', (False, True))
-def test_check_empty_database(tmp_path: Path, multithreaded: bool):
-  '''
-  Test checking of a database with no entries.
-  '''
-  data = tmp_path / 'check_empty_database.json'
-
-  # Create an empty database.
-  with open(data, 'wt') as f:
-    json.dump([], f)
-
-  # Check the database.
-  args = ['check', '--data', str(data)]
-  if not multithreaded:
-    args += ['--jobs', '1']
-  p = pexpect.spawn('pw-cli', args, timeout=120)
-
-  # Enter the main password.
-  type_password(p, 'test')
-
-  # We should exit with success because there are no weak passwords.
-  p.expect(pexpect.EOF)
-  p.close()
-  assert p.exitstatus == 0
-
-@pytest.mark.parametrize('weak_mask', list(range(8)))
-@pytest.mark.parametrize('multithreaded', (False, True))
-def test_check_xxx(tmp_path: Path, weak_mask: int, multithreaded: bool):
-  '''
-  Test checking a set of entries with no weak passwords.
-  '''
-  data = tmp_path / 'check_xxx.json'
-
-  # Save a set of keys and values.
-  for i in range(3):
-    value = 'value' if (1 << i) & weak_mask else HARD_PASSWORD
-    do_set(data, 'test', 'space', f'key{i}', value)
-
-  # First, let's check the passwords individually.
-  for i in range(3):
-    args = ['check', '--data', str(data), '--space', 'space', '--key',
-            f'key{i}']
-    if not multithreaded:
-      args += ['--jobs', '1']
-    p = pexpect.spawn('pw-cli', args, timeout=120)
-
-    # Enter the main password.
-    type_password(p, 'test')
-
-    # The check should have identified whether the password was weak.
-    p.expect(pexpect.EOF)
-    p.close()
-    if weak_mask & (1 << i):
-      assert p.exitstatus != 0
-    else:
-      assert p.exitstatus == 0
-
-  # Now let's check them all together.
-  args = ['check', '--data', str(data)]
-  if not multithreaded:
-    args += ['--jobs', '1']
-  p = pexpect.spawn('pw-cli', args, timeout=120)
-
-  # Enter the main password.
-  type_password(p, 'test')
-
-  # We should exit with error if any password was weak.
-  output = p.read().decode('utf-8', 'replace').strip()
-  p.expect(pexpect.EOF)
-  p.close()
-  if weak_mask == 0:
-    assert p.exitstatus == 0
-  else:
-    assert p.exitstatus != 0
-
-  # The output should identify which passwords were weak.
-  found = 0
-  for line in output.split('\n'):
-    m = re.match(r'space/key(\d): weak password', line)
-    if m is not None:
-      index = int(m.group(1))
-      assert ((1 << index) & weak_mask) != 0, \
-        'strong password misidentified as weak'
-      assert ((1 << index) & found) == 0, \
-        'duplicate warnings for weak password entry'
-      found |= 1 << index
-  assert found == weak_mask, 'missed warning for weak password(s)'
-
-@pytest.mark.parametrize('multithreaded', (False, True))
 def test_update_overwrite(tmp_path: Path, multithreaded: bool):
   '''
   Test updating an entry that is already set overwrites it.
@@ -1487,27 +1346,6 @@ def test_chain_change_main(tmp_path: Path):
   p.expect(pexpect.EOF)
   p.close()
   assert p.exitstatus != 0
-
-def test_chain_check(tmp_path: Path):
-  '''
-  Test that `pw-cli check` works with a chain.
-  '''
-  data = tmp_path / 'cli_chain_check.json'
-  chain = tmp_path / 'cli_chain_check_chain.json'
-
-  # Setup some sample data. Note that the chain password, "main password", is
-  # weak, while the terminal value entry, `HARD_PASSWORD` is strong. The check
-  # operation we are about to run should check the latter.
-  do_set(data, 'main password', 'foo', 'bar', HARD_PASSWORD)
-  do_set(chain, 'chain password', 'foo', 'bar', 'main password')
-
-  # Run the check operation via the chain.
-  args = ['check', '--data', str(data), '--chain', str(chain)]
-  p = pexpect.spawn('pw-cli', args, timeout=120)
-  type_password(p, 'chain password')
-  p.expect(pexpect.EOF)
-  p.close()
-  assert p.exitstatus == 0
 
 def test_chain_delete(tmp_path: Path):
   '''
@@ -1793,7 +1631,6 @@ def test_cli_empty_password():
 
 @pytest.mark.parametrize('args', (
   ('change-main',),
-  ('check',),
   ('delete', '--space', 'foo', '--key', 'bar'),
   ('get',    '--space', 'foo', '--key', 'bar'),
   ('list',),

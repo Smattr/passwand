@@ -6,7 +6,6 @@ endif()
 
 add_executable(pw-cli
   change-main.c
-  check.c
   delete.c
   get.c
   generate.c
