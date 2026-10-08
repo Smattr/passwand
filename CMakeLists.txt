@@ -9,14 +9,6 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL "FreeBSD")
   # for linking. AFAICT this is false on FreeBSD. Hack around this by teaching it
   # where some of our libraries live.
   link_directories(${LINK_DIRECTORIES} /usr/local/lib)
-elseif(APPLE)
-  # add paths for Macports or Homebrew
-  if(EXISTS /opt/local/lib)
-    link_directories(${LINK_DIRECTORIES} /opt/local/lib)
-  endif()
-  if(EXISTS /usr/local/opt/openssl/lib)
-    link_directories(${LINK_DIRECTORIES} /usr/local/opt/openssl/lib)
-  endif()
 endif()
 
 set(CMAKE_C_STANDARD 11)

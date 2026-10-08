@@ -21,6 +21,9 @@ target_include_directories(passwand PUBLIC
   $<INSTALL_INTERFACE:include>
 )
 
+find_package(OpenSSL REQUIRED COMPONENTS SSL)
+target_link_libraries(passwand PRIVATE OpenSSL::SSL)
+
 if(APPLE)
   find_library(SCRYPTKDF_LIBRARIES
     NAMES scrypt libscrypt
@@ -43,10 +46,6 @@ target_include_directories(passwand SYSTEM PRIVATE ${SCRYPTKDF_INCLUDE_DIRS})
 target_link_libraries(passwand PRIVATE ${SCRYPTKDF_LIBRARIES})
 
 find_package(PkgConfig REQUIRED)
-
-pkg_check_modules(OPENSSL REQUIRED openssl)
-target_include_directories(passwand SYSTEM PRIVATE ${OPENSSL_INCLUDE_DIRS})
-target_link_libraries(passwand PRIVATE ${OPENSSL_LIBRARIES})
 
 pkg_check_modules(JSON REQUIRED json-c)
 target_include_directories(passwand SYSTEM PRIVATE ${JSON_INCLUDE_DIRS})
