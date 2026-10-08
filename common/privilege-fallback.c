@@ -1,6 +1,6 @@
 #include "privilege.h"
 
-int drop_privileges(bool need_network __attribute__((unused))) {
+int drop_privileges(void) {
   // no-op
   return 0;
 }

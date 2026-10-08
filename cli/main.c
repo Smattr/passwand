@@ -274,9 +274,7 @@ static void process_chain_link(void *state,
 
 int main(int argc, char **argv) {
 
-  bool need_network = false;
-
-  if (drop_privileges(need_network) != 0) {
+  if (drop_privileges() != 0) {
     eprint("privilege downgrade failed\n");
     return EXIT_FAILURE;
   }
