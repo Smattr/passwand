@@ -18,7 +18,7 @@ passwand_error_t hmac(const m_t *mainkey, const data_t *data,
 
   k_t *k = NULL;
   uint8_t *mac_data = NULL;
-  passwand_error_t rc = -1;
+  passwand_error_t rc = PW_OK;
 
   k = passwand_secure_malloc(sizeof(*k));
   if (k == NULL) {

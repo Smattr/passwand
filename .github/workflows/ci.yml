@@ -34,6 +34,7 @@ jobs:
           cmake --install build
 
   macos:
+    name: macOS 26 (Tahoe)
     runs-on: macos-26-intel
     env:
       CFLAGS: -pedantic -Werror -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=address,undefined
@@ -52,9 +53,9 @@ jobs:
       - run: cmake --build build --target check
       - run: sudo cmake --install build
 
-  ubuntu2404_nogui:
-    name: Ubuntu 24.04, no GTK
-    runs-on: ubuntu-24.04
+  ubuntu2604_nogui:
+    name: Ubuntu 26.04, no GTK
+    runs-on: ubuntu-26.04
     env:
       DEBIAN_FRONTEND: noninteractive
       CFLAGS: -pedantic -Werror -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=address,undefined
@@ -72,9 +73,9 @@ jobs:
       - run: cmake --build build --target check
       - run: sudo cmake --install build
 
-  ubuntu2404_gtk2:
-    name: Ubuntu 24.04, GTK 2
-    runs-on: ubuntu-24.04
+  ubuntu2604_gtk2:
+    name: Ubuntu 26.04, GTK 2
+    runs-on: ubuntu-26.04
     env:
       DEBIAN_FRONTEND: noninteractive
       CFLAGS: -pedantic -Werror -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=address,undefined
@@ -92,9 +93,9 @@ jobs:
       - run: cmake --build build --target check
       - run: sudo cmake --install build
 
-  ubuntu2404_gtk3:
-    name: Ubuntu 24.04, GTK 3
-    runs-on: ubuntu-24.04
+  ubuntu2604_gtk3:
+    name: Ubuntu 26.04, GTK 3
+    runs-on: ubuntu-26.04
     env:
       DEBIAN_FRONTEND: noninteractive
       CFLAGS: -pedantic -Werror -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=address,undefined
