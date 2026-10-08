@@ -1,8 +1,6 @@
 #include "../common/argparse.h"
-#include "../common/privilege.h"
 #include "../common/streq.h"
 #include "change-main.h"
-#include "check.h"
 #include "cli.h"
 #include "delete.h"
 #include "generate.h"
@@ -31,7 +29,6 @@ static const struct {
   const command_t *action;
 } COMMANDS[] = {
     {"change-main", &change_main},
-    {"check", &check},
     {"delete", &delete},
     {"generate", &generate},
     {"get", &get},
@@ -275,14 +272,6 @@ static void process_chain_link(void *state,
 }
 
 int main(int argc, char **argv) {
-
-  // we need to make a network call if we are checking a password
-  bool need_network = argc >= 2 && streq(argv[1], "check");
-
-  if (drop_privileges(need_network) != 0) {
-    eprint("privilege downgrade failed\n");
-    return EXIT_FAILURE;
-  }
 
   if (argc < 2 || streq(argv[1], "--help") || streq(argv[1], "-?"))
     help();

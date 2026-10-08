@@ -1,12 +1,5 @@
-if(APPLE)
-  set(PRIVILEGE_C privilege-macos.c)
-else()
-  set(PRIVILEGE_C privilege-fallback.c)
-endif()
-
 add_executable(pw-cli
   change-main.c
-  check.c
   delete.c
   get.c
   generate.c
@@ -17,7 +10,6 @@ add_executable(pw-cli
   set.c
   update.c
   ../common/argparse.c
-  ../common/${PRIVILEGE_C}
   ${CMAKE_CURRENT_BINARY_DIR}/manpage.c
 )
 
