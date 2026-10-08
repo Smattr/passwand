@@ -4,7 +4,6 @@ project(passwand C)
 # this seems to be some magic to get libraries to install correctly
 include(GNUInstallDirs)
 
-set(CONFIGURE_TWEAK "")
 if(CMAKE_HOST_SYSTEM_NAME STREQUAL "FreeBSD")
   # XXX: CMake documentation claims PkgConfig returns absolute paths to libraries
   # for linking. AFAICT this is false on FreeBSD. Hack around this by teaching it
@@ -12,19 +11,6 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL "FreeBSD")
   link_directories(${LINK_DIRECTORIES} /usr/local/lib)
 elseif(APPLE)
   # add paths for Macports or Homebrew
-  if(EXISTS /opt/local/include)
-    if(EXISTS /usr/local/opt/openssl/include)
-      set(CONFIGURE_TWEAK env "CFLAGS=-I /opt/local/include -I /usr/local/opt/openssl/include")
-    else()
-      set(CONFIGURE_TWEAK env "CFLAGS=-I /opt/local/include")
-    endif()
-  else()
-    if(EXISTS /usr/local/opt/openssl/include)
-      set(CONFIGURE_TWEAK env "CFLAGS=-I /usr/local/opt/openssl/include")
-    else()
-      set(CONFIGURE_TWEAK "")
-    endif()
-  endif()
   if(EXISTS /opt/local/lib)
     link_directories(${LINK_DIRECTORIES} /opt/local/lib)
   endif()
