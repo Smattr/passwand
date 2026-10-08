@@ -20,7 +20,7 @@ jobs:
           set -u
           set -x
           uname -rms
-          pkg install -y base64 cmake git json-c openssl pkgconf python3 py311-pexpect py311-pytest scrypt vim
+          pkg install -y base64 cmake git json-c openssl pkgconf python3 devel/py-pexpect devel/py-pytest scrypt vim
           python3 --version
           git clone --no-checkout -- ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY} wd
           cd wd
