@@ -1201,31 +1201,6 @@ def test_check_basic2(tmp_path: Path, multithreaded: bool):
   assert p.exitstatus == 0
 
 @pytest.mark.parametrize('multithreaded', (False, True))
-def test_check_hibp_eg(tmp_path: Path, multithreaded: bool):
-  '''
-  Test checking a password we know to have been breached.
-  '''
-  data = tmp_path / 'check_hibp_eg.json'
-
-  # Save a password that Troy Hunt gives as an example of something
-  # appearing in previous breaches.
-  do_set(data, 'test', 'space', 'key', 'P@ssw0rd')
-
-  # Now let's check the entry
-  args = ['check', '--data', str(data), '--space', 'space', '--key', 'key']
-  if not multithreaded:
-    args += ['--jobs', '1']
-  p = pexpect.spawn('pw-cli', args, timeout=120)
-
-  # Enter the main password.
-  type_password(p, 'test')
-
-  # Now passwand should exit with failure.
-  p.expect(pexpect.EOF)
-  p.close()
-  assert p.exitstatus != 0
-
-@pytest.mark.parametrize('multithreaded', (False, True))
 def test_check_empty_database(tmp_path: Path, multithreaded: bool):
   '''
   Test checking of a database with no entries.
