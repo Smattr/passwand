@@ -88,7 +88,7 @@ typedef struct {
 passwand_error_t aes_decrypt(EVP_CIPHER_CTX *ctx, const ct_t *c, ppt_t *pp) {
 
   buffer_t *buffer = NULL;
-  passwand_error_t rc = -1;
+  passwand_error_t rc = PW_OK;
 
   // EVP_DecryptUpdate is documented as writing at most `inl +
   // cipher_block_size`
@@ -128,8 +128,6 @@ passwand_error_t aes_decrypt(EVP_CIPHER_CTX *ctx, const ct_t *c, ppt_t *pp) {
   }
   if (pp->length > 0)
     memcpy(pp->data, buffer->data, pp->length);
-
-  rc = PW_OK;
 
 done:
   if (buffer != NULL) {
