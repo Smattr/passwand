@@ -8,6 +8,7 @@
 static char *make_file(const char *content) {
   char *const tmp = mkpath();
   FILE *const f = fopen(tmp, "w");
+  ASSERT_NOT_NULL(f);
   const int rc = fputs(content, f);
   (void)fclose(f);
   ASSERT_GE(rc, 0);
