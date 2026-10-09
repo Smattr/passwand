@@ -42,7 +42,7 @@ passwand_error_t passwand_export(const char *path, passwand_entry_t *entries,
 
   json_object *j = NULL;
   char *tmp = NULL;
-  passwand_error_t rc = -1;
+  passwand_error_t rc = PW_OK;
 
   // create a new array as the top level JSON object in the export file
   j = json_object_new_array();
@@ -118,8 +118,6 @@ passwand_error_t passwand_export(const char *path, passwand_entry_t *entries,
     rc = PW_IO;
     goto done;
   }
-
-  rc = PW_OK;
 
 done:
   free(tmp);
