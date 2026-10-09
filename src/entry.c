@@ -338,7 +338,7 @@ passwand_entry_do(const char *mainpass, const passwand_entry_t *e,
   char *space = NULL;
   char *key = NULL;
   char *value = NULL;
-  passwand_error_t rc = -1;
+  passwand_error_t rc = PW_OK;
 
   // generate the encryption key
   m = make_m_t(mainpass);
@@ -459,8 +459,6 @@ passwand_entry_do(const char *mainpass, const passwand_entry_t *e,
   assert(value != NULL);
 
   action(state, space, key, value);
-
-  rc = PW_OK;
 
 done:
   if (value != NULL)
