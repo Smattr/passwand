@@ -142,9 +142,10 @@ static void process_chain_link(void *state __attribute__((unused)),
   mainpass = NULL;
 
   // strdup() the replacement onto it
-  mainpass = passwand_secure_malloc(strlen(value) + 1);
+  const size_t len = strlen(value) + 1;
+  mainpass = passwand_secure_malloc(len);
   if (mainpass != NULL)
-    strcpy(mainpass, value);
+    memcpy(mainpass, value, len);
 }
 
 int main(int argc, char **argv) {
