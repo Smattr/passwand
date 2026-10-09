@@ -18,7 +18,7 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
   assert(entries != NULL);
   assert(entry_len != NULL);
 
-  passwand_error_t rc = -1;
+  passwand_error_t rc = PW_OK;
   int f = -1;
   void *p = MAP_FAILED;
   size_t size = 0;
@@ -121,7 +121,6 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
   *entry_len = ent_len;
   ent = NULL;
   ent_len = 0;
-  rc = PW_OK;
 
 done:
   for (size_t i = 0; i < ent_len; ++i) {
