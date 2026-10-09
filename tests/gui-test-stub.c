@@ -24,9 +24,10 @@ char *get_text(const char *title __attribute__((unused)),
 
   char *r;
   if (hidden) {
-    r = passwand_secure_malloc(strlen(buffer) + 1);
+    const size_t len = strlen(buffer) + 1;
+    r = passwand_secure_malloc(len);
     if (r != NULL)
-      strcpy(r, buffer);
+      memcpy(r, buffer, len);
     free(buffer);
   } else {
     r = buffer;

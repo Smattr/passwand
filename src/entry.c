@@ -41,7 +41,7 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
   k_t *k = NULL;
   EVP_CIPHER_CTX *ctx = NULL;
   bool aes_encrypt_init_done = false;
-  passwand_error_t rc = -1;
+  passwand_error_t rc = PW_OK;
 
   // generate a random 8-byte salt
   uint8_t _salt[PW_SALT_LEN];
@@ -169,8 +169,6 @@ passwand_error_t passwand_entry_new(passwand_entry_t *e, const char *mainpass,
   rc = passwand_entry_set_mac(mainpass, e);
   if (rc != PW_OK)
     goto done;
-
-  rc = PW_OK;
 
 done:
   if (rc != PW_OK) {
@@ -340,7 +338,7 @@ passwand_entry_do(const char *mainpass, const passwand_entry_t *e,
   char *space = NULL;
   char *key = NULL;
   char *value = NULL;
-  passwand_error_t rc = -1;
+  passwand_error_t rc = PW_OK;
 
   // generate the encryption key
   m = make_m_t(mainpass);
@@ -461,8 +459,6 @@ passwand_entry_do(const char *mainpass, const passwand_entry_t *e,
   assert(value != NULL);
 
   action(state, space, key, value);
-
-  rc = PW_OK;
 
 done:
   if (value != NULL)

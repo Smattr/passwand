@@ -262,8 +262,9 @@ static void process_chain_link(void *state,
   // `strdup` this next chained password into it
   m->main = passwand_secure_malloc(strlen(value) + 1);
   if (m->main != NULL) {
-    strcpy(m->main, value);
-    m->main_len = strlen(value) + 1;
+    const size_t len = strlen(value) + 1;
+    memcpy(m->main, value, len);
+    m->main_len = len;
 
     // this password is coming from a database field, so we can assume it is not
     // typoed

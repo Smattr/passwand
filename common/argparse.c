@@ -150,15 +150,15 @@ int parse(int argc, char **argv) {
     if (home == NULL)
       return -1;
     // check for overflow
-    if (SIZE_MAX - strlen(home) < strlen("/.passwand.json"))
+    const size_t home_len = strlen(home);
+    const char SUFFIX[] = "/.passwand.json";
+    if (SIZE_MAX - home_len < sizeof(SUFFIX))
       return -1;
-    if (SIZE_MAX - strlen(home) - strlen("/.passwand.json") < 1)
-      return -1;
-    char *path = malloc(strlen(home) + strlen("/.passwand.json") + 1);
+    char *path = malloc(home_len + sizeof(SUFFIX));
     if (path == NULL)
       return -1;
-    strcpy(path, home);
-    strcat(path, "/.passwand.json");
+    memcpy(path, home, home_len);
+    memcpy(&path[home_len], SUFFIX, sizeof(SUFFIX));
     options.db.path = path;
   }
 
@@ -171,7 +171,7 @@ int parse(int argc, char **argv) {
     char *target = malloc(PATH_MAX + 1);
     if (target == NULL)
       return -1;
-    ssize_t r = readlink(options.db.path, target, PATH_MAX + 1);
+    ssize_t r = readlink(options.db.path, target, PATH_MAX);
     if (r == -1) {
       // if we fail for any reason, just bail out and let our caller deal with
       // having a symlink database

@@ -102,11 +102,12 @@ char *get_text(const char *title, const char *message, const char *initial,
   if (result == GTK_RESPONSE_OK) {
     const char *text = gtk_entry_get_text(GTK_ENTRY(textbox));
     if (hidden) {
-      r = passwand_secure_malloc(strlen(text) + 1);
+      const size_t len = strlen(text) + 1;
+      r = passwand_secure_malloc(len);
       if (r == NULL) {
         show_error_core("failed to allocate secure memory");
       } else {
-        strcpy(r, text);
+        memcpy(r, text, len);
       }
     } else {
       r = strdup(text);
