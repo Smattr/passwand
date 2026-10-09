@@ -171,7 +171,7 @@ int parse(int argc, char **argv) {
     char *target = malloc(PATH_MAX + 1);
     if (target == NULL)
       return -1;
-    ssize_t r = readlink(options.db.path, target, PATH_MAX + 1);
+    ssize_t r = readlink(options.db.path, target, PATH_MAX);
     if (r == -1) {
       // if we fail for any reason, just bail out and let our caller deal with
       // having a symlink database
