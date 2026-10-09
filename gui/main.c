@@ -80,9 +80,10 @@ static void check(void *state, const char *space, const char *key,
   assert(key != NULL);
   if (streq(options.space, space) && streq(options.key, key)) {
     assert(v != NULL);
-    *v = passwand_secure_malloc(strlen(value) + 1);
+    const size_t len = strlen(value) + 1;
+    *v = passwand_secure_malloc(len);
     if (*v != NULL)
-      strcpy(*v, value);
+      memcpy(*v, value, len);
   }
 }
 
