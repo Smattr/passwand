@@ -34,8 +34,8 @@ jobs:
           cmake --install build
 
   macos:
-    name: macOS 26 (Tahoe)
-    runs-on: macos-26-intel
+    name: macOS 27 (Golden Gate)
+    runs-on: xcode-27
     env:
       CFLAGS: -pedantic -Werror -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=address,undefined
       UBSAN_OPTIONS: print_stacktrace=1
