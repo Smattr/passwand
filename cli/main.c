@@ -112,7 +112,7 @@ main_t *getpassword(const char *prompt) {
     if (c == '\n' || c == '\r' || c == '\f')
       break;
 
-    m[index] = c;
+    m[index] = (char)(unsigned char)c;
     index++;
     if (index >= size) {
       size_t new_size = size + BUFSIZ;
