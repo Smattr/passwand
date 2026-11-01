@@ -50,7 +50,8 @@ passwand_error_t aes_encrypt(EVP_CIPHER_CTX *ctx, const ppt_t *pp, ct_t *c) {
     free(c->data);
     return PW_CRYPTO;
   }
-  c->length = len;
+  assert(len >= 0);
+  c->length = (size_t)len;
   assert(c->length <= pp->length + (AES_BLOCK_SIZE - 1));
 
   return PW_OK;
