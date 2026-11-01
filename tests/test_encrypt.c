@@ -73,7 +73,9 @@ TEST("AES128 reads at most 128 bits of a supplied key") {
   // Create a 128-bit key where accessing memory immediately following the key
   // will cause a trap. The purpose of this is to detect if the AES algorithm
   // reads more than 128 bits.
-  int pagesize = sysconf(_SC_PAGESIZE);
+  const long pagesize_l = sysconf(_SC_PAGESIZE);
+  ASSERT_GE(pagesize_l, 0);
+  const size_t pagesize = (size_t)pagesize_l;
   assert(pagesize >= 16 && "AES key does not fit in a page");
   unsigned char *p = aligned_alloc(pagesize, pagesize * 2);
   ASSERT_NOT_NULL(p);
@@ -137,7 +139,9 @@ TEST("AES128 reads at least 128 bits of a supplied key") {
 
   // Create a 128-bit key where accessing its last byte will cause a trap. This
   // should allow us to detect if AES128 does not read to the end of the key.
-  int pagesize = sysconf(_SC_PAGESIZE);
+  const long pagesize_l = sysconf(_SC_PAGESIZE);
+  ASSERT_GE(pagesize_l, 0);
+  const size_t pagesize = (size_t)pagesize_l;
   assert(pagesize >= 16 && "AES key does not fit in a page");
   unsigned char *p = aligned_alloc(pagesize, pagesize * 2);
   ASSERT_NOT_NULL(p);
@@ -203,7 +207,9 @@ TEST("AES128 reads at most 16 bytes of a supplied initialisation vector") {
   // Create a 16 byte IV where accessing memory immediately following the IV
   // will cause a trap. The purpose of this is to detect if the AES algorithm
   // reads more than 16 bytes.
-  int pagesize = sysconf(_SC_PAGESIZE);
+  const long pagesize_l = sysconf(_SC_PAGESIZE);
+  ASSERT_GE(pagesize_l, 0);
+  const size_t pagesize = (size_t)pagesize_l;
   assert(pagesize >= 16 && "AES IV does not fit in a page");
   unsigned char *p = aligned_alloc(pagesize, pagesize * 2);
   ASSERT_NOT_NULL(p);
@@ -264,7 +270,9 @@ TEST("AES128 reads at least 16 bytes of a supplied initialisation vector") {
 
   // Create a 16 byte IV where accessing the last byte will cause a trap. The
   // purpose of this is to detect if the AES algorithm reads less than 16 bytes.
-  int pagesize = sysconf(_SC_PAGESIZE);
+  const long pagesize_l = sysconf(_SC_PAGESIZE);
+  ASSERT_GE(pagesize_l, 0);
+  const size_t pagesize = (size_t)pagesize_l;
   assert(pagesize >= 16 && "AES IV does not fit in a page");
   unsigned char *p = aligned_alloc(pagesize, pagesize * 2);
   ASSERT_NOT_NULL(p);
@@ -328,7 +336,9 @@ TEST("AES256 reads at most 256 bits of a supplied key") {
   // Create a 256-bit key where accessing memory immediately following the key
   // will cause a trap. The purpose of this is to detect if the AES algorithm
   // reads more than 256 bits.
-  int pagesize = sysconf(_SC_PAGESIZE);
+  const long pagesize_l = sysconf(_SC_PAGESIZE);
+  ASSERT_GE(pagesize_l, 0);
+  const size_t pagesize = (size_t)pagesize_l;
   assert(pagesize >= 32 && "AES key does not fit in a page");
   unsigned char *p = aligned_alloc(pagesize, pagesize * 2);
   ASSERT_NOT_NULL(p);
@@ -388,7 +398,9 @@ TEST("AES256 reads at least 256 bits of a supplied key") {
 
   // Create a 256-bit key where accessing its last byte will cause a trap. This
   // should allow us to detect if AES256 does not read to the end of the key.
-  int pagesize = sysconf(_SC_PAGESIZE);
+  const long pagesize_l = sysconf(_SC_PAGESIZE);
+  ASSERT_GE(pagesize_l, 0);
+  const size_t pagesize = (size_t)pagesize_l;
   assert(pagesize >= 32 && "AES key does not fit in a page");
   unsigned char *p = aligned_alloc(pagesize, pagesize * 2);
   ASSERT_NOT_NULL(p);
@@ -454,7 +466,9 @@ TEST("AES256 reads at most 16 bytes of a supplied initialisation vector") {
   // Create a 16 byte IV where accessing memory immediately following the IV
   // will cause a trap. The purpose of this is to detect if the AES algorithm
   // reads more than 16 bytes.
-  int pagesize = sysconf(_SC_PAGESIZE);
+  const long pagesize_l = sysconf(_SC_PAGESIZE);
+  ASSERT_GE(pagesize_l, 0);
+  const size_t pagesize = (size_t)pagesize_l;
   assert(pagesize >= 16 && "AES IV does not fit in a page");
   unsigned char *p = aligned_alloc(pagesize, pagesize * 2);
   ASSERT_NOT_NULL(p);
@@ -515,7 +529,9 @@ TEST("AES256 reads at least 16 bytes of a supplied initialisation vector") {
 
   // Create a 16 byte IV where accessing the last byte will cause a trap. The
   // purpose of this is to detect if the AES algorithm reads less than 16 bytes.
-  int pagesize = sysconf(_SC_PAGESIZE);
+  const long pagesize_l = sysconf(_SC_PAGESIZE);
+  ASSERT_GE(pagesize_l, 0);
+  const size_t pagesize = (size_t)pagesize_l;
   assert(pagesize >= 16 && "AES IV does not fit in a page");
   unsigned char *p = aligned_alloc(pagesize, pagesize * 2);
   ASSERT_NOT_NULL(p);
