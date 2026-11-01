@@ -47,7 +47,12 @@ passwand_error_t pack_data(const pt_t *p, const iv_t iv, ppt_t *pp) {
   size_t length = strlen(HEADER) + sizeof(uint64_t) + PW_IV_LEN + p->length;
 
   // the padding needs to align the final data to a 16-byte boundary
-  size_t padding_len = AES_BLOCK_SIZE - length % AES_BLOCK_SIZE;
+  uint8_t padding_len;
+  {
+    const size_t padding_len_z = AES_BLOCK_SIZE - length % AES_BLOCK_SIZE;
+    assert(padding_len_z <= UINT8_MAX);
+    padding_len = (uint8_t)padding_len_z;
+  }
 
   // allocate enough space for the packed data
 
