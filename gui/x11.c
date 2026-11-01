@@ -41,7 +41,7 @@ static int send_char(Display *display, char c) {
   }
 
   // press the key
-  KeyCode code = XKeysymToKeycode(display, c);
+  KeyCode code = XKeysymToKeycode(display, (KeySym)c);
   XTestFakeKeyEvent(display, code, True, CurrentTime);
   XSync(display, False);
 
