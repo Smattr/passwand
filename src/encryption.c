@@ -99,6 +99,10 @@ passwand_error_t aes_decrypt(EVP_CIPHER_CTX *ctx, const ct_t *c, ppt_t *pp) {
     rc = PW_OVERFLOW;
     goto done;
   }
+  if (c->length > INT_MAX) {
+    rc = PW_OVERFLOW;
+    goto done;
+  }
   buffer = passwand_secure_malloc(sizeof(*buffer));
   if (buffer == NULL) {
     rc = PW_NO_MEM;
@@ -113,7 +117,8 @@ passwand_error_t aes_decrypt(EVP_CIPHER_CTX *ctx, const ct_t *c, ppt_t *pp) {
   buffer->length = c->length + AES_BLOCK_SIZE;
 
   int len;
-  if (EVP_DecryptUpdate(ctx, buffer->data, &len, c->data, c->length) != 1) {
+  if (EVP_DecryptUpdate(ctx, buffer->data, &len, c->data, (int)c->length) !=
+      1) {
     rc = PW_CRYPTO;
     goto done;
   }
