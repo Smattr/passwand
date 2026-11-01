@@ -13,7 +13,7 @@ passwand_error_t encode(const uint8_t *s, size_t len, char **e) {
   assert(s != NULL);
   assert(e != NULL);
 
-  if (len > (size_t)INT_MAX)
+  if (len > INT_MAX)
     return PW_OVERFLOW;
 
   // create a base64 filter
@@ -34,7 +34,7 @@ passwand_error_t encode(const uint8_t *s, size_t len, char **e) {
   b64 = BIO_push(b64, out);
 
   // encode the data
-  if (BIO_write(b64, s, len) != (int)len) {
+  if (BIO_write(b64, s, (int)len) != (int)len) {
     rc = PW_IO;
     goto done;
   }
