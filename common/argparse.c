@@ -13,7 +13,7 @@
 options_t options;
 
 // default to use if --work-factor is not supplied
-static const unsigned DEFAULT_WORK_FACTOR = 14;
+static const uint8_t DEFAULT_WORK_FACTOR = 14;
 
 // Overwrite command line arguments to conceal them from utils like `top`. This
 // is not a good way to conceal this information from a concerted attacker, but
@@ -127,9 +127,9 @@ int parse(int argc, char **argv) {
       }
       // should this apply to a chained database?
       if (options.chain_len > 0) {
-        options.chain[options.chain_len - 1].work_factor = wf;
+        options.chain[options.chain_len - 1].work_factor = (uint8_t)wf;
       } else {
-        options.db.work_factor = wf;
+        options.db.work_factor = (uint8_t)wf;
       }
       break;
     }

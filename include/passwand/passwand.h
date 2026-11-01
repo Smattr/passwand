@@ -29,7 +29,7 @@ typedef struct {
   size_t iv_len;
 
   // fields that do not get exported
-  unsigned work_factor;
+  uint8_t work_factor;
 
 } passwand_entry_t;
 
