@@ -14,7 +14,7 @@ char *get_text(const char *title __attribute__((unused)),
 
   static const size_t buffer_size = 4096;
   char *buffer = malloc(buffer_size);
-  if (fgets(buffer, buffer_size, stdin) == NULL) {
+  if (fgets(buffer, (int)buffer_size, stdin) == NULL) {
     free(buffer);
     return NULL;
   }

@@ -115,7 +115,7 @@ TEST("integration: basic lifecycle") {
   ASSERT_EQ(entry_len, 4ul);
 
   for (size_t i = 0; i < entry_len; i++)
-    entries[i].work_factor = work_factor;
+    entries[i].work_factor = (unsigned)work_factor;
 
   state_t st = {
       .index = 0,
