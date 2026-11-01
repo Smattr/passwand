@@ -127,9 +127,9 @@ int parse(int argc, char **argv) {
       }
       // should this apply to a chained database?
       if (options.chain_len > 0) {
-        options.chain[options.chain_len - 1].work_factor = wf;
+        options.chain[options.chain_len - 1].work_factor = (unsigned)wf;
       } else {
-        options.db.work_factor = wf;
+        options.db.work_factor = (unsigned)wf;
       }
       break;
     }
