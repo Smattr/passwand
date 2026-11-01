@@ -2,6 +2,7 @@
 #include "test.h"
 #include <passwand/passwand.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -57,7 +58,7 @@ TEST("integration: basic lifecycle") {
   size_t entry_len = 4;
   passwand_entry_t *entries = calloc(entry_len, sizeof(entries[0]));
 
-  const int work_factor = 14;
+  const uint8_t work_factor = 14;
 
   {
     const char *space = "foo.com";

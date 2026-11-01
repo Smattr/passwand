@@ -1,10 +1,11 @@
 #pragma once
 
 #include <stddef.h>
+#include <stdint.h>
 
 typedef struct {
   char *path;
-  unsigned work_factor;
+  uint8_t work_factor;
 } database_t;
 
 typedef struct {
