@@ -37,6 +37,8 @@ passwand_error_t aes_encrypt(EVP_CIPHER_CTX *ctx, const ppt_t *pp, ct_t *c) {
   // cipher_block_size - 1`
   if (SIZE_MAX - (AES_BLOCK_SIZE - 1) < pp->length)
     return PW_OVERFLOW;
+  if (pp->length > INT_MAX)
+    return PW_OVERFLOW;
   c->data = malloc(pp->length + (AES_BLOCK_SIZE - 1));
   if (c->data == NULL)
     return PW_NO_MEM;
@@ -44,7 +46,7 @@ passwand_error_t aes_encrypt(EVP_CIPHER_CTX *ctx, const ppt_t *pp, ct_t *c) {
   // argh, OpenSSL API
   int len;
 
-  if (EVP_EncryptUpdate(ctx, c->data, &len, pp->data, pp->length) != 1) {
+  if (EVP_EncryptUpdate(ctx, c->data, &len, pp->data, (int)pp->length) != 1) {
     free(c->data);
     return PW_CRYPTO;
   }
