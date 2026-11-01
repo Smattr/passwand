@@ -124,7 +124,7 @@ passwand_error_t aes_decrypt(EVP_CIPHER_CTX *ctx, const ct_t *c, ppt_t *pp) {
   }
   assert(len >= 0);
   assert((size_t)len <= c->length + AES_BLOCK_SIZE);
-  pp->length = len;
+  pp->length = (size_t)len;
 
   // Copy the internal buffer to the caller’s packed plain text struct. We do
   // this to ensure the caller’s idea of the “length” of the decrypted data
