@@ -13,7 +13,7 @@ passwand_error_t encode(const uint8_t *s, size_t len, char **e) {
   assert(s != NULL);
   assert(e != NULL);
 
-  if (len > (size_t)INT_MAX)
+  if (len > INT_MAX)
     return PW_OVERFLOW;
 
   // create a base64 filter
@@ -34,7 +34,7 @@ passwand_error_t encode(const uint8_t *s, size_t len, char **e) {
   b64 = BIO_push(b64, out);
 
   // encode the data
-  if (BIO_write(b64, s, len) != (int)len) {
+  if (BIO_write(b64, s, (int)len) != (int)len) {
     rc = PW_IO;
     goto done;
   }
@@ -89,22 +89,26 @@ passwand_error_t decode(const char *s, uint8_t **d, size_t *len) {
 
   // Figure out how much space we need to decode. Note that this
   // overestimates.
-  long sz = BIO_get_mem_data(b64, &(BUF_MEM *){0});
-  *d = malloc(sz);
+  const long sz = BIO_get_mem_data(b64, &(BUF_MEM *){0});
+  if (sz < 0 || sz > INT_MAX) {
+    rc = PW_NO_MEM;
+    goto done;
+  }
+  *d = malloc((size_t)sz);
   if (*d == NULL) {
     rc = PW_NO_MEM;
     goto done;
   }
 
   // do the actual decoding
-  int read = BIO_read(b64, *d, sz);
+  const int read = BIO_read(b64, *d, (int)sz);
 
   assert((long)read <= sz);
   if (read < 0) {
     rc = PW_IO;
     goto done;
   }
-  *len = read;
+  *len = (size_t)read;
 
 done:
   if (rc != PW_OK) {

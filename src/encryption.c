@@ -37,6 +37,8 @@ passwand_error_t aes_encrypt(EVP_CIPHER_CTX *ctx, const ppt_t *pp, ct_t *c) {
   // cipher_block_size - 1`
   if (SIZE_MAX - (AES_BLOCK_SIZE - 1) < pp->length)
     return PW_OVERFLOW;
+  if (pp->length > INT_MAX)
+    return PW_OVERFLOW;
   c->data = malloc(pp->length + (AES_BLOCK_SIZE - 1));
   if (c->data == NULL)
     return PW_NO_MEM;
@@ -44,11 +46,12 @@ passwand_error_t aes_encrypt(EVP_CIPHER_CTX *ctx, const ppt_t *pp, ct_t *c) {
   // argh, OpenSSL API
   int len;
 
-  if (EVP_EncryptUpdate(ctx, c->data, &len, pp->data, pp->length) != 1) {
+  if (EVP_EncryptUpdate(ctx, c->data, &len, pp->data, (int)pp->length) != 1) {
     free(c->data);
     return PW_CRYPTO;
   }
-  c->length = len;
+  assert(len >= 0);
+  c->length = (size_t)len;
   assert(c->length <= pp->length + (AES_BLOCK_SIZE - 1));
 
   return PW_OK;
@@ -96,6 +99,10 @@ passwand_error_t aes_decrypt(EVP_CIPHER_CTX *ctx, const ct_t *c, ppt_t *pp) {
     rc = PW_OVERFLOW;
     goto done;
   }
+  if (c->length > INT_MAX) {
+    rc = PW_OVERFLOW;
+    goto done;
+  }
   buffer = passwand_secure_malloc(sizeof(*buffer));
   if (buffer == NULL) {
     rc = PW_NO_MEM;
@@ -110,13 +117,14 @@ passwand_error_t aes_decrypt(EVP_CIPHER_CTX *ctx, const ct_t *c, ppt_t *pp) {
   buffer->length = c->length + AES_BLOCK_SIZE;
 
   int len;
-  if (EVP_DecryptUpdate(ctx, buffer->data, &len, c->data, c->length) != 1) {
+  if (EVP_DecryptUpdate(ctx, buffer->data, &len, c->data, (int)c->length) !=
+      1) {
     rc = PW_CRYPTO;
     goto done;
   }
   assert(len >= 0);
   assert((size_t)len <= c->length + AES_BLOCK_SIZE);
-  pp->length = len;
+  pp->length = (size_t)len;
 
   // Copy the internal buffer to the caller’s packed plain text struct. We do
   // this to ensure the caller’s idea of the “length” of the decrypted data
