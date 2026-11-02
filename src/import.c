@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <json.h>
+#include <limits.h>
 #include <passwand/passwand.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -39,7 +40,7 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
     rc = PW_IO;
     goto done;
   }
-  size = st.st_size;
+  size = (size_t)st.st_size;
 
   p = mmap(NULL, size, PROT_READ, MAP_PRIVATE, f, 0);
   if (p == MAP_FAILED) {
@@ -49,12 +50,12 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
 
   // Read the outer list. This should be the only item in the file.
   tok = json_tokener_new();
-  if (tok == NULL) {
+  if (tok == NULL || size > INT_MAX) {
     rc = PW_NO_MEM;
     goto done;
   }
 
-  j = json_tokener_parse_ex(tok, p, size);
+  j = json_tokener_parse_ex(tok, p, (int)size);
   if (j == NULL) {
     rc = PW_BAD_JSON;
     goto done;
