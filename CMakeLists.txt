@@ -54,24 +54,3 @@ add_subdirectory(cli)
 add_subdirectory(gui)
 add_subdirectory(src)
 add_subdirectory(tests)
-
-find_program(CLANG_FORMAT
-  NAMES
-    clang-format
-    clang-format-mp-18 clang-format-18
-    clang-format-mp-17 clang-format-17
-    clang-format-mp-16 clang-format-16
-    clang-format-mp-15 clang-format-15
-    clang-format-mp-14 clang-format-14
-    clang-format-mp-13 clang-format-13
-    clang-format-mp-12 clang-format-12
-    clang-format-mp-11 clang-format-11)
-find_program(GIT git)
-find_program(XARGS xargs)
-if(CLANG_FORMAT AND GIT AND XARGS)
-  add_custom_target(format
-    COMMAND ${GIT} ls-files -z '**/*.c' '**/*.h' |
-      ${XARGS} -0 -- ${CLANG_FORMAT} -i --style=file
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "clang-formatting sources")
-endif()
