@@ -261,13 +261,11 @@ int main(int argc, char **argv) {
   assert(mainpass != NULL);
 
   // lock database that we are about to access
-  if (access(options.db.path, R_OK) == 0) {
-    int fd = open(options.db.path, O_RDONLY);
-    if (fd < 0)
-      DIE("failed to open database");
-    if (flock(fd, LOCK_EX | LOCK_NB) != 0)
-      DIE("failed to lock database: %s", strerror(errno));
-  }
+  const int fd = open(options.db.path, O_RDONLY);
+  if (fd < 0)
+    DIE("failed to lock database: %s", strerror(errno));
+  if (flock(fd, LOCK_EX | LOCK_NB) != 0)
+    DIE("failed to lock database: %s", strerror(errno));
 
   // import the database
   passwand_error_t err = passwand_import(options.db.path, &entries, &entry_len);
