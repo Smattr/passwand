@@ -324,17 +324,14 @@ int main(int argc, char **argv) {
   for (size_t i = 0; i < options.chain_len; ++i) {
 
     // lock database that we are about to access
-    int fd = -1;
-    if (access(options.chain[i].path, R_OK) == 0) {
-      fd = open(options.chain[i].path, O_RDONLY);
-      if (fd < 0) {
-        eprint("failed to open database\n");
-        goto done;
-      }
-      if (flock(fd, LOCK_SH | LOCK_NB) != 0) {
-        eprint("failed to lock database: %s\n", strerror(errno));
-        goto done;
-      }
+    const int fd = open(options.chain[i].path, O_RDONLY);
+    if (fd < 0) {
+      eprint("failed to open database\n");
+      goto done;
+    }
+    if (flock(fd, LOCK_SH | LOCK_NB) != 0) {
+      eprint("failed to lock database: %s\n", strerror(errno));
+      goto done;
     }
 
     // import the database
