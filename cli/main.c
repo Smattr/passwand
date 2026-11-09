@@ -324,23 +324,19 @@ int main(int argc, char **argv) {
   for (size_t i = 0; i < options.chain_len; ++i) {
 
     // lock database that we are about to access
-    int fd = -1;
-    if (access(options.chain[i].path, R_OK) == 0) {
-      fd = open(options.chain[i].path, O_RDONLY);
-      if (fd < 0) {
-        eprint("failed to open database\n");
-        goto done;
-      }
-      if (flock(fd, LOCK_SH | LOCK_NB) != 0) {
-        eprint("failed to lock database: %s\n", strerror(errno));
-        goto done;
-      }
+    const int fd = open(options.chain[i].path, O_RDONLY);
+    if (fd < 0) {
+      eprint("failed to open database\n");
+      goto done;
+    }
+    if (flock(fd, LOCK_SH | LOCK_NB) != 0) {
+      eprint("failed to lock database: %s\n", strerror(errno));
+      goto done;
     }
 
     // import the database
     {
-      passwand_error_t err =
-          passwand_import(options.chain[i].path, &entries, &entry_len);
+      passwand_error_t err = passwand_import_fd(fd, &entries, &entry_len);
       if (err != PW_OK) {
         eprint("failed to import database: %s\n", passwand_error(err));
         goto done;
@@ -396,19 +392,19 @@ int main(int argc, char **argv) {
   }
 
   // take a lock on the database if it exists
-  if (access(options.db.path, R_OK) == 0) {
-    int fd = open(options.db.path, O_RDONLY);
-    if (fd >= 0) {
-      if (flock(fd, command->access | LOCK_NB) != 0) {
-        eprint("failed to lock database: %s\n", strerror(errno));
-        goto done;
-      }
+  const int fd = open(options.db.path, O_RDONLY);
+  if (fd >= 0) {
+    if (flock(fd, command->access | LOCK_NB) != 0) {
+      eprint("failed to lock database: %s\n", strerror(errno));
+      goto done;
     }
+  } else if (errno != ENOENT) {
+    eprint("failed to lock database: %s\n", strerror(errno));
+    goto done;
   }
 
-  if (access(options.db.path, F_OK) == 0) {
-    passwand_error_t err =
-        passwand_import(options.db.path, &entries, &entry_len);
+  if (fd >= 0) {
+    passwand_error_t err = passwand_import_fd(fd, &entries, &entry_len);
     if (err != PW_OK) {
       eprint("failed to load database: %s\n", passwand_error(err));
       goto done;

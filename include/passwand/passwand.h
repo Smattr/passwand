@@ -143,6 +143,16 @@ passwand_error_t passwand_export(const char *path, passwand_entry_t *entries,
 passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
                                  size_t *entry_len);
 
+/** Import a list of password entries from a file descriptor.
+ *
+ * @param fd File descriptor to import from
+ * @param entries Output argument that will be set to the array of entries read
+ * @param entry_len Output argument for the size of entries
+ * @return PW_OK on success
+ */
+passwand_error_t passwand_import_fd(int fd, passwand_entry_t **entries,
+                                    size_t *entry_len);
+
 /** Allocate some secure memory.
  *
  * This function works similarly to malloc, but the backing memory is in a

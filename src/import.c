@@ -14,13 +14,35 @@
 
 passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
                                  size_t *entry_len) {
-
   assert(path != NULL);
   assert(entries != NULL);
   assert(entry_len != NULL);
 
-  passwand_error_t rc = PW_OK;
   int f = -1;
+  passwand_error_t rc = PW_OK;
+
+  f = open(path, O_RDONLY | O_CLOEXEC);
+  if (f == -1) {
+    rc = PW_IO;
+    goto done;
+  }
+
+  rc = passwand_import_fd(f, entries, entry_len);
+
+done:
+  if (f != -1)
+    (void)close(f);
+
+  return rc;
+}
+
+passwand_error_t passwand_import_fd(int fd, passwand_entry_t **entries,
+                                    size_t *entry_len) {
+  assert(fd >= 0);
+  assert(entries != NULL);
+  assert(entry_len != NULL);
+
+  passwand_error_t rc = PW_OK;
   void *p = MAP_FAILED;
   size_t size = 0;
   json_tokener *tok = NULL;
@@ -29,20 +51,14 @@ passwand_error_t passwand_import(const char *path, passwand_entry_t **entries,
   size_t ent_len = 0;
 
   // mmap the input so JSON-C can stream it
-  f = open(path, O_RDONLY | O_CLOEXEC);
-  if (f == -1) {
-    rc = PW_IO;
-    goto done;
-  }
-
   struct stat st;
-  if (fstat(f, &st) != 0) {
+  if (fstat(fd, &st) != 0) {
     rc = PW_IO;
     goto done;
   }
   size = (size_t)st.st_size;
 
-  p = mmap(NULL, size, PROT_READ, MAP_PRIVATE, f, 0);
+  p = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
   if (p == MAP_FAILED) {
     rc = PW_IO;
     goto done;
@@ -140,8 +156,6 @@ done:
     json_tokener_free(tok);
   if (p != MAP_FAILED)
     (void)munmap(p, size);
-  if (f != -1)
-    (void)close(f);
 
   return rc;
 }
