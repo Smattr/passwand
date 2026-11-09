@@ -224,8 +224,7 @@ int main(int argc, char **argv) {
 
     // import the database
     {
-      passwand_error_t err =
-          passwand_import(options.chain[i].path, &entries, &entry_len);
+      passwand_error_t err = passwand_import_fd(fd, &entries, &entry_len);
       if (err != PW_OK)
         DIE("failed to import database: %s", passwand_error(err));
     }
@@ -268,7 +267,7 @@ int main(int argc, char **argv) {
     DIE("failed to lock database: %s", strerror(errno));
 
   // import the database
-  passwand_error_t err = passwand_import(options.db.path, &entries, &entry_len);
+  passwand_error_t err = passwand_import_fd(fd, &entries, &entry_len);
   if (err != PW_OK)
     DIE("failed to import database: %s", passwand_error(err));
 
