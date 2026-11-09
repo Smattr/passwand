@@ -106,8 +106,8 @@ passwand_error_t passwand_export(const char *path, passwand_entry_t *entries,
   const char *json = json_object_to_json_string_ext(j, JSON_C_TO_STRING_PLAIN);
   size_t len = strlen(json);
   ssize_t written = write(fd, json, len);
-  (void)close(fd);
-  if (written < 0 || (size_t)written != len) {
+  const int close_res = close(fd);
+  if (written < 0 || (size_t)written != len || close_res < 0) {
     (void)unlink(tmp);
     rc = PW_IO;
     goto done;
